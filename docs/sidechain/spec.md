@@ -23,49 +23,34 @@ chains, and change bridge parameters.
 The next sections describe the witness server, how to set-up a bridge, error
 handling, and trust assumptions.
 
-Finally, a low-level description of the new ledger objects and transactions are
+A low-level description of the new ledger objects and transactions are then
 presented as a reference.
+
+Finally, a security analysis is done, with information on error handling and
+trust assumptions.
 
 ## Nomenclature
 
-Cross-chain transfer: A transaction that moves assets from the locking-chain to
+* Cross-chain transfer: A transaction that moves assets from the locking-chain to
 the issuing-chain, or returns those assets from the issuing-chain back to the
 locking-chain.
-
-Claim ID: A ledger object used to prove ownership of the funds moved in a
+* Claim ID: A ledger object used to prove ownership of the funds moved in a
 cross-chain transfer.
-
-Account-create ordering number: A counter on the door accounts used to order the
+* Account-create ordering number: A counter on the door accounts used to order the
 account create transactions.
-
-Door accounts: The account on the locking-chain that is used to put assets into
-trust, or the account on the sidechain used to issue wrapped assets. The name
-comes from the idea that a door is used to move from one room to another and a
-door account is used to move assets from one chain to another.
-
-Locking-chain: Where the assets originate and are put into trust.
-
-Issuing-chain: Where the assets from the locking-chain are wrapped.
-
-Witness server: A server that listens for transactions on one or both of the
+* Door accounts: The account on the locking-chain that is used to put assets into
+trust, or the account on the issuing chain used to issue wrapped assets. The
+name comes from the idea that a door is used to move from one room to another
+and a door account is used to move assets from one chain to another.
+* Locking-chain: Where the assets originate and are put into trust.
+* Issuing-chain: Where the assets from the locking-chain are wrapped.
+* Witness server: A server that listens for transactions on one or both of the
 chains and signs attestations used to prove that certain events happened on a
 chain.
-
-## List of new transactions
-
-XChainCreateBridge
-XChainCreateClaimID
-XChainCommit
-XChainClaim
-XChainCreateAccountCommit
-XChainAddAttestation
-XChainModifyBridge
-
-## List of new ledger objects
-
-Bridge
-XChainClaimID
-XChainCreateAccountClaimState
+* Source chain: The chain that a cross-chain transfer begins from. The transfer
+is _from_ the source chain and _to_ the destination chain.
+* Destination chain: The chain that a cross-chain transfer ends at. The transfer
+is _from_ the source chain and _to_ the destination chain.
 
 ## Cross-chain transfers overview
 
@@ -95,83 +80,50 @@ assets on the issuing-chain. These accounts will have their master keys disabled
 and funds will move from these accounts through a new set of transactions
 specifically meant for cross-chain transfers. A special set of "witness servers"
 are used to prove that assets were put into trust on the locking-chain or
-returned on the issuing-chain. A new ledger object called a "xchain claim id" is
+returned on the issuing-chain. A new ledger object called a "xchain claim ID" is
 used to prevent transaction replay.
 
 A source chain is the chain where the cross-chain transfer starts - by either
 putting assets into trust on the locking-chain or returning wrapped assets on
-the issuing-chain. The steps for moving funds from a source chain to a
-destination chain are:
+the issuing-chain. A high-level overview of a cross-chain transfer:
 
-1) On the destination chain, an account submits a transaction that adds a ledger
-   object called a "xchain claim id" that will be used to identify the
-   initiating transaction and prevent the initiating transaction from being
-   claimed on the destination chain more than once. This transaction will
-   include a signature reward amount, in XRP. Rewards amounts much match the
-   amount specified by the sidechain ledger object, and the reward amount will
-   be deducted from the account's balance and held on this ledger object.
-   Collecting rewards is discussed below. The door account will keep a new
-   ledger object - a "bridge". This "bridge" ledger object will keep a counter
-   that is used for these "xchain claim ids". A "xchain claim id" will be
-   checked out from this counter and the counter will be incremented. Once
-   checked out, the claim id would be owned by the account that submitted the
-   transaction. See the section below for what fields are present in the new
-   "bridge" ledger object and "xchain claim id" ledger object. The actual number
-   must be retrieved from the transaction metadata on a validated ledger.
-   
-2) On the source chain, an initiating transaction is sent from a source account.
-   This transaction will include the amount to transfer, bridge spec, "xchain
-   claim id" from step (1), and an optional destination account on the
-   destination chain. The asset being transferred cross-chain will be
-   transferred from the source account to the door account.
-   
-3) When a witness server sees a new cross-chain transaction, it submits a
-   transaction on the destination chain that adds a signature attesting to the
-   cross-chain transaction. This will include the amount being transferred
-   cross-chain, the account to send the signature reward to on the destination
-   chain, the bridge spec, the sending account, and the optional destination
-   account. These signatures will be accumulated on the "xchain claim id" object
-   on the destination chain. The keys used in these signatures must match the
-   keys on the multi-signers list on the door account.
+1) The user claims a cross-chain claim ID on the destination chain.
 
-4) When a quorum of signatures have been collected, the cross-chain funds can be
-   claimed on the destination chain. If a destination account was specified in
-   the initialting transaction on the source chain, the funds will move when the
-   transaction that adds the last required witness signature is executed (the
-   signature that made the quorum). On success, the "chain claim id" object is
-   removed and the signature rewards are paid (see step 6). If there is an error
-   (for example, the destination has deposit auth set) or the optional
-   destination account was not specified, a "cross-chain claim" transaction must
-   be used. Note, if the signers list on the door account changes while the
-   signatures are collected, the signers list at the time the quorum is reached
-   is controlling. When the quorum is reach, the signing keys will be checked
-   against the current signers list, and if a collected signature's key is no
-   longer on that list it is removed and signatures will continue to be
-   collected.
-   
-5) On the destination chain, the the owner of the "xchain claim id" (see 1) can
-   submit a "cross chain claim" transaction that includes the chain sequence
-   number", the bridge spec, and a destination. The "cross "xchain claim id"
-   object must exist and must have already collected enough signatures from the
-   witness servers for this to succeed. On success, a payment is made from the
-   door account to the specified destination, signature rewards are distributed
-   (see step 6), and the "xchain claim id" is deleted. A "cross chain claim"
-   transaction can only succeed once, as the "xchain claim id" for that
-   transaction can only be created once. In case of error, the funds can be sent
-   to an alternate account and eventually returned to the initiating account.
-   Note that this transaction is only used if the optional destination account
-   is not specified in step (2) or there is an error when sending funds to that
-   destination account.
-   
-6) When funds are successfully claimed on the destination chain, the reward pool
-   is distrubuted to the signature providers. The rewards will be transferred to
-   the destination addresses specified in the messages the witnesses sign. These
-   accounts are on the destination chain. (Note: the witness servers specify
-   where the rewards for its signature goes, this is not specified on the
-   sidechain ledger object).
-   
-The cross-chain transfer is now complete. Note that the transactions sent by the
-witness servers that add their signatures may send signatures in a batch.
+2) The user submits a cross-chain transfer transaction on the source chain,
+attaching the claimed cross-chain claim ID and including a reward amount for
+the witness servers. This locks or burns the asset on the source chain.
+
+3) The witness server signs an attestation saying that the funds were locked
+or burned on the source chain. This is then submitted as a transaction on the
+destination chain. The list of trusted public keys is kept on the signer list
+set on the door account.
+
+4) When there is a quorum of witness attestations, the funds can be claimed on
+the destination chain. If a destination account is specified in the initial
+transfer, then the funds automatically transfer when quorum is reached.
+
+5) Otherwise, the user can submit a claim transaction for the transferred value
+on the destination chain. 
+
+6) Once the funds have been claimed on the destination chain, the rewards are
+distributed on the destination chain to the accounts specified in the
+attestation transactions.
+
+## List of new transactions
+
+* XChainCreateBridge
+* XChainCreateClaimID
+* XChainCommit
+* XChainClaim
+* XChainCreateAccountCommit
+* XChainAddAttestation
+* XChainModifyBridge
+
+## List of new ledger objects
+
+* Bridge
+* XChainClaimID
+* XChainCreateAccountClaimState
 
 ## Supporting transactions overview
 
@@ -180,7 +132,7 @@ above), there are new transactions for creating a bridge, changing bridge
 parameters, and for using a cross-chain transfer to create a new account on the
 destination chain.
 
-The `XChainCreateBridge` transaction adds a "bridge" ledger object to the
+The `XChainCreateBridge` transaction adds a `Bridge` ledger object to the
 account. This contains the two door accounts (one of which must be the same as
 the sender of this transaction), the asset type that will be put into trust on
 the locking-chain, the wrapped asset type on the sidechain, and the reward pool
@@ -194,7 +146,7 @@ adding this ledger object means the bridge-specific transactions sent from other
 accounts may move funds from this account.
 
 A cross-chain transfer, as described in the section above, requires an account
-on the destination chain to checkout a ""chain claim id"". This makes it
+on the destination chain to checkout a `XChainClaimID` ledger object. This makes it
 difficult to create new accounts using cross-chain transfers. A dedicated
 transaction is used to create accounts: `XChainCreateAccountCommit`. This
 specifies information similar to the `XChainCommit` transaction, but the
@@ -224,6 +176,82 @@ creation amounts and the reward amounts. Note: if the reward amount changes
 between the time a transaction is initiated the time the reward is collected,
 the old amount is used (as that is the amount the source account paid).
 
+The (more detailed) steps for moving funds from a source chain to a
+destination chain are:
+
+1) On the destination chain, an account submits a transaction that adds a
+   `XChainClaimID` ledger object that will be used to identify the
+   initiating transaction and prevent the initiating transaction from being
+   claimed on the destination chain more than once. This transaction will
+   include a signature reward amount, in XRP. Rewards amounts must match the
+   amount specified by the `Bridge` ledger object, and the reward amount will
+   be deducted from the account's balance and held on this ledger object.
+   Collecting rewards is discussed below. The door account will have already
+   kept a new ledger object - a "bridge". This `Bridge` ledger object will keep
+   a counter that is used for the `XChainClaimID`s. A `XChainClaimID` will be
+   checked out from this counter and the counter will be incremented. Once
+   checked out, the claim ID would be owned by the account that submitted the
+   transaction. See the section below for what fields are present in the new
+   "bridge" ledger object and `XChainClaimID` ledger object. The actual number
+   must be retrieved from the transaction metadata on a validated ledger, or
+   from an `account_objects` RPC call.
+   
+2) On the source chain, an initiating transaction is sent from a source account.
+   This transaction will include the amount to transfer, bridge spec, 
+   `XChainClaimID` from step (1), and an optional destination account on the
+   destination chain. The asset being transferred cross-chain will be
+   transferred from the source account to the door account.
+   
+3) When a witness server sees a new cross-chain transaction, it (or a separate
+   account on its behalf) submits a transaction on the destination chain that
+   adds a signature attesting to the cross-chain transaction. This will include
+   the amount being transferred cross-chain, the account to send the signature
+   reward to on the destination chain, the bridge spec, the sending account,
+   and the optional destination account. These signatures will be accumulated
+   on the `XChainClaimID` object on the destination chain. The keys used in
+   these signatures must match the keys on the multi-signers list on the door
+   account.
+
+4) When a quorum of signatures have been collected, the cross-chain funds can be
+   claimed on the destination chain. If a destination account was specified in
+   the initiating transaction on the source chain, the funds will move when the
+   transaction that adds the last required witness signature is executed (the
+   signature that made the quorum). On success, the `XChainClaimID` object is
+   removed and the signature rewards are paid (see step 6). If there is an error
+   (for example, the destination has deposit auth set) or the optional
+   destination account was not specified, a `XChainClaim` transaction must
+   be used. 
+   
+   Note: if the signers list on the door account changes while the
+   signatures are collected, the signers list at the time the quorum is reached
+   is controlling. When the quorum is reach, the signing keys will be checked
+   against the current signers list, and if a collected signature's key is no
+   longer on that list it is removed and signatures will continue to be
+   collected.
+   
+5) On the destination chain, the the owner of the `XChainClaimID` (see 1) can
+   submit a `XChainClaim` transaction that includes the `XChainClaimID`, the 
+   bridge spec, and a destination. The `XChainClaimID` object must exist _and_
+   must have already collected enough signatures from the witness servers for
+   this to succeed. On success, a payment is made from the door account to the
+   specified destination account, signature rewards are distributed (see step
+   6), and the `XChainClaimID` ledger object is deleted. A `XChainClaim`
+   transaction can only succeed once, as the `XChainClaimID` for that
+   transaction can only be created once. In case of error, the funds can be sent
+   to an alternate account and eventually returned to the initiating account.
+   Note that this transaction is only used if the optional destination account
+   is not specified in step (2) or there is an error when sending funds to that
+   destination account.
+   
+6) When funds are successfully claimed on the destination chain, the reward pool
+   is distrubuted to the signature providers. The rewards will be transferred to
+   the destination addresses specified in the messages the witnesses sign. These
+   accounts are on the destination chain. (Note: the witness servers specify
+   where the rewards for its signature goes, this is not specified on the
+   sidechain ledger object).
+   
+The cross-chain transfer is now complete. Note that the transactions sent by the
+witness servers that add their signatures may send signatures in a batch.
 
 ## Witness Server
 
@@ -317,289 +345,6 @@ accounts" for the attestations that provided the quorum of signatures on the
 destination chain that unlocked the claim. If the reward amount is not evenly
 dividable among the signers, the remainder is kept by the door account. If a
 reward is undeliverable to a reward account, it is kept by the door account.
-
-## Preventing Transaction Replay
-
-Normally, account sequence numbers prevent transaction replay in the XRP ledger.
-However, this bridge design allows moving funds from an account from
-transactions not sent by that account. All the information to replay these
-transactions are publicly available. This section describes how the different
-transaction prevent certain attacks - including transaction replay attacks.
-
-To successfully run a `XChainClaim` transaction, the account sending the
-transaction must own the `XChainClaimID` ledger object referenced in the witness
-server's attestation. Since this claim id is destroyed when the funds are
-successfully moved, the transaction cannot be replayed.
-
-To successfully create an account with the `XChainCreateAccountCommit`
-transaction, the ordering number must match the current order number on the
-sidechain ledger object. After the transaction runs, the order number on the
-sidechain ledger object is incremented. Since this number is incremented, the
-transaction can not be replayed since the order number in the transaction will
-never match again.
-
-Since the `XChainCommit` can contain an optional destination account
-on the destination chain, and the funds will move when the destination chain
-collects enough signatures, one attack would be for an account to watch for a
-`XChainCommit` to be sent and then send their own
-`XChainCommit` for a smaller amount. This attack doesn't steal funds,
-but it does result in the original sender losing their funds. To prevent this,
-when a `XChainClaimID` is created on the destination chain, the account that
-will send the `XChainCommit` on the source chain must be specified.
-Only the witnesses from this transaction will be accepted on the
-`XChainClaimID`.
-
-## Error Handling
-
-Error handling cross-chain transfers is straight forward. The "xchain claim id"
-is only destroyed when a claim succeeds. If it fails for any reason - for
-example the destination account doesn't exist or has deposit auth set - then an
-explicit `XChainClaim` transaction may be submitted to redirect the funds.
-
-If a cross-chain account create fails, recovering the funds are outside the
-rules of the sidechain system. Assume the funds are lost (the only way to
-recover them would be if the witness servers created a transaction themselves.
-But this is unlikely to happen and should not be relied upon.) The "Minimum
-account create" amount is meant to prevent these transactions from failing. 
-
-If the signature reward cannot be delivered to the specified account, that portion
-of the signature reward is kept by the door account.
-
-## Trust Assumptions
-
-The witness servers are trusted, and if a quorum of them collude they can steal
-funds from the door account.
-
-## Ledger Objects
-
-### STBridge
-
-Many of the ledger objects and transactions contain a `STBridge` object. These
-are the parameters that define a bridge. It contains the following fields:
-
-* lockingChainDoor: `AccountID` of the door account on the locking-chain. This account
-  will hold assets in trust while they are used on the sidechain.
-    
-* lockingChainIssue: `Issue` of the asset put into trust on the locking-chain.
-
-* issuingChainDoor: `AccountID` of the door account on the sidechain. This account
-  will issue wrapped assets representing assets put into trust on the locking-chain.
-    
-* issuingChainIssue: `Issue` of the asset used to represent from the locking-chain.
-
-Note: `lockingChainDoor` and `issuingChainDoor` must be distinct accounts. This is done
-    to help prevent transaction replay attacks.
-
-Note: `lockingChainIssue` and `issuingChainIssue` must both XRP or both be IOUs. This is
-    done because the exchange rate is fixed at 1:1, and IOUs and XRP have a
-    different numeric range and precision. This requirement may be relaxed in
-    the future.
-
-
-A snippet of the data for C++ class for an `STBridge` is:
-
-```c++
-class STBridge final : public STBase
-{
-    AccountID lockingChainDoor_{};
-    Issue lockingChainIssue_{};
-    AccountID issuingChainDoor_{};
-    Issue issuingChainIssue_{};
-}
-```
-
-### Bridge
-
-The bridge ledger object is owned by the door account and defines the bridge
-parameters. Note, the signatures used to attest to chain events are on the door
-account, not on this ledger object. It is created with a `XChainCreateBridge`
-transaction, modified with a `XChainModifyBridge` transaction (only the
-`MinAccountCreateAmount` and `SignaturesReward` may be changed). It can not be
-deleted.
-
-#### Fields
-
-The ledger object contains the following fields:
-
-* Account: The account that owns this object. The door account. Required.
-
-* Balance: If positive, the funds in held in trust on this door account. If
-  negative, the wrapped funds issued from this door account. Required.
-
-* SignaturesReward: Total amount, in XRP, to be rewarded for providing a
-  signatures for a cross-chain transfer or for signing for the cross-chain
-  reward. This will be split among the signers. Required.
-
-* MinAccountCreateAmount: Minimum Amount, in XRP, required for an
-  `XChainCreateAccountCommit` transaction. If this is not present, the
-  `XChainCreateAccountCommit` will fail. May only be present on XRP to XRP
-  sidechains. Optional.
-
-* Bridge: Door accounts and assets. See `STBridge` above. Required.
-
-* XChainClaimID: A counter used to assign unique "chain claim id"s
-  in the `XChainCreateClaimID` transaction. Required.
-  
-* XChainAccountCreateCount: A counter used to order the execution of account
-  create transactions. It is incremented every time a successful
-  `XChainAccountCreate` transaction is run for the source chain.
-
-* XChainAccountClaimCount: A counter used to order the execution of account
-  create transactions. It is incremented every time an `XChainAccountCreate`
-  transaction is "claimed" on the destination chain. When the "claim"
-  transaction is run on the destination chain, the `XChainAccountClaimCount`
-  must match the value that the `XChainAccountCreateCount` had at the time the
-  `XChainAccountClaimCount` was run on the source chain. This orders the claims
-  to run in the same order that the `XChainAccountCreate` transactions ran on
-  the source chain and prevents transaction replay.
-
-The c++ code for this ledger object format is:
-```c++
-    add(jss::Bridge,
-        ltBRIDGE,
-        {
-            {sfAccount,                soeREQUIRED},
-            {sfBalance,                soeREQUIRED},
-            {sfSignaturesReward,       soeREQUIRED},
-            {sfMinAccountCreateAmount, soeOPTIONAL},
-            {sfBridge,              soeREQUIRED},
-            {sfXChainClaimID,         soeREQUIRED},
-            {sfXChainAccountCreateCount, soeREQUIRED},
-            {sfXChainAccountClaimCount, soeREQUIRED},
-            {sfOwnerNode,              soeREQUIRED},
-            {sfPreviousTxnID,          soeREQUIRED},
-            {sfPreviousTxnLgrSeq,      soeREQUIRED}
-        },
-        commonFields);
-```
-
-#### Ledger ID
-
-The ledger id is a hash of a unique prefix for sidechain object, and the fields
-in `STBridge`. The C++ code for this is:
-
-```c++
-Keylet
-bridge(STBridge const& bridge)
-{
-    return {
-        ltBRIDGE,
-        indexHash(
-            LedgerNameSpace::BRIDGE,
-            bridge.lockingChainDoor(),
-            bridge.lockingChainIssue(),
-            bridge.issuingChainDoor(),
-            bridge.issuingChainIssue())};
-}
-```
-
-### XChainClaimID
-
-The "chain claim id" ledger object must be acquired on the destination before
-submitting a `XChainCreateClaimID` on the source chain. A `XChainCreateClaimID`
-transaction is used for this. Its purpose is to prevent transaction replay
-attacks and is also used as a place to collect attestations from witness
-servers. It is destroyed when the funds are successfully claimed on the
-destination chain.
-
-#### Fields
-
-* Account: The account that owns this object. Required.
-
-* Bridge: Door accounts and assets. See `STBridge` above. Required.
-
-* XChainClaimID: Integer unique sequence number for a cross-chain transfer.
-  Required.
-
-* SourceAccount: Account that must send the `XChainCommit` on the
-  other chain. Since the destination may be specified in the
-  `XChainCommit` transaction, if the `SourceAccount` wasn't specified
-  another account to try to specify a different destination and steal the funds.
-  This also allows tracking only a single set of signatures, since we know which
-  account will send the `XChainCommit` transaction. Required.
-
-* Signatures: Signatures collected from the witness servers. This includes the
-  parameters needed to recreate the message that was signed, including the
-  amount, optional destination, and reward account for that signature. Required.
-
-* SignatureRewardsBalance: Amount of XRP currently locked for rewarding signers.
-  This is paid by the account that creates this object. It must match the value
-  on the bridge ledger object at the time of creation. If the value changes on
-  the bridge ledger object, the value at the time of creation is still used as
-  the reward. Required.
-
-The c++ code for this ledger object format is:
-```c++
-    add(jss::XChainClaimID,
-        ltCROSSCHAIN_SEQUENCE_NUMBER,
-        {
-            {sfAccount,              soeREQUIRED},
-            {sfBridge,            soeREQUIRED},
-            {sfXChainClaimID,       soeREQUIRED},
-            {sfSourceAccount,        soeREQUIRED},
-            {sfSignatures,           soeREQUIRED},
-            {sfSignaturesRewardBalance,soeREQUIRED},
-            {sfOwnerNode,            soeREQUIRED},
-            {sfPreviousTxnID,        soeREQUIRED},
-            {sfPreviousTxnLgrSeq,    soeREQUIRED}
-        },
-        commonFields);
-```
-#### Ledger ID
-
-The ledger id is a hash of a unique prefix for "chain claim id"s, the
-sequence number, and the fields in `STBridge`. The C++ code for this is:
-
-```c++
-Keylet
-xChainSeqNum(STBridge const& bridge, std::uint32_t seq)
-{
-    return {
-        ltCROSSCHAIN_SEQUENCE_NUMBER,
-        indexHash(
-            LedgerNameSpace::XCHAIN_SEQ,
-            bridge.lockingChainDoor(),
-            bridge.lockingChainIssue(),
-            bridge.issuingChainDoor(),
-            bridge.issuingChainIssue(),
-            seq)};
-}
-
-```
-
-### XChainCreateAccountClaimState
-
-This ledger object is used to collect signatures for creating an account using a
-cross-chain transfer. It is created when an `XChainAddAttestation` transaction
-adds a signature attesting to a `XChainAccountCreate` transaction and the
-"account create ordering number" is greater than or equal to the current
-`XChainAccountClaimCount` on the sidechain ledger object.
-
-#### Fields
-
-* Account: Owner of this object. The door account. Required.
-
-* Bridge: Door accounts and assets. See `STBridge` above. Required.
-
-* TxnID: The transaction ID of the initiating transaction on the other chain.
-
-* Amount: Amount, in XRP, to be used for account creation.
-
-* Signatures: Signatures collected from the witness servers. This includes the
-  parameters needed to recreate the message that was signed, including the
-  amount, destination, signature reward amount, and reward account for that
-  signature. With the exception of the reward account, all signature must sign
-  the message created with common parameters.
-  
-* Order: An integer that determines the order that accounts created through cross-chain
-transfers must be performed. Smaller numbers must execute before larger numbers.
-
-TBD: C++ code.
-
-#### LedgerID
-
-The ledger id is a hash of a unique prefix for cross-chain account create
-signatures, the sidechain, and the initiating transaction ID.
 
 ## Transactions
 
@@ -894,10 +639,294 @@ At least one of `SignaturesReward` and `MinAccountCreateAmount` must be present.
         commonFields);
 ```
 
+## Ledger Objects
+
+### STBridge
+
+Many of the ledger objects and transactions contain a `STBridge` object. These
+are the parameters that define a bridge. It contains the following fields:
+
+* lockingChainDoor: `AccountID` of the door account on the locking-chain. This account
+  will hold assets in trust while they are used on the sidechain.
+    
+* lockingChainIssue: `Issue` of the asset put into trust on the locking-chain.
+
+* issuingChainDoor: `AccountID` of the door account on the sidechain. This account
+  will issue wrapped assets representing assets put into trust on the locking-chain.
+    
+* issuingChainIssue: `Issue` of the asset used to represent from the locking-chain.
+
+Note: `lockingChainDoor` and `issuingChainDoor` must be distinct accounts. This is done
+    to help prevent transaction replay attacks.
+
+Note: `lockingChainIssue` and `issuingChainIssue` must both XRP or both be IOUs. This is
+    done because the exchange rate is fixed at 1:1, and IOUs and XRP have a
+    different numeric range and precision. This requirement may be relaxed in
+    the future.
+
+
+A snippet of the data for C++ class for an `STBridge` is:
+
+```c++
+class STBridge final : public STBase
+{
+    AccountID lockingChainDoor_{};
+    Issue lockingChainIssue_{};
+    AccountID issuingChainDoor_{};
+    Issue issuingChainIssue_{};
+}
+```
+
+### Bridge
+
+The bridge ledger object is owned by the door account and defines the bridge
+parameters. Note, the signatures used to attest to chain events are on the door
+account, not on this ledger object. It is created with a `XChainCreateBridge`
+transaction, modified with a `XChainModifyBridge` transaction (only the
+`MinAccountCreateAmount` and `SignaturesReward` may be changed). It can not be
+deleted.
+
+#### Fields
+
+The ledger object contains the following fields:
+
+* Account: The account that owns this object. The door account. Required.
+
+* Balance: If positive, the funds in held in trust on this door account. If
+  negative, the wrapped funds issued from this door account. Required.
+
+* SignaturesReward: Total amount, in XRP, to be rewarded for providing a
+  signatures for a cross-chain transfer or for signing for the cross-chain
+  reward. This will be split among the signers. Required.
+
+* MinAccountCreateAmount: Minimum Amount, in XRP, required for an
+  `XChainCreateAccountCommit` transaction. If this is not present, the
+  `XChainCreateAccountCommit` will fail. May only be present on XRP to XRP
+  sidechains. Optional.
+
+* Bridge: Door accounts and assets. See `STBridge` above. Required.
+
+* XChainClaimID: A counter used to assign unique "chain claim id"s
+  in the `XChainCreateClaimID` transaction. Required.
+  
+* XChainAccountCreateCount: A counter used to order the execution of account
+  create transactions. It is incremented every time a successful
+  `XChainAccountCreate` transaction is run for the source chain.
+
+* XChainAccountClaimCount: A counter used to order the execution of account
+  create transactions. It is incremented every time an `XChainAccountCreate`
+  transaction is "claimed" on the destination chain. When the "claim"
+  transaction is run on the destination chain, the `XChainAccountClaimCount`
+  must match the value that the `XChainAccountCreateCount` had at the time the
+  `XChainAccountClaimCount` was run on the source chain. This orders the claims
+  to run in the same order that the `XChainAccountCreate` transactions ran on
+  the source chain and prevents transaction replay.
+
+The c++ code for this ledger object format is:
+```c++
+    add(jss::Bridge,
+        ltBRIDGE,
+        {
+            {sfAccount,                soeREQUIRED},
+            {sfBalance,                soeREQUIRED},
+            {sfSignaturesReward,       soeREQUIRED},
+            {sfMinAccountCreateAmount, soeOPTIONAL},
+            {sfBridge,              soeREQUIRED},
+            {sfXChainClaimID,         soeREQUIRED},
+            {sfXChainAccountCreateCount, soeREQUIRED},
+            {sfXChainAccountClaimCount, soeREQUIRED},
+            {sfOwnerNode,              soeREQUIRED},
+            {sfPreviousTxnID,          soeREQUIRED},
+            {sfPreviousTxnLgrSeq,      soeREQUIRED}
+        },
+        commonFields);
+```
+
+#### Ledger ID
+
+The ledger id is a hash of a unique prefix for sidechain object, and the fields
+in `STBridge`. The C++ code for this is:
+
+```c++
+Keylet
+bridge(STBridge const& bridge)
+{
+    return {
+        ltBRIDGE,
+        indexHash(
+            LedgerNameSpace::BRIDGE,
+            bridge.lockingChainDoor(),
+            bridge.lockingChainIssue(),
+            bridge.issuingChainDoor(),
+            bridge.issuingChainIssue())};
+}
+```
+
+### XChainClaimID
+
+The "chain claim id" ledger object must be acquired on the destination before
+submitting a `XChainCreateClaimID` on the source chain. A `XChainCreateClaimID`
+transaction is used for this. Its purpose is to prevent transaction replay
+attacks and is also used as a place to collect attestations from witness
+servers. It is destroyed when the funds are successfully claimed on the
+destination chain.
+
+#### Fields
+
+* Account: The account that owns this object. Required.
+
+* Bridge: Door accounts and assets. See `STBridge` above. Required.
+
+* XChainClaimID: Integer unique sequence number for a cross-chain transfer.
+  Required.
+
+* SourceAccount: Account that must send the `XChainCommit` on the
+  other chain. Since the destination may be specified in the
+  `XChainCommit` transaction, if the `SourceAccount` wasn't specified
+  another account to try to specify a different destination and steal the funds.
+  This also allows tracking only a single set of signatures, since we know which
+  account will send the `XChainCommit` transaction. Required.
+
+* Signatures: Signatures collected from the witness servers. This includes the
+  parameters needed to recreate the message that was signed, including the
+  amount, optional destination, and reward account for that signature. Required.
+
+* SignatureRewardsBalance: Amount of XRP currently locked for rewarding signers.
+  This is paid by the account that creates this object. It must match the value
+  on the bridge ledger object at the time of creation. If the value changes on
+  the bridge ledger object, the value at the time of creation is still used as
+  the reward. Required.
+
+The c++ code for this ledger object format is:
+```c++
+    add(jss::XChainClaimID,
+        ltCROSSCHAIN_SEQUENCE_NUMBER,
+        {
+            {sfAccount,              soeREQUIRED},
+            {sfBridge,            soeREQUIRED},
+            {sfXChainClaimID,       soeREQUIRED},
+            {sfSourceAccount,        soeREQUIRED},
+            {sfSignatures,           soeREQUIRED},
+            {sfSignaturesRewardBalance,soeREQUIRED},
+            {sfOwnerNode,            soeREQUIRED},
+            {sfPreviousTxnID,        soeREQUIRED},
+            {sfPreviousTxnLgrSeq,    soeREQUIRED}
+        },
+        commonFields);
+```
+#### Ledger ID
+
+The ledger id is a hash of a unique prefix for "chain claim id"s, the
+sequence number, and the fields in `STBridge`. The C++ code for this is:
+
+```c++
+Keylet
+xChainSeqNum(STBridge const& bridge, std::uint32_t seq)
+{
+    return {
+        ltCROSSCHAIN_SEQUENCE_NUMBER,
+        indexHash(
+            LedgerNameSpace::XCHAIN_SEQ,
+            bridge.lockingChainDoor(),
+            bridge.lockingChainIssue(),
+            bridge.issuingChainDoor(),
+            bridge.issuingChainIssue(),
+            seq)};
+}
+
+```
+
+### XChainCreateAccountClaimState
+
+This ledger object is used to collect signatures for creating an account using a
+cross-chain transfer. It is created when an `XChainAddAttestation` transaction
+adds a signature attesting to a `XChainAccountCreate` transaction and the
+"account create ordering number" is greater than or equal to the current
+`XChainAccountClaimCount` on the sidechain ledger object.
+
+#### Fields
+
+* Account: Owner of this object. The door account. Required.
+
+* Bridge: Door accounts and assets. See `STBridge` above. Required.
+
+* TxnID: The transaction ID of the initiating transaction on the other chain.
+
+* Amount: Amount, in XRP, to be used for account creation.
+
+* Signatures: Signatures collected from the witness servers. This includes the
+  parameters needed to recreate the message that was signed, including the
+  amount, destination, signature reward amount, and reward account for that
+  signature. With the exception of the reward account, all signature must sign
+  the message created with common parameters.
+  
+* Order: An integer that determines the order that accounts created through cross-chain
+transfers must be performed. Smaller numbers must execute before larger numbers.
+
+TBD: C++ code.
+
+#### LedgerID
+
+The ledger id is a hash of a unique prefix for cross-chain account create
+signatures, the sidechain, and the initiating transaction ID.
 
 ## New RPC Commands
 
 * Given a sidechain description, get the sidechain ledger object
+
+## Security
+
+### Preventing Transaction Replay
+
+Normally, account sequence numbers prevent transaction replay in the XRP ledger.
+However, this bridge design allows moving funds from an account from
+transactions not sent by that account. All the information to replay these
+transactions are publicly available. This section describes how the different
+transaction prevent certain attacks - including transaction replay attacks.
+
+To successfully run a `XChainClaim` transaction, the account sending the
+transaction must own the `XChainClaimID` ledger object referenced in the witness
+server's attestation. Since this claim id is destroyed when the funds are
+successfully moved, the transaction cannot be replayed.
+
+To successfully create an account with the `XChainCreateAccountCommit`
+transaction, the ordering number must match the current order number on the
+sidechain ledger object. After the transaction runs, the order number on the
+sidechain ledger object is incremented. Since this number is incremented, the
+transaction can not be replayed since the order number in the transaction will
+never match again.
+
+Since the `XChainCommit` can contain an optional destination account
+on the destination chain, and the funds will move when the destination chain
+collects enough signatures, one attack would be for an account to watch for a
+`XChainCommit` to be sent and then send their own
+`XChainCommit` for a smaller amount. This attack doesn't steal funds,
+but it does result in the original sender losing their funds. To prevent this,
+when a `XChainClaimID` is created on the destination chain, the account that
+will send the `XChainCommit` on the source chain must be specified.
+Only the witnesses from this transaction will be accepted on the
+`XChainClaimID`.
+
+### Error Handling
+
+Error handling cross-chain transfers is straight forward. The "xchain claim id"
+is only destroyed when a claim succeeds. If it fails for any reason - for
+example the destination account doesn't exist or has deposit auth set - then an
+explicit `XChainClaim` transaction may be submitted to redirect the funds.
+
+If a cross-chain account create fails, recovering the funds are outside the
+rules of the sidechain system. Assume the funds are lost (the only way to
+recover them would be if the witness servers created a transaction themselves.
+But this is unlikely to happen and should not be relied upon.) The "Minimum
+account create" amount is meant to prevent these transactions from failing. 
+
+If the signature reward cannot be delivered to the specified account, that portion
+of the signature reward is kept by the door account.
+
+### Trust Assumptions
+
+The witness servers are trusted, and if a quorum of them collude they can steal
+funds from the door account.
 
 ## Extensions
 
