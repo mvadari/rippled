@@ -828,7 +828,7 @@ An attestation bears witness to a particular event on the other chain. It contai
   Optional (required for `XChainCreateAccountCommit` transactions only).
 * PublicKey: Public key used to verify the signature.
 * Signature: Signature bearing witness to the event on the other chain.
-* Event type: Type of event (XChainAccountCreate, XChainTransfer, SignatureProvided)
+* Event type: Type of event (XChainAccountCreate, XChainTransfer)
 * Event data: Data needed to recreate the message signed by the witness servers.
   The data depends on event. TBD.
   
