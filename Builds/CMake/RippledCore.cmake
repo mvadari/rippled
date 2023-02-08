@@ -115,7 +115,33 @@ target_sources (xrpl_core PRIVATE
   #]===============================]
   src/ripple/crypto/impl/RFC1751.cpp
   src/ripple/crypto/impl/csprng.cpp
-  src/ripple/crypto/impl/secure_erase.cpp)
+  src/ripple/crypto/impl/secure_erase.cpp
+  #[===============================[
+    extra stuff
+  #]===============================]
+  src/ripple/ledger/impl/ApplyStateTable.cpp
+  src/ripple/ledger/impl/ApplyView.cpp
+  src/ripple/ledger/impl/ApplyViewBase.cpp
+  src/ripple/ledger/impl/ApplyViewImpl.cpp
+  src/ripple/ledger/impl/OpenView.cpp
+  src/ripple/ledger/impl/RawStateTable.cpp
+  src/ripple/ledger/impl/ReadView.cpp
+  src/ripple/ledger/impl/View.cpp
+  src/ripple/app/tx/impl/Transactor.cpp
+  src/ripple/app/tx/impl/ApplyContext.cpp
+  src/ripple/app/misc/impl/LoadFeeTrack.cpp
+  src/ripple/app/tx/impl/InvariantCheck.cpp
+  src/ripple/app/misc/HashRouter.cpp
+  src/ripple/app/tx/impl/SignerEntries.cpp
+  src/ripple/app/tx/impl/applySteps.cpp
+  #[===============================[
+     main sources:
+       subdir: conditions
+  #]===============================]
+  src/ripple/conditions/impl/Condition.cpp
+  src/ripple/conditions/impl/Fulfillment.cpp
+  src/ripple/conditions/impl/error.cpp
+)
 
 add_library (Ripple::xrpl_core ALIAS xrpl_core)
 target_include_directories (xrpl_core
@@ -378,14 +404,12 @@ target_sources (rippled PRIVATE
   src/ripple/app/reporting/P2pProxy.cpp
   src/ripple/app/misc/CanonicalTXSet.cpp
   src/ripple/app/misc/FeeVoteImpl.cpp
-  src/ripple/app/misc/HashRouter.cpp
   src/ripple/app/misc/NegativeUNLVote.cpp
   src/ripple/app/misc/NetworkOPs.cpp
   src/ripple/app/misc/SHAMapStoreImp.cpp
   src/ripple/app/misc/detail/impl/WorkSSL.cpp
   src/ripple/app/misc/impl/AccountTxPaging.cpp
   src/ripple/app/misc/impl/AmendmentTable.cpp
-  src/ripple/app/misc/impl/LoadFeeTrack.cpp
   src/ripple/app/misc/impl/Manifest.cpp
   src/ripple/app/misc/impl/Transaction.cpp
   src/ripple/app/misc/impl/TxQ.cpp
@@ -417,7 +441,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/rdb/impl/UnitaryShard.cpp
   src/ripple/app/rdb/impl/Vacuum.cpp
   src/ripple/app/rdb/impl/Wallet.cpp
-  src/ripple/app/tx/impl/ApplyContext.cpp
   src/ripple/app/tx/impl/BookTip.cpp
   src/ripple/app/tx/impl/CancelCheck.cpp
   src/ripple/app/tx/impl/CancelOffer.cpp
@@ -429,7 +452,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/DeleteAccount.cpp
   src/ripple/app/tx/impl/DepositPreauth.cpp
   src/ripple/app/tx/impl/Escrow.cpp
-  src/ripple/app/tx/impl/InvariantCheck.cpp
   src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp
   src/ripple/app/tx/impl/NFTokenBurn.cpp
   src/ripple/app/tx/impl/NFTokenCancelOffer.cpp
@@ -442,11 +464,8 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/SetRegularKey.cpp
   src/ripple/app/tx/impl/SetSignerList.cpp
   src/ripple/app/tx/impl/SetTrust.cpp
-  src/ripple/app/tx/impl/SignerEntries.cpp
   src/ripple/app/tx/impl/Taker.cpp
-  src/ripple/app/tx/impl/Transactor.cpp
   src/ripple/app/tx/impl/apply.cpp
-  src/ripple/app/tx/impl/applySteps.cpp
   src/ripple/app/tx/impl/details/NFTokenUtils.cpp
   #[===============================[
      main sources:
@@ -459,13 +478,6 @@ target_sources (rippled PRIVATE
   src/ripple/basics/impl/make_SSLContext.cpp
   src/ripple/basics/impl/mulDiv.cpp
   src/ripple/basics/impl/partitioned_unordered_map.cpp
-  #[===============================[
-     main sources:
-       subdir: conditions
-  #]===============================]
-  src/ripple/conditions/impl/Condition.cpp
-  src/ripple/conditions/impl/Fulfillment.cpp
-  src/ripple/conditions/impl/error.cpp
   #[===============================[
      main sources:
        subdir: core
@@ -490,18 +502,10 @@ target_sources (rippled PRIVATE
      main sources:
        subdir: ledger
   #]===============================]
-  src/ripple/ledger/impl/ApplyStateTable.cpp
-  src/ripple/ledger/impl/ApplyView.cpp
-  src/ripple/ledger/impl/ApplyViewBase.cpp
-  src/ripple/ledger/impl/ApplyViewImpl.cpp
   src/ripple/ledger/impl/BookDirs.cpp
   src/ripple/ledger/impl/CachedView.cpp
   src/ripple/ledger/impl/Directory.cpp
-  src/ripple/ledger/impl/OpenView.cpp
   src/ripple/ledger/impl/PaymentSandbox.cpp
-  src/ripple/ledger/impl/RawStateTable.cpp
-  src/ripple/ledger/impl/ReadView.cpp
-  src/ripple/ledger/impl/View.cpp
   #[===============================[
      main sources:
        subdir: net
