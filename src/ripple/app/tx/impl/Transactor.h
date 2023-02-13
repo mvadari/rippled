@@ -79,7 +79,6 @@ public:
     operator=(PreclaimContext const&) = delete;
 };
 
-class TxConsequences;
 struct PreflightResult;
 
 class Transactor
