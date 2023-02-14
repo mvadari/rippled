@@ -25,58 +25,12 @@
 #include <ripple/ledger/View.h>
 #include <ripple/protocol/STTx.h>
 #include <ripple/protocol/TER.h>
+#include <ripple/app/tx/validity.h>
 #include <memory>
 #include <utility>
 
 namespace ripple {
 
-class Application;
-class HashRouter;
-
-/** Describes the pre-processing validity of a transaction.
-
-    @see checkValidity, forceValidity
-*/
-enum class Validity {
-    /// Signature is bad. Didn't do local checks.
-    SigBad,
-    /// Signature is good, but local checks fail.
-    SigGoodOnly,
-    /// Signature and local checks are good / passed.
-    Valid
-};
-
-/** Checks transaction signature and local checks.
-
-    @return A `Validity` enum representing how valid the
-        `STTx` is and, if not `Valid`, a reason string.
-
-    @note Results are cached internally, so tests will not be
-        repeated over repeated calls, unless cache expires.
-
-    @return `std::pair`, where `.first` is the status, and
-            `.second` is the reason if appropriate.
-
-    @see Validity
-*/
-std::pair<Validity, std::string>
-checkValidity(
-    HashRouter& router,
-    STTx const& tx,
-    Rules const& rules,
-    Config const& config);
-
-/** Sets the validity of a given transaction in the cache.
-
-    @warning Use with extreme care.
-
-    @note Can only raise the validity to a more valid state,
-          and can not override anything cached bad.
-
-    @see checkValidity, Validity
-*/
-void
-forceValidity(HashRouter& router, uint256 const& txid, Validity validity);
 
 /** Apply a transaction to an `OpenView`.
 

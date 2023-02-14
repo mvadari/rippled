@@ -469,6 +469,7 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/applySteps.cpp
   src/ripple/app/tx/impl/details/NFTokenUtils.cpp
   src/ripple/app/tx/impl/TxConsequences.cpp
+  src/ripple/app/tx/impl/validity.cpp
   #[===============================[
      main sources:
        subdir: basics (partial)
