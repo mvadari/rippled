@@ -134,6 +134,7 @@ target_sources (xrpl_core PRIVATE
   src/ripple/app/misc/HashRouter.cpp
   src/ripple/app/tx/impl/SignerEntries.cpp
   src/ripple/app/tx/impl/TxConsequences.cpp
+  src/ripple/app/tx/impl/validity.cpp
   #[===============================[
      main sources:
        subdir: conditions
@@ -468,8 +469,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/apply.cpp
   src/ripple/app/tx/impl/applySteps.cpp
   src/ripple/app/tx/impl/details/NFTokenUtils.cpp
-  src/ripple/app/tx/impl/TxConsequences.cpp
-  src/ripple/app/tx/impl/validity.cpp
   #[===============================[
      main sources:
        subdir: basics (partial)
