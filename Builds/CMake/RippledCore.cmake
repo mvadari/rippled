@@ -135,6 +135,8 @@ target_sources (xrpl_core PRIVATE
   src/ripple/app/tx/impl/SignerEntries.cpp
   src/ripple/app/tx/impl/TxConsequences.cpp
   src/ripple/app/tx/impl/validity.cpp
+  src/ripple/app/tx/impl/details/NFTokenUtils.cpp
+  src/ripple/ledger/impl/Directory.cpp
   #[===============================[
      main sources:
        subdir: conditions
@@ -468,7 +470,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/Taker.cpp
   src/ripple/app/tx/impl/apply.cpp
   src/ripple/app/tx/impl/applySteps.cpp
-  src/ripple/app/tx/impl/details/NFTokenUtils.cpp
   #[===============================[
      main sources:
        subdir: basics (partial)
@@ -506,7 +507,6 @@ target_sources (rippled PRIVATE
   #]===============================]
   src/ripple/ledger/impl/BookDirs.cpp
   src/ripple/ledger/impl/CachedView.cpp
-  src/ripple/ledger/impl/Directory.cpp
   src/ripple/ledger/impl/PaymentSandbox.cpp
   #[===============================[
      main sources:
