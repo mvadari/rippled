@@ -48,15 +48,25 @@ static const std::string libPath = "/Users/mvadari/Documents/plugin_transactor/c
 
 namespace ripple {
 
-typedef NotTEC (*preflight_fn_ptr)(PreflightContext const&);
-typedef TER (*preclaim_fn_ptr)(PreclaimContext const&);
+typedef NotTEC (*preflightPtr)(PreflightContext const&);
+typedef TER (*preclaimPtr)(PreclaimContext const&);
+typedef XRPAmount (*calculateBaseFeePtr)(ReadView const& view, STTx const& tx);
+typedef std::pair<TER, bool> (*applyPtr)(ApplyContext& ctx);
 
 struct TransactorWrapper {
-    preflight_fn_ptr preflight;
-    preclaim_fn_ptr preclaim;
+    preflightPtr preflight;
+    preclaimPtr preclaim;
+    calculateBaseFeePtr calculateBaseFee;
+    applyPtr apply;
 };
 
+template <class T>
+std::pair<TER, bool>
+apply_helper(ApplyContext& ctx)
 {
+    T p(ctx);
+    return p();
+}
 
 template <class T>
 TransactorWrapper
@@ -65,6 +75,8 @@ transactor_helper()
     return {
         T::preflight,
         T::preclaim,
+        T::calculateBaseFee,
+        apply_helper<T>,
     };
 };
 
@@ -73,8 +85,10 @@ transactor_helper(std::string pathToLib)
 {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
     return {
-        (preflight_fn_ptr)dlsym(handle, "preflight"),
-        (preclaim_fn_ptr)dlsym(handle, "preclaim"),
+        (preflightPtr)dlsym(handle, "preflight"),
+        (preclaimPtr)dlsym(handle, "preclaim"),
+        (calculateBaseFeePtr)dlsym(handle, "calculateBaseFee"),
+        (applyPtr)dlsym(handle, "apply"),
     };
 };
 
@@ -236,177 +250,25 @@ invoke_preclaim(PreclaimContext const& ctx)
 static XRPAmount
 invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
 {
-    switch (tx.getTxnType())
+    if (auto it = transactorMap.find(tx.getTxnType()); 
+        it != transactorMap.end())
     {
-        case ttACCOUNT_DELETE:
-            return DeleteAccount::calculateBaseFee(view, tx);
-        case ttACCOUNT_SET:
-            return SetAccount::calculateBaseFee(view, tx);
-        case ttCHECK_CANCEL:
-            return CancelCheck::calculateBaseFee(view, tx);
-        case ttCHECK_CASH:
-            return CashCheck::calculateBaseFee(view, tx);
-        case ttCHECK_CREATE:
-            return CreateCheck::calculateBaseFee(view, tx);
-        case ttDEPOSIT_PREAUTH:
-            return DepositPreauth::calculateBaseFee(view, tx);
-        case ttOFFER_CANCEL:
-            return CancelOffer::calculateBaseFee(view, tx);
-        case ttOFFER_CREATE:
-            return CreateOffer::calculateBaseFee(view, tx);
-        case ttESCROW_CREATE:
-            return EscrowCreate::calculateBaseFee(view, tx);
-        case ttESCROW_FINISH:
-            return EscrowFinish::calculateBaseFee(view, tx);
-        case ttESCROW_CANCEL:
-            return EscrowCancel::calculateBaseFee(view, tx);
-        case ttPAYCHAN_CLAIM:
-            return PayChanClaim::calculateBaseFee(view, tx);
-        case ttPAYCHAN_CREATE:
-            return PayChanCreate::calculateBaseFee(view, tx);
-        case ttPAYCHAN_FUND:
-            return PayChanFund::calculateBaseFee(view, tx);
-        case ttPAYMENT:
-            return Payment::calculateBaseFee(view, tx);
-        case ttREGULAR_KEY_SET:
-            return SetRegularKey::calculateBaseFee(view, tx);
-        case ttSIGNER_LIST_SET:
-            return SetSignerList::calculateBaseFee(view, tx);
-        case ttTICKET_CREATE:
-            return CreateTicket::calculateBaseFee(view, tx);
-        case ttTRUST_SET:
-            return SetTrust::calculateBaseFee(view, tx);
-        case ttAMENDMENT:
-        case ttFEE:
-        case ttUNL_MODIFY:
-            return Change::calculateBaseFee(view, tx);
-        case ttNFTOKEN_MINT:
-            return NFTokenMint::calculateBaseFee(view, tx);
-        case ttNFTOKEN_BURN:
-            return NFTokenBurn::calculateBaseFee(view, tx);
-        case ttNFTOKEN_CREATE_OFFER:
-            return NFTokenCreateOffer::calculateBaseFee(view, tx);
-        case ttNFTOKEN_CANCEL_OFFER:
-            return NFTokenCancelOffer::calculateBaseFee(view, tx);
-        case ttNFTOKEN_ACCEPT_OFFER:
-            return NFTokenAcceptOffer::calculateBaseFee(view, tx);
-        default:
-            assert(false);
-            return XRPAmount{0};
+        return it->second.calculateBaseFee(view, tx);
     }
+    assert(false);
+    return XRPAmount{0};
 }
 
 static std::pair<TER, bool>
 invoke_apply(ApplyContext& ctx)
 {
-    switch (ctx.tx.getTxnType())
+    if (auto it = transactorMap.find(ctx.tx.getTxnType()); 
+        it != transactorMap.end())
     {
-        case ttACCOUNT_DELETE: {
-            DeleteAccount p(ctx);
-            return p();
-        }
-        case ttACCOUNT_SET: {
-            SetAccount p(ctx);
-            return p();
-        }
-        case ttCHECK_CANCEL: {
-            CancelCheck p(ctx);
-            return p();
-        }
-        case ttCHECK_CASH: {
-            CashCheck p(ctx);
-            return p();
-        }
-        case ttCHECK_CREATE: {
-            CreateCheck p(ctx);
-            return p();
-        }
-        case ttDEPOSIT_PREAUTH: {
-            DepositPreauth p(ctx);
-            return p();
-        }
-        case ttOFFER_CANCEL: {
-            CancelOffer p(ctx);
-            return p();
-        }
-        case ttOFFER_CREATE: {
-            CreateOffer p(ctx);
-            return p();
-        }
-        case ttESCROW_CREATE: {
-            EscrowCreate p(ctx);
-            return p();
-        }
-        case ttESCROW_FINISH: {
-            EscrowFinish p(ctx);
-            return p();
-        }
-        case ttESCROW_CANCEL: {
-            EscrowCancel p(ctx);
-            return p();
-        }
-        case ttPAYCHAN_CLAIM: {
-            PayChanClaim p(ctx);
-            return p();
-        }
-        case ttPAYCHAN_CREATE: {
-            PayChanCreate p(ctx);
-            return p();
-        }
-        case ttPAYCHAN_FUND: {
-            PayChanFund p(ctx);
-            return p();
-        }
-        case ttPAYMENT: {
-            Payment p(ctx);
-            return p();
-        }
-        case ttREGULAR_KEY_SET: {
-            SetRegularKey p(ctx);
-            return p();
-        }
-        case ttSIGNER_LIST_SET: {
-            SetSignerList p(ctx);
-            return p();
-        }
-        case ttTICKET_CREATE: {
-            CreateTicket p(ctx);
-            return p();
-        }
-        case ttTRUST_SET: {
-            SetTrust p(ctx);
-            return p();
-        }
-        case ttAMENDMENT:
-        case ttFEE:
-        case ttUNL_MODIFY: {
-            Change p(ctx);
-            return p();
-        }
-        case ttNFTOKEN_MINT: {
-            NFTokenMint p(ctx);
-            return p();
-        }
-        case ttNFTOKEN_BURN: {
-            NFTokenBurn p(ctx);
-            return p();
-        }
-        case ttNFTOKEN_CREATE_OFFER: {
-            NFTokenCreateOffer p(ctx);
-            return p();
-        }
-        case ttNFTOKEN_CANCEL_OFFER: {
-            NFTokenCancelOffer p(ctx);
-            return p();
-        }
-        case ttNFTOKEN_ACCEPT_OFFER: {
-            NFTokenAcceptOffer p(ctx);
-            return p();
-        }
-        default:
-            assert(false);
-            return {temUNKNOWN, false};
+        return it->second.apply(ctx);
     }
+    assert(false);
+    return {temUNKNOWN, false};
 }
 
 PreflightResult
