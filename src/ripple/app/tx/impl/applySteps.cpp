@@ -42,131 +42,94 @@
 #include <ripple/app/tx/impl/SetTrust.h>
 #include <iostream>
 #include <dlfcn.h>
+#include <map>
 
 static const std::string libPath = "/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib";
 
 namespace ripple {
 
-// Templates so preflight does the right thing with T::ConsequencesFactory.
-//
-// This could be done more easily using if constexpr, but Visual Studio
-// 2017 doesn't handle if constexpr correctly.  So once we're no longer
-// building with Visual Studio 2017 we can consider replacing the four
-// templates with a single template function that uses if constexpr.
-//
-// For Transactor::Normal
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Normal, int> = 0>
-TxConsequences
-consequences_helper(PreflightContext const& ctx)
-{
-    return TxConsequences(ctx.tx);
+typedef NotTEC (*preflight_fn_ptr)(PreflightContext const&);
+typedef TER (*preclaim_fn_ptr)(PreclaimContext const&);
+
+struct TransactorWrapper {
+    preflight_fn_ptr preflight;
+    preclaim_fn_ptr preclaim;
 };
 
-// For Transactor::Blocker
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Blocker, int> = 0>
-TxConsequences
-consequences_helper(PreflightContext const& ctx)
 {
-    return TxConsequences(ctx.tx, TxConsequences::blocker);
-};
-
-// For Transactor::Custom
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Custom, int> = 0>
-TxConsequences
-consequences_helper(PreflightContext const& ctx)
-{
-    return T::makeTxConsequences(ctx);
-};
 
 template <class T>
-std::pair<NotTEC, TxConsequences>
-invoke_preflight_helper(PreflightContext const& ctx)
+TransactorWrapper
+transactor_helper()
 {
-    auto const tec = T::preflight(ctx);
     return {
-        tec,
-        isTesSuccess(tec) ? consequences_helper<T>(ctx) : TxConsequences{tec}};
+        T::preflight,
+        T::preclaim,
+    };
+};
+
+TransactorWrapper
+transactor_helper(std::string pathToLib)
+{
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    return {
+        (preflight_fn_ptr)dlsym(handle, "preflight"),
+        (preclaim_fn_ptr)dlsym(handle, "preclaim"),
+    };
+};
+
+std::map <TxType, TransactorWrapper> transactorMap {
+    {ttACCOUNT_DELETE, transactor_helper<DeleteAccount>()},
+    {ttACCOUNT_SET, transactor_helper<SetAccount>()},
+    {ttCHECK_CANCEL, transactor_helper<CancelCheck>()},
+    {ttCHECK_CASH, transactor_helper<CashCheck>()},
+    {ttCHECK_CREATE, transactor_helper<CreateCheck>()},
+    {ttDEPOSIT_PREAUTH, transactor_helper<DepositPreauth>()},
+    {ttOFFER_CANCEL, transactor_helper<CancelOffer>()},
+    {ttOFFER_CREATE, transactor_helper<CreateOffer>()},
+    {ttESCROW_CREATE, transactor_helper<EscrowCreate>()},
+    {ttESCROW_FINISH, transactor_helper<EscrowFinish>()},
+    {ttESCROW_CANCEL, transactor_helper<EscrowCancel>()},
+    {ttPAYCHAN_CLAIM, transactor_helper<PayChanClaim>()},
+    {ttPAYCHAN_CREATE, transactor_helper<PayChanCreate>()},
+    {ttPAYCHAN_FUND, transactor_helper<PayChanFund>()},
+    {ttPAYMENT, transactor_helper<Payment>()},
+    {ttREGULAR_KEY_SET, transactor_helper<SetRegularKey>()},
+    {ttSIGNER_LIST_SET, transactor_helper<SetSignerList>()},
+    {ttTICKET_CREATE, transactor_helper<CreateTicket>()},
+    {ttTRUST_SET, transactor_helper<SetTrust>()},
+    {ttAMENDMENT, transactor_helper<Change>()},
+    {ttFEE, transactor_helper<Change>()},
+    {ttUNL_MODIFY, transactor_helper<Change>()},
+    {ttNFTOKEN_MINT, transactor_helper<NFTokenMint>()},
+    {ttNFTOKEN_BURN, transactor_helper<NFTokenBurn>()},
+    {ttNFTOKEN_CREATE_OFFER, transactor_helper<NFTokenCreateOffer>()},
+    {ttNFTOKEN_CANCEL_OFFER, transactor_helper<NFTokenCancelOffer>()},
+    {ttNFTOKEN_ACCEPT_OFFER, transactor_helper<NFTokenAcceptOffer>()},
+    {ttDUMMY_TX, transactor_helper(libPath)},
+};
+
+TxConsequences
+consequences_helper(PreflightContext const& ctx)
+{
+    // TODO: add support for Blocker and Custom TxConsequences values
+    return TxConsequences(ctx.tx);
 }
 
 static std::pair<NotTEC, TxConsequences>
 invoke_preflight(PreflightContext const& ctx)
 {
-    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
-    NotTEC (*dummyPreflight)(PreflightContext);
-    dummyPreflight = (NotTEC (*)(PreflightContext))dlsym(handle, "preflight");
-
-    switch (ctx.tx.getTxnType())
+    if (auto it = transactorMap.find(ctx.tx.getTxnType()); 
+        it != transactorMap.end())
     {
-        case ttACCOUNT_DELETE:
-            return invoke_preflight_helper<DeleteAccount>(ctx);
-        case ttACCOUNT_SET:
-            return invoke_preflight_helper<SetAccount>(ctx);
-        case ttCHECK_CANCEL:
-            return invoke_preflight_helper<CancelCheck>(ctx);
-        case ttCHECK_CASH:
-            return invoke_preflight_helper<CashCheck>(ctx);
-        case ttCHECK_CREATE:
-            return invoke_preflight_helper<CreateCheck>(ctx);
-        case ttDEPOSIT_PREAUTH:
-            return invoke_preflight_helper<DepositPreauth>(ctx);
-        case ttOFFER_CANCEL:
-            return invoke_preflight_helper<CancelOffer>(ctx);
-        case ttOFFER_CREATE:
-            return invoke_preflight_helper<CreateOffer>(ctx);
-        case ttESCROW_CREATE:
-            return invoke_preflight_helper<EscrowCreate>(ctx);
-        case ttESCROW_FINISH:
-            return invoke_preflight_helper<EscrowFinish>(ctx);
-        case ttESCROW_CANCEL:
-            return invoke_preflight_helper<EscrowCancel>(ctx);
-        case ttPAYCHAN_CLAIM:
-            return invoke_preflight_helper<PayChanClaim>(ctx);
-        case ttPAYCHAN_CREATE:
-            return invoke_preflight_helper<PayChanCreate>(ctx);
-        case ttPAYCHAN_FUND:
-            return invoke_preflight_helper<PayChanFund>(ctx);
-        case ttPAYMENT:
-            return invoke_preflight_helper<Payment>(ctx);
-        case ttREGULAR_KEY_SET:
-            return invoke_preflight_helper<SetRegularKey>(ctx);
-        case ttSIGNER_LIST_SET:
-            return invoke_preflight_helper<SetSignerList>(ctx);
-        case ttTICKET_CREATE:
-            return invoke_preflight_helper<CreateTicket>(ctx);
-        case ttTRUST_SET:
-            return invoke_preflight_helper<SetTrust>(ctx);
-        case ttAMENDMENT:
-        case ttFEE:
-        case ttUNL_MODIFY:
-            return invoke_preflight_helper<Change>(ctx);
-        case ttNFTOKEN_MINT:
-            return invoke_preflight_helper<NFTokenMint>(ctx);
-        case ttNFTOKEN_BURN:
-            return invoke_preflight_helper<NFTokenBurn>(ctx);
-        case ttNFTOKEN_CREATE_OFFER:
-            return invoke_preflight_helper<NFTokenCreateOffer>(ctx);
-        case ttNFTOKEN_CANCEL_OFFER:
-            return invoke_preflight_helper<NFTokenCancelOffer>(ctx);
-        case ttNFTOKEN_ACCEPT_OFFER:
-            return invoke_preflight_helper<NFTokenAcceptOffer>(ctx);
-        case ttDUMMY_TX: {
-            auto const tec = dummyPreflight(ctx);
-            std::cerr << tec  << std::endl;
-            return {
-                tec,
-                isTesSuccess(tec) ? TxConsequences(ctx.tx) : TxConsequences{tec}
-            };
-        }
-        default:
-            assert(false);
-            return {temUNKNOWN, TxConsequences{temUNKNOWN}};
+        auto const tec = it->second.preflight(ctx);
+        return {
+            tec,
+            isTesSuccess(tec) ? consequences_helper(ctx) : TxConsequences{tec}
+        };
     }
+    assert(false);
+    return {temUNKNOWN, TxConsequences{temUNKNOWN}};
 }
 
 /* invoke_preclaim<T> uses name hiding to accomplish
