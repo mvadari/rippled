@@ -40,6 +40,10 @@
 #include <ripple/app/tx/impl/SetRegularKey.h>
 #include <ripple/app/tx/impl/SetSignerList.h>
 #include <ripple/app/tx/impl/SetTrust.h>
+#include <iostream>
+#include <dlfcn.h>
+
+static const std::string libPath = "/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib";
 
 namespace ripple {
 
@@ -93,6 +97,10 @@ invoke_preflight_helper(PreflightContext const& ctx)
 static std::pair<NotTEC, TxConsequences>
 invoke_preflight(PreflightContext const& ctx)
 {
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    NotTEC (*dummyPreflight)(PreflightContext);
+    dummyPreflight = (NotTEC (*)(PreflightContext))dlsym(handle, "preflight");
+
     switch (ctx.tx.getTxnType())
     {
         case ttACCOUNT_DELETE:
@@ -147,6 +155,14 @@ invoke_preflight(PreflightContext const& ctx)
             return invoke_preflight_helper<NFTokenCancelOffer>(ctx);
         case ttNFTOKEN_ACCEPT_OFFER:
             return invoke_preflight_helper<NFTokenAcceptOffer>(ctx);
+        case ttDUMMY_TX: {
+            auto const tec = dummyPreflight(ctx);
+            std::cerr << tec  << std::endl;
+            return {
+                tec,
+                isTesSuccess(tec) ? TxConsequences(ctx.tx) : TxConsequences{tec}
+            };
+        }
         default:
             assert(false);
             return {temUNKNOWN, TxConsequences{temUNKNOWN}};
