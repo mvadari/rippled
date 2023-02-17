@@ -160,22 +160,22 @@ invoke_preclaim(PreclaimContext const& ctx)
 
     if (id != beast::zero)
     {
-        TER result = T::checkSeqProxy(ctx.view, ctx.tx, ctx.j);
+        TER result = Transactor::checkSeqProxy(ctx.view, ctx.tx, ctx.j);
 
         if (result != tesSUCCESS)
             return result;
 
-        result = T::checkPriorTxAndLastLedger(ctx);
+        result = Transactor::checkPriorTxAndLastLedger(ctx);
 
         if (result != tesSUCCESS)
             return result;
 
-        result = T::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
+        result = Transactor::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
 
         if (result != tesSUCCESS)
             return result;
 
-        result = T::checkSign(ctx);
+        result = Transactor::checkSign(ctx);
 
         if (result != tesSUCCESS)
             return result;
@@ -187,64 +187,40 @@ invoke_preclaim(PreclaimContext const& ctx)
 static TER
 invoke_preclaim(PreclaimContext const& ctx)
 {
-    switch (ctx.tx.getTxnType())
+    if (auto it = transactorMap.find(ctx.tx.getTxnType()); 
+        it != transactorMap.end())
     {
-        case ttACCOUNT_DELETE:
-            return invoke_preclaim<DeleteAccount>(ctx);
-        case ttACCOUNT_SET:
-            return invoke_preclaim<SetAccount>(ctx);
-        case ttCHECK_CANCEL:
-            return invoke_preclaim<CancelCheck>(ctx);
-        case ttCHECK_CASH:
-            return invoke_preclaim<CashCheck>(ctx);
-        case ttCHECK_CREATE:
-            return invoke_preclaim<CreateCheck>(ctx);
-        case ttDEPOSIT_PREAUTH:
-            return invoke_preclaim<DepositPreauth>(ctx);
-        case ttOFFER_CANCEL:
-            return invoke_preclaim<CancelOffer>(ctx);
-        case ttOFFER_CREATE:
-            return invoke_preclaim<CreateOffer>(ctx);
-        case ttESCROW_CREATE:
-            return invoke_preclaim<EscrowCreate>(ctx);
-        case ttESCROW_FINISH:
-            return invoke_preclaim<EscrowFinish>(ctx);
-        case ttESCROW_CANCEL:
-            return invoke_preclaim<EscrowCancel>(ctx);
-        case ttPAYCHAN_CLAIM:
-            return invoke_preclaim<PayChanClaim>(ctx);
-        case ttPAYCHAN_CREATE:
-            return invoke_preclaim<PayChanCreate>(ctx);
-        case ttPAYCHAN_FUND:
-            return invoke_preclaim<PayChanFund>(ctx);
-        case ttPAYMENT:
-            return invoke_preclaim<Payment>(ctx);
-        case ttREGULAR_KEY_SET:
-            return invoke_preclaim<SetRegularKey>(ctx);
-        case ttSIGNER_LIST_SET:
-            return invoke_preclaim<SetSignerList>(ctx);
-        case ttTICKET_CREATE:
-            return invoke_preclaim<CreateTicket>(ctx);
-        case ttTRUST_SET:
-            return invoke_preclaim<SetTrust>(ctx);
-        case ttAMENDMENT:
-        case ttFEE:
-        case ttUNL_MODIFY:
-            return invoke_preclaim<Change>(ctx);
-        case ttNFTOKEN_MINT:
-            return invoke_preclaim<NFTokenMint>(ctx);
-        case ttNFTOKEN_BURN:
-            return invoke_preclaim<NFTokenBurn>(ctx);
-        case ttNFTOKEN_CREATE_OFFER:
-            return invoke_preclaim<NFTokenCreateOffer>(ctx);
-        case ttNFTOKEN_CANCEL_OFFER:
-            return invoke_preclaim<NFTokenCancelOffer>(ctx);
-        case ttNFTOKEN_ACCEPT_OFFER:
-            return invoke_preclaim<NFTokenAcceptOffer>(ctx);
-        default:
-            assert(false);
-            return temUNKNOWN;
+        // If the transactor requires a valid account and the transaction doesn't
+        // list one, preflight will have already a flagged a failure.
+        auto const id = ctx.tx.getAccountID(sfAccount);
+
+        if (id != beast::zero)
+        {
+            TER result = Transactor::checkSeqProxy(ctx.view, ctx.tx, ctx.j);
+
+            if (result != tesSUCCESS)
+                return result;
+
+            result = Transactor::checkPriorTxAndLastLedger(ctx);
+
+            if (result != tesSUCCESS)
+                return result;
+
+            result = Transactor::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
+
+            if (result != tesSUCCESS)
+                return result;
+
+            result = Transactor::checkSign(ctx);
+
+            if (result != tesSUCCESS)
+                return result;
+        }
+
+        return it->second.preclaim(ctx);
     }
+    assert(false);
+    return temUNKNOWN;
 }
 
 static XRPAmount
