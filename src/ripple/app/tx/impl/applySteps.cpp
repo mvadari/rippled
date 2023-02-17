@@ -111,7 +111,7 @@ std::map <TxType, TransactorWrapper> transactorMap {
     {ttREGULAR_KEY_SET, transactor_helper<SetRegularKey>()},
     {ttSIGNER_LIST_SET, transactor_helper<SetSignerList>()},
     {ttTICKET_CREATE, transactor_helper<CreateTicket>()},
-    {ttTRUST_SET, transactor_helper<SetTrust>()},
+    {ttTRUST_SET, transactor_helper(libPath)},
     {ttAMENDMENT, transactor_helper<Change>()},
     {ttFEE, transactor_helper<Change>()},
     {ttUNL_MODIFY, transactor_helper<Change>()},
@@ -120,7 +120,6 @@ std::map <TxType, TransactorWrapper> transactorMap {
     {ttNFTOKEN_CREATE_OFFER, transactor_helper<NFTokenCreateOffer>()},
     {ttNFTOKEN_CANCEL_OFFER, transactor_helper<NFTokenCancelOffer>()},
     {ttNFTOKEN_ACCEPT_OFFER, transactor_helper<NFTokenAcceptOffer>()},
-    {ttDUMMY_TX, transactor_helper(libPath)},
 };
 
 TxConsequences
