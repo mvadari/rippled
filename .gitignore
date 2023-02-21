@@ -107,6 +107,8 @@ compile_commands.json
 packages
 pkg_out
 
-my_build/
-mybuild2/
+
+cpp_pt_build
+python_pt_build
+garbage.py
 CMakeUserPresets.json
