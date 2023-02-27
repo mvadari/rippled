@@ -106,3 +106,8 @@ compile_commands.json
 .clangd
 packages
 pkg_out
+
+my_build
+cpp_pt_build
+python_pt_build
+CMakeUserPresets.json
