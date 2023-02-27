@@ -43,6 +43,8 @@
 #include <iostream>
 #include <dlfcn.h>
 #include <map>
+#include <boost/dll/shared_library.hpp>
+#include <boost/dll/library_info.hpp>
 
 static const std::string libPath = "/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib";
 
@@ -81,15 +83,21 @@ transactor_helper()
 };
 
 TransactorWrapper
-transactor_helper(std::string pathToLib)
+transactor_helper(std::string pathToLib, std::string transactorName)
 {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
-    return {
-        (preflightPtr)dlsym(handle, "preflight"),
-        (preclaimPtr)dlsym(handle, "preclaim"),
-        (calculateBaseFeePtr)dlsym(handle, "calculateBaseFee"),
-        (applyPtr)dlsym(handle, "apply"),
-    };
+    // Class `library_info` can extract information from a library
+    boost::dll::library_info inf(libPath);
+
+    // Getting symbols exported from 'Anna' section
+    std::vector<std::string> exports = inf.symbols();
+
+    // Loading library and importing symbols from it
+    boost::dll::shared_library lib(libPath);
+    for (std::size_t j = 0; j < exports.size(); ++j) {
+        std::cout << "\nFunction " << exports[j] << std::endl;
+    }
+    return (TransactorWrapper)dlsym(handle, transactorName.c_str());
 };
 
 std::map <TxType, TransactorWrapper> transactorMap {
@@ -111,7 +119,7 @@ std::map <TxType, TransactorWrapper> transactorMap {
     {ttREGULAR_KEY_SET, transactor_helper<SetRegularKey>()},
     {ttSIGNER_LIST_SET, transactor_helper<SetSignerList>()},
     {ttTICKET_CREATE, transactor_helper<CreateTicket>()},
-    {ttTRUST_SET, transactor_helper(libPath)},
+    {ttTRUST_SET, transactor_helper(libPath, "TrustSetTransactor")},
     {ttAMENDMENT, transactor_helper<Change>()},
     {ttFEE, transactor_helper<Change>()},
     {ttUNL_MODIFY, transactor_helper<Change>()},
