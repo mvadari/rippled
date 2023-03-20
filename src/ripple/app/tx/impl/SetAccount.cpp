@@ -184,6 +184,19 @@ SetAccount::preflight(PreflightContext const& ctx)
             return temMALFORMED;
     }
 
+    if (ctx.rules.enabled(featureDIDoc))
+    {
+        // Configure DIDoc:
+        if (uSetFlag == asfDIDoc && !tx.isFieldPresent(sfDIDoc))
+            return temMALFORMED;
+
+        if (tx.isFieldPresent(sfDIDoc) && uSetFlag != asfDIDoc)
+            return temMALFORMED;
+
+        if (uClearFlag == asfDIDoc && tx.isFieldPresent(sfDIDoc))
+            return temMALFORMED;
+    }
+
     return preflight2(ctx);
 }
 
@@ -560,6 +573,16 @@ SetAccount::doApply()
             uFlagsOut |= lsfDisallowIncomingTrustline;
         else if (uClearFlag == asfDisallowIncomingTrustline)
             uFlagsOut &= ~lsfDisallowIncomingTrustline;
+    }
+
+    // Configure DIDoc:
+    if (ctx_.view().rules().enabled(featureDIDoc))
+    {
+        if (uSetFlag == asfDIDoc)
+            sle->setFieldVL(sfDIDoc, ctx_.tx[sfDIDoc]);
+
+        if (uClearFlag == asfDIDoc && sle->isFieldPresent(sfDIDoc))
+            sle->makeFieldAbsent(sfDIDoc);
     }
 
     if (uFlagsIn != uFlagsOut)

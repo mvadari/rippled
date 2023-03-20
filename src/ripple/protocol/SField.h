@@ -503,6 +503,7 @@ extern SF_VL const sfCreateCode;
 extern SF_VL const sfMemoType;
 extern SF_VL const sfMemoData;
 extern SF_VL const sfMemoFormat;
+extern SF_VL const sfDIDoc;
 
 // variable length (uncommon)
 extern SF_VL const sfFulfillment;
