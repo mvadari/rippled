@@ -136,11 +136,11 @@ public:
     Json::StaticString const jsonName;
 
     // SField(SField const&) = delete;
-    SField&
-    operator=(SField const&) = delete;
+    // SField&
+    // operator=(SField const&) = delete;
     // SField(SField&&) = delete;
-    SField&
-    operator=(SField&&) = delete;
+    // SField&
+    // operator=(SField&&) = delete;
 
 public:
     struct private_access_tag_t;  // public, but still an implementation detail
