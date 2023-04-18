@@ -135,10 +135,10 @@ public:
     IsSigning const signingField;
     Json::StaticString const jsonName;
 
-    SField(SField const&) = delete;
+    // SField(SField const&) = delete;
     SField&
     operator=(SField const&) = delete;
-    SField(SField&&) = delete;
+    // SField(SField&&) = delete;
     SField&
     operator=(SField&&) = delete;
 
