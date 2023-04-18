@@ -266,6 +266,13 @@ private:
     static std::map<int, SField const*> knownCodeToField;
 };
 
+// TODO: moved from SField.cpp
+// Give only this translation unit permission to construct SFields
+struct SField::private_access_tag_t
+{
+    explicit private_access_tag_t() = default;
+};
+
 /** A field with a type known at compile time. */
 template <class T>
 struct TypedField : SField
