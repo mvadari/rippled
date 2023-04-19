@@ -364,6 +364,9 @@ SField::SField(
     , signingField(signing)
     , jsonName(fieldName.c_str())
 {
+    if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
+        throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+    }
     knownCodeToField[fieldCode] = this;
 }
 
@@ -376,6 +379,9 @@ SField::SField(private_access_tag_t, int fc)
     , signingField(IsSigning::yes)
     , jsonName(fieldName.c_str())
 {
+    if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
+        throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+    }
     knownCodeToField[fieldCode] = this;
 }
 
