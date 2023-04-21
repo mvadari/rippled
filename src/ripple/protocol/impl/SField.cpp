@@ -382,7 +382,8 @@ registerSField(SFieldInfo const& sfield)
         // case STI_ARRAY: new SF_ARRAY(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                auto const newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                SField::knownCodeToField[newSField.fieldCode] = &newSField;
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));

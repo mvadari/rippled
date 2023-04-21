@@ -292,7 +292,7 @@ struct SFieldInfo {
 void
 registerSField(SFieldInfo const& sfield);
 
-typedef void (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
+typedef SField (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
 
 void
 registerSType(int typeId, createNewSFieldPtr ptr);
