@@ -414,9 +414,12 @@ SField::SField(
     , jsonName(fieldName.c_str())
 {
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
-        throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+        if (it->second != this)
+            throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+    } else
+    {
+        knownCodeToField[fieldCode] = this;
     }
-    knownCodeToField[fieldCode] = this;
 }
 
 SField::SField(private_access_tag_t, int fc)
