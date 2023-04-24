@@ -230,7 +230,7 @@ public:
     static int
     getNumFields()
     {
-        return num;
+        return knownCodeToField.size();
     }
 
     bool
