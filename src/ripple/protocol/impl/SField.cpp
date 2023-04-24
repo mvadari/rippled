@@ -28,7 +28,7 @@ namespace ripple {
 // Storage for static const members.
 SField::IsSigning const SField::notSigning;
 int SField::num = 0;
-std::map<int, SField const*> SField::knownCodeToField;
+// std::map<int, SField const&> SField::knownCodeToField;
 
 // // Give only this translation unit permission to construct SFields
 // struct SField::private_access_tag_t
@@ -382,8 +382,8 @@ registerSField(SFieldInfo const& sfield)
         // case STI_ARRAY: new SF_ARRAY(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                auto const newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
-                SField::knownCodeToField[newSField->fieldCode] = newSField;
+                SField const& newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));
@@ -415,11 +415,11 @@ SField::SField(
     , jsonName(fieldName.c_str())
 {
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
-        if (it->second != this)
+        if (it->second != *this)
             throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
     } else
     {
-        knownCodeToField[fieldCode] = this;
+        knownCodeToField.emplace(fieldCode, *this);
     }
 }
 
@@ -435,7 +435,7 @@ SField::SField(private_access_tag_t, int fc)
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
         throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
     }
-    knownCodeToField[fieldCode] = this;
+    knownCodeToField.emplace(fieldCode, *this);
 }
 
 SField const&
@@ -445,7 +445,7 @@ SField::getField(int code)
 
     if (it != knownCodeToField.end())
     {
-        return *(it->second);
+        return it->second;
     }
     return sfInvalid;
 }
@@ -472,8 +472,8 @@ SField::getField(std::string const& fieldName)
     for (auto const& [_, f] : knownCodeToField)
     {
         (void)_;
-        if (f->fieldName == fieldName)
-            return *f;
+        if (f.fieldName == fieldName)
+            return f;
     }
     return sfInvalid;
 }
