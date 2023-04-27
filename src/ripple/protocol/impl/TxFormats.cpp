@@ -95,7 +95,7 @@ addToTxTypes(std::string dynamicLib)
     txTypes.insert({ttName, type});
 }
 
-const std::initializer_list<SOElement> commonFields{
+const std::initializer_list<SOElement> commonFields __attribute__((init_priority(300))){
     {sfTransactionType, soeREQUIRED},
     {sfFlags, soeOPTIONAL},
     {sfSourceTag, soeOPTIONAL},

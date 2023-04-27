@@ -28,7 +28,7 @@ namespace ripple {
 // Storage for static const members.
 SField::IsSigning const SField::notSigning;
 int SField::num = 0;
-std::map<int, SField const&> SField::knownCodeToField;
+std::map<int, SField const&> SField::knownCodeToField __attribute__((init_priority(101))){};
 
 // // Give only this translation unit permission to construct SFields
 // struct SField::private_access_tag_t
@@ -60,7 +60,7 @@ static SField::private_access_tag_t access;
 #undef CONSTRUCT_TYPED_SFIELD
 
 #define CONSTRUCT_TYPED_SFIELD(sfName, txtName, stiSuffix, fieldValue, ...) \
-    SF_##stiSuffix const sfName(                                            \
+    SF_##stiSuffix const sfName __attribute__((init_priority(200)))(                                            \
         access, STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);       \
     static_assert(                                                          \
         std::string_view(#sfName) == "sf" txtName,                          \
