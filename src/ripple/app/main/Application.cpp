@@ -1118,7 +1118,15 @@ private:
 //------------------------------------------------------------------------------
 
 typedef std::vector<SFieldInfo> (*getSFieldsPtr)();
-typedef std::vector<std::pair<int, createNewSFieldPtr>> (*getSTypesPtr)();
+
+struct STypeExport {
+    int typeId;
+    createNewSFieldPtr createPtr;
+    parseLeafTypePtr parsePtr;
+    constructSTypePtr constructPtr;
+    constructSTypePtr2 constructPtr2;
+};
+typedef std::vector<STypeExport> (*getSTypesPtr)();
 
 void
 addPluginTransactor(std::string libPath)
@@ -1126,9 +1134,11 @@ addPluginTransactor(std::string libPath)
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
     auto const type = ((getTxTypePtr)dlsym(handle, "getTxType"))();
     auto const stypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
-    for (auto const& stypePair : stypes)
+    for (auto const& stype : stypes)
     {
-        registerSType(stypePair.first, stypePair.second);
+        registerSType(stype.typeId, stype.createPtr);
+        registerLeafType(stype.typeId, stype.parsePtr);
+        registerSTConstructor(stype.typeId, stype.constructPtr, stype.constructPtr2);
     }
     auto const sfields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
     for (auto const& sfield : sfields)
