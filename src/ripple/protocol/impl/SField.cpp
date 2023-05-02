@@ -28,7 +28,7 @@ namespace ripple {
 // Storage for static const members.
 SField::IsSigning const SField::notSigning;
 int SField::num = 0;
-std::map<int, SField const*> SField::knownCodeToField;
+std::map<int, SField const&> SField::knownCodeToField __attribute__((init_priority(101))){};
 
 // // Give only this translation unit permission to construct SFields
 // struct SField::private_access_tag_t
@@ -60,7 +60,7 @@ static SField::private_access_tag_t access;
 #undef CONSTRUCT_TYPED_SFIELD
 
 #define CONSTRUCT_TYPED_SFIELD(sfName, txtName, stiSuffix, fieldValue, ...) \
-    SF_##stiSuffix const sfName(                                            \
+    SF_##stiSuffix const sfName __attribute__((init_priority(200)))(                                            \
         access, STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);       \
     static_assert(                                                          \
         std::string_view(#sfName) == "sf" txtName,                          \
@@ -382,7 +382,8 @@ registerSField(SFieldInfo const& sfield)
         // case STI_ARRAY: new SF_ARRAY(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                SField const& newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));
@@ -414,9 +415,12 @@ SField::SField(
     , jsonName(fieldName.c_str())
 {
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
-        throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+        if (it->second != *this)
+            throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+    } else
+    {
+        knownCodeToField.emplace(fieldCode, *this);
     }
-    knownCodeToField[fieldCode] = this;
 }
 
 SField::SField(private_access_tag_t, int fc)
@@ -431,7 +435,7 @@ SField::SField(private_access_tag_t, int fc)
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
         throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
     }
-    knownCodeToField[fieldCode] = this;
+    knownCodeToField.emplace(fieldCode, *this);
 }
 
 SField const&
@@ -441,7 +445,7 @@ SField::getField(int code)
 
     if (it != knownCodeToField.end())
     {
-        return *(it->second);
+        return it->second;
     }
     return sfInvalid;
 }
@@ -468,8 +472,8 @@ SField::getField(std::string const& fieldName)
     for (auto const& [_, f] : knownCodeToField)
     {
         (void)_;
-        if (f->fieldName == fieldName)
-            return *f;
+        if (f.fieldName == fieldName)
+            return f;
     }
     return sfInvalid;
 }
