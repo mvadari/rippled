@@ -50,7 +50,7 @@ to_string(Manifest const& m)
 }
 
 std::optional<Manifest>
-deserializeManifest(Slice s)
+deserializeManifest(Slice s, beast::Journal journal)
 {
     if (s.empty())
         return std::nullopt;
@@ -149,8 +149,10 @@ deserializeManifest(Slice s)
 
         return m;
     }
-    catch (std::exception const&)
+    catch (std::exception const& ex)
     {
+        JLOG(journal.error())
+            << "Exception in " << __func__ << ": " << ex.what();
         return std::nullopt;
     }
 }
@@ -240,7 +242,7 @@ Manifest::getMasterSignature() const
 }
 
 std::optional<ValidatorToken>
-loadValidatorToken(std::vector<std::string> const& blob)
+loadValidatorToken(std::vector<std::string> const& blob, beast::Journal journal)
 {
     try
     {
@@ -278,8 +280,10 @@ loadValidatorToken(std::vector<std::string> const& blob)
 
         return std::nullopt;
     }
-    catch (std::exception const&)
+    catch (std::exception const& ex)
     {
+        JLOG(journal.error())
+            << "Exception in " << __func__ << ": " << ex.what();
         return std::nullopt;
     }
 }
