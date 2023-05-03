@@ -1117,7 +1117,7 @@ private:
 
 //------------------------------------------------------------------------------
 
-typedef std::vector<SFieldInfo> (*getSFieldsPtr)();
+typedef void (*getSFieldsPtr)(std::vector<SFieldInfo>);
 
 struct STypeExport {
     int typeId;
@@ -1126,26 +1126,28 @@ struct STypeExport {
     constructSTypePtr constructPtr;
     constructSTypePtr2 constructPtr2;
 };
-typedef std::vector<STypeExport> (*getSTypesPtr)();
-
+typedef void (*getSTypesPtr)(std::vector<STypeExport>);
+typedef char const* (*getTxNamePtr)();
 void
 addPluginTransactor(std::string libPath)
 {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
     auto const type = ((getTxTypePtr)dlsym(handle, "getTxType"))();
-    auto const stypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
+    std::vector<STypeExport> stypes = std::vector<STypeExport>{};
+    ((getSTypesPtr)dlsym(handle, "getSTypes"))(stypes);
     for (auto const& stype : stypes)
     {
         registerSType(stype.typeId, stype.createPtr);
         registerLeafType(stype.typeId, stype.parsePtr);
         registerSTConstructor(stype.typeId, stype.constructPtr, stype.constructPtr2);
     }
-    auto const sfields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
+    std::vector<SFieldInfo> sfields = std::vector<SFieldInfo>{};
+    ((getSFieldsPtr)dlsym(handle, "getSFields"))(sfields);
     for (auto const& sfield : sfields)
     {
         registerSField(sfield);
     }
-    addToTxTypes(libPath);
+    addToTxTypes(type, libPath);
     addToTxFormats(type, libPath);
     addToTransactorMap(type, libPath);
 }
@@ -1178,7 +1180,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
 
     // Add plugin transactors
     // addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/python/libdummy_tx.dylib");
-    addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib");
+//    addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib");
+    addPluginTransactor("/Users/nkramer/Documents/dev/plugin-transactor/rust/target/debug/libdummy_tx.dylib");
 
     auto debug_log = config_->getDebugLogFile();
 

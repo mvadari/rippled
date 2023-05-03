@@ -24,7 +24,10 @@
 #include <map>
 
 namespace ripple {
-
+    struct FakeSOElement {
+        int fieldCode;
+        ripple::SOEStyle style;
+    };
 /** Transaction type identifiers.
 
     These are part of the binary message format.
@@ -59,7 +62,7 @@ std::uint16_t
 getTxTypeFromName(std::string name);
 
 void
-addToTxTypes(std::string dynamicLib);
+addToTxTypes(std::uint16_t const type, std::string dynamicLib);
 // clang-format off
 // enum TxType : std::uint16_t
 // {

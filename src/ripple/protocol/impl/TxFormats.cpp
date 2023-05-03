@@ -22,18 +22,14 @@
 #include <list>
 #include <map>
 #include <dlfcn.h>
+#include <iostream>
 
 namespace ripple {
 
-struct FakeSOElement {
-    int fieldCode;
-    ripple::SOEStyle style;
-};
-
-typedef std::vector<FakeSOElement> (*getTxFormatPtr)();
+typedef void (*getTxFormatPtr)(std::vector<FakeSOElement>&);
 typedef char const* (*getTxNamePtr)();
 typedef std::uint16_t (*getTxTypePtr)();
-typedef std::string (*getTTNamePtr)();
+typedef char const* (*getTTNamePtr)();
 
 struct TxFormatsWrapper {
     char const* name;
@@ -87,10 +83,9 @@ getTxTypeFromName(std::string name)
 }
 
 void
-addToTxTypes(std::string dynamicLib)
+addToTxTypes(std::uint16_t const type, std::string dynamicLib)
 {
     void* handle = dlopen(dynamicLib.c_str(), RTLD_LAZY);
-    auto const type = ((getTxTypePtr)dlsym(handle, "getTxName"))();
     auto const ttName = ((getTTNamePtr)dlsym(handle, "getTTName"))();
     txTypes.insert({ttName, type});
 }
@@ -427,24 +422,31 @@ addToTxFormats(std::uint16_t type, std::string dynamicLib)
 {
     void* handle = dlopen(dynamicLib.c_str(), RTLD_LAZY);
     auto const name = ((getTxNamePtr)dlsym(handle, "getTxName"))();
-    auto const txFormat = ((getTxFormatPtr)dlsym(handle, "getTxFormat"))();
+    std::vector<FakeSOElement> txFormat = std::vector<FakeSOElement>{};
+    ((getTxFormatPtr)dlsym(handle, "getTxFormat"))(txFormat);
+    const std::vector<SOElement> &uniqueFields = convertToUniqueFields(txFormat);
     txFormatsList2.push_back({
         name,
         type,
-        convertToUniqueFields(txFormat),
+        uniqueFields,
         commonFields});
+
+    std::cout << "blah " << std::endl;
 }
 
 TxFormats::TxFormats()
 {
+    std::cout << "txFormatsList2.size()" << txFormatsList2.size() << std::endl;
     // Fields shared by all txFormats:
     for (auto &e: txFormatsList)
     {
         std::vector<SOElement> uniqueFields(e.uniqueFields);
         add(e.name, e.type, uniqueFields, e.commonFields);
     }
+    std::cout << "txFormatsList2.size() 2" << txFormatsList2.size() << std::endl;
     for (auto &e: txFormatsList2)
     {
+        std::cout << "Adding transaction format for " << e.name << std::endl;
         add(e.name, e.type, e.uniqueFields, e.commonFields);
     }
 }
