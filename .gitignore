@@ -114,3 +114,5 @@ python_pt_build
 .build
 .cupcake.toml
 .vscode
+/cmake-build-debug
+/debug.log
