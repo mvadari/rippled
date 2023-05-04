@@ -95,320 +95,328 @@ addToTxTypes(std::string dynamicLib)
     txTypes.insert({ttName, type});
 }
 
-const std::initializer_list<SOElement> commonFields {
-    {sfTransactionType, soeREQUIRED},
-    {sfFlags, soeOPTIONAL},
-    {sfSourceTag, soeOPTIONAL},
-    {sfAccount, soeREQUIRED},
-    {sfSequence, soeREQUIRED},
-    {sfPreviousTxnID, soeOPTIONAL},  // emulate027
-    {sfLastLedgerSequence, soeOPTIONAL},
-    {sfAccountTxnID, soeOPTIONAL},
-    {sfFee, soeREQUIRED},
-    {sfOperationLimit, soeOPTIONAL},
-    {sfMemos, soeOPTIONAL},
-    {sfSigningPubKey, soeREQUIRED},
-    {sfTxnSignature, soeOPTIONAL},
-    {sfSigners, soeOPTIONAL},  // submit_multisigned
-    {sfNetworkID, soeOPTIONAL},
-};
+std::initializer_list<SOElement> const
+commonFields()
+{
+    return {
+        {sfTransactionType, soeREQUIRED},
+        {sfFlags, soeOPTIONAL},
+        {sfSourceTag, soeOPTIONAL},
+        {sfAccount, soeREQUIRED},
+        {sfSequence, soeREQUIRED},
+        {sfPreviousTxnID, soeOPTIONAL},  // emulate027
+        {sfLastLedgerSequence, soeOPTIONAL},
+        {sfAccountTxnID, soeOPTIONAL},
+        {sfFee, soeREQUIRED},
+        {sfOperationLimit, soeOPTIONAL},
+        {sfMemos, soeOPTIONAL},
+        {sfSigningPubKey, soeREQUIRED},
+        {sfTxnSignature, soeOPTIONAL},
+        {sfSigners, soeOPTIONAL},  // submit_multisigned
+        {sfNetworkID, soeOPTIONAL},
+    };
+}
 
-std::initializer_list<TxFormatsWrapper> txFormatsList{
-    {
-        jss::AccountSet,
-        getTxTypeFromName("ttACCOUNT_SET"),
+std::initializer_list<TxFormatsWrapper> const
+txFormatsList()
+{
+    return {
         {
-            {sfEmailHash, soeOPTIONAL},
-            {sfWalletLocator, soeOPTIONAL},
-            {sfWalletSize, soeOPTIONAL},
-            {sfMessageKey, soeOPTIONAL},
-            {sfDomain, soeOPTIONAL},
-            {sfTransferRate, soeOPTIONAL},
-            {sfSetFlag, soeOPTIONAL},
-            {sfClearFlag, soeOPTIONAL},
-            {sfTickSize, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-            {sfNFTokenMinter, soeOPTIONAL},
-        },
-        commonFields},
-    // {
-    //     jss::TrustSet,
-    //     getTxTypeFromName("ttTRUST_SET"),
-    //     {
-    //         {sfLimitAmount, soeOPTIONAL},
-    //         {sfQualityIn, soeOPTIONAL},
-    //         {sfQualityOut, soeOPTIONAL},
-    //         {sfTicketSequence, soeOPTIONAL},
-    //     },
-    //     commonFields},
-    {jss::OfferCreate,
-        getTxTypeFromName("ttOFFER_CREATE"),
+            jss::AccountSet,
+            getTxTypeFromName("ttACCOUNT_SET"),
+            {
+                {sfEmailHash, soeOPTIONAL},
+                {sfWalletLocator, soeOPTIONAL},
+                {sfWalletSize, soeOPTIONAL},
+                {sfMessageKey, soeOPTIONAL},
+                {sfDomain, soeOPTIONAL},
+                {sfTransferRate, soeOPTIONAL},
+                {sfSetFlag, soeOPTIONAL},
+                {sfClearFlag, soeOPTIONAL},
+                {sfTickSize, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+                {sfNFTokenMinter, soeOPTIONAL},
+            },
+            commonFields()},
+        // {
+        //     jss::TrustSet,
+        //     getTxTypeFromName("ttTRUST_SET"),
+        //     {
+        //         {sfLimitAmount, soeOPTIONAL},
+        //         {sfQualityIn, soeOPTIONAL},
+        //         {sfQualityOut, soeOPTIONAL},
+        //         {sfTicketSequence, soeOPTIONAL},
+        //     },
+        //     commonFields()},
+        {jss::OfferCreate,
+            getTxTypeFromName("ttOFFER_CREATE"),
+            {
+                {sfTakerPays, soeREQUIRED},
+                {sfTakerGets, soeREQUIRED},
+                {sfExpiration, soeOPTIONAL},
+                {sfOfferSequence, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfTakerPays, soeREQUIRED},
-            {sfTakerGets, soeREQUIRED},
-            {sfExpiration, soeOPTIONAL},
-            {sfOfferSequence, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::OfferCancel,
-        getTxTypeFromName("ttOFFER_CANCEL"),
+            jss::OfferCancel,
+            getTxTypeFromName("ttOFFER_CANCEL"),
+            {
+                {sfOfferSequence, soeREQUIRED},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfOfferSequence, soeREQUIRED},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::SetRegularKey,
-        getTxTypeFromName("ttREGULAR_KEY_SET"),
+            jss::SetRegularKey,
+            getTxTypeFromName("ttREGULAR_KEY_SET"),
+            {
+                {sfRegularKey, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfRegularKey, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::Payment,
-        getTxTypeFromName("ttPAYMENT"),
+            jss::Payment,
+            getTxTypeFromName("ttPAYMENT"),
+            {
+                {sfDestination, soeREQUIRED},
+                {sfAmount, soeREQUIRED},
+                {sfSendMax, soeOPTIONAL},
+                {sfPaths, soeDEFAULT},
+                {sfInvoiceID, soeOPTIONAL},
+                {sfDestinationTag, soeOPTIONAL},
+                {sfDeliverMin, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfDestination, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
-            {sfSendMax, soeOPTIONAL},
-            {sfPaths, soeDEFAULT},
-            {sfInvoiceID, soeOPTIONAL},
-            {sfDestinationTag, soeOPTIONAL},
-            {sfDeliverMin, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::EscrowCreate,
-        getTxTypeFromName("ttESCROW_CREATE"),
+            jss::EscrowCreate,
+            getTxTypeFromName("ttESCROW_CREATE"),
+            {
+                {sfDestination, soeREQUIRED},
+                {sfAmount, soeREQUIRED},
+                {sfCondition, soeOPTIONAL},
+                {sfCancelAfter, soeOPTIONAL},
+                {sfFinishAfter, soeOPTIONAL},
+                {sfDestinationTag, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfDestination, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
-            {sfCondition, soeOPTIONAL},
-            {sfCancelAfter, soeOPTIONAL},
-            {sfFinishAfter, soeOPTIONAL},
-            {sfDestinationTag, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::EscrowFinish,
-        getTxTypeFromName("ttESCROW_FINISH"),
+            jss::EscrowFinish,
+            getTxTypeFromName("ttESCROW_FINISH"),
+            {
+                {sfOwner, soeREQUIRED},
+                {sfOfferSequence, soeREQUIRED},
+                {sfFulfillment, soeOPTIONAL},
+                {sfCondition, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfOwner, soeREQUIRED},
-            {sfOfferSequence, soeREQUIRED},
-            {sfFulfillment, soeOPTIONAL},
-            {sfCondition, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::EscrowCancel,
-        getTxTypeFromName("ttESCROW_CANCEL"),
+            jss::EscrowCancel,
+            getTxTypeFromName("ttESCROW_CANCEL"),
+            {
+                {sfOwner, soeREQUIRED},
+                {sfOfferSequence, soeREQUIRED},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfOwner, soeREQUIRED},
-            {sfOfferSequence, soeREQUIRED},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::EnableAmendment,
-        getTxTypeFromName("ttAMENDMENT"),
+            jss::EnableAmendment,
+            getTxTypeFromName("ttAMENDMENT"),
+            {
+                {sfLedgerSequence, soeREQUIRED},
+                {sfAmendment, soeREQUIRED},
+            },
+            commonFields()},
         {
-            {sfLedgerSequence, soeREQUIRED},
-            {sfAmendment, soeREQUIRED},
-        },
-        commonFields},
-    {
-        jss::SetFee,
-        getTxTypeFromName("ttFEE"),
+            jss::SetFee,
+            getTxTypeFromName("ttFEE"),
+            {
+                {sfLedgerSequence, soeOPTIONAL},
+                // Old version uses raw numbers
+                {sfBaseFee, soeOPTIONAL},
+                {sfReferenceFeeUnits, soeOPTIONAL},
+                {sfReserveBase, soeOPTIONAL},
+                {sfReserveIncrement, soeOPTIONAL},
+                // New version uses Amounts
+                {sfBaseFeeDrops, soeOPTIONAL},
+                {sfReserveBaseDrops, soeOPTIONAL},
+                {sfReserveIncrementDrops, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfLedgerSequence, soeOPTIONAL},
-            // Old version uses raw numbers
-            {sfBaseFee, soeOPTIONAL},
-            {sfReferenceFeeUnits, soeOPTIONAL},
-            {sfReserveBase, soeOPTIONAL},
-            {sfReserveIncrement, soeOPTIONAL},
-            // New version uses Amounts
-            {sfBaseFeeDrops, soeOPTIONAL},
-            {sfReserveBaseDrops, soeOPTIONAL},
-            {sfReserveIncrementDrops, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::UNLModify,
-        getTxTypeFromName("ttUNL_MODIFY"),
+            jss::UNLModify,
+            getTxTypeFromName("ttUNL_MODIFY"),
+            {
+                {sfUNLModifyDisabling, soeREQUIRED},
+                {sfLedgerSequence, soeREQUIRED},
+                {sfUNLModifyValidator, soeREQUIRED},
+            },
+            commonFields()},
         {
-            {sfUNLModifyDisabling, soeREQUIRED},
-            {sfLedgerSequence, soeREQUIRED},
-            {sfUNLModifyValidator, soeREQUIRED},
-        },
-        commonFields},
-    {
-        jss::TicketCreate,
-        getTxTypeFromName("ttTICKET_CREATE"),
-        {
-            {sfTicketCount, soeREQUIRED},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
+            jss::TicketCreate,
+            getTxTypeFromName("ttTICKET_CREATE"),
+            {
+                {sfTicketCount, soeREQUIRED},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
 
-    // The SignerEntries are optional because a SignerList is deleted by
-    // setting the SignerQuorum to zero and omitting SignerEntries.
-    {
-        jss::SignerListSet,
-        getTxTypeFromName("ttSIGNER_LIST_SET"),
+        // The SignerEntries are optional because a SignerList is deleted by
+        // setting the SignerQuorum to zero and omitting SignerEntries.
         {
-            {sfSignerQuorum, soeREQUIRED},
-            {sfSignerEntries, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::PaymentChannelCreate,
-        getTxTypeFromName("ttPAYCHAN_CREATE"),
+            jss::SignerListSet,
+            getTxTypeFromName("ttSIGNER_LIST_SET"),
+            {
+                {sfSignerQuorum, soeREQUIRED},
+                {sfSignerEntries, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfDestination, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
-            {sfSettleDelay, soeREQUIRED},
-            {sfPublicKey, soeREQUIRED},
-            {sfCancelAfter, soeOPTIONAL},
-            {sfDestinationTag, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::PaymentChannelFund,
-        getTxTypeFromName("ttPAYCHAN_FUND"),
+            jss::PaymentChannelCreate,
+            getTxTypeFromName("ttPAYCHAN_CREATE"),
+            {
+                {sfDestination, soeREQUIRED},
+                {sfAmount, soeREQUIRED},
+                {sfSettleDelay, soeREQUIRED},
+                {sfPublicKey, soeREQUIRED},
+                {sfCancelAfter, soeOPTIONAL},
+                {sfDestinationTag, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfChannel, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
-            {sfExpiration, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::PaymentChannelClaim,
-        getTxTypeFromName("ttPAYCHAN_CLAIM"),
+            jss::PaymentChannelFund,
+            getTxTypeFromName("ttPAYCHAN_FUND"),
+            {
+                {sfChannel, soeREQUIRED},
+                {sfAmount, soeREQUIRED},
+                {sfExpiration, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfChannel, soeREQUIRED},
-            {sfAmount, soeOPTIONAL},
-            {sfBalance, soeOPTIONAL},
-            {sfSignature, soeOPTIONAL},
-            {sfPublicKey, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::CheckCreate,
-        getTxTypeFromName("ttCHECK_CREATE"),
+            jss::PaymentChannelClaim,
+            getTxTypeFromName("ttPAYCHAN_CLAIM"),
+            {
+                {sfChannel, soeREQUIRED},
+                {sfAmount, soeOPTIONAL},
+                {sfBalance, soeOPTIONAL},
+                {sfSignature, soeOPTIONAL},
+                {sfPublicKey, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfDestination, soeREQUIRED},
-            {sfSendMax, soeREQUIRED},
-            {sfExpiration, soeOPTIONAL},
-            {sfDestinationTag, soeOPTIONAL},
-            {sfInvoiceID, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::CheckCash,
-        getTxTypeFromName("ttCHECK_CASH"),
+            jss::CheckCreate,
+            getTxTypeFromName("ttCHECK_CREATE"),
+            {
+                {sfDestination, soeREQUIRED},
+                {sfSendMax, soeREQUIRED},
+                {sfExpiration, soeOPTIONAL},
+                {sfDestinationTag, soeOPTIONAL},
+                {sfInvoiceID, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfCheckID, soeREQUIRED},
-            {sfAmount, soeOPTIONAL},
-            {sfDeliverMin, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::CheckCancel,
-        getTxTypeFromName("ttCHECK_CANCEL"),
+            jss::CheckCash,
+            getTxTypeFromName("ttCHECK_CASH"),
+            {
+                {sfCheckID, soeREQUIRED},
+                {sfAmount, soeOPTIONAL},
+                {sfDeliverMin, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfCheckID, soeREQUIRED},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::AccountDelete,
-        getTxTypeFromName("ttACCOUNT_DELETE"),
+            jss::CheckCancel,
+            getTxTypeFromName("ttCHECK_CANCEL"),
+            {
+                {sfCheckID, soeREQUIRED},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfDestination, soeREQUIRED},
-            {sfDestinationTag, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::DepositPreauth,
-        getTxTypeFromName("ttDEPOSIT_PREAUTH"),
+            jss::AccountDelete,
+            getTxTypeFromName("ttACCOUNT_DELETE"),
+            {
+                {sfDestination, soeREQUIRED},
+                {sfDestinationTag, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfAuthorize, soeOPTIONAL},
-            {sfUnauthorize, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::NFTokenMint,
-        getTxTypeFromName("ttNFTOKEN_MINT"),
+            jss::DepositPreauth,
+            getTxTypeFromName("ttDEPOSIT_PREAUTH"),
+            {
+                {sfAuthorize, soeOPTIONAL},
+                {sfUnauthorize, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfNFTokenTaxon, soeREQUIRED},
-            {sfTransferFee, soeOPTIONAL},
-            {sfIssuer, soeOPTIONAL},
-            {sfURI, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::NFTokenBurn,
-        getTxTypeFromName("ttNFTOKEN_BURN"),
+            jss::NFTokenMint,
+            getTxTypeFromName("ttNFTOKEN_MINT"),
+            {
+                {sfNFTokenTaxon, soeREQUIRED},
+                {sfTransferFee, soeOPTIONAL},
+                {sfIssuer, soeOPTIONAL},
+                {sfURI, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfNFTokenID, soeREQUIRED},
-            {sfOwner, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::NFTokenCreateOffer,
-        getTxTypeFromName("ttNFTOKEN_CREATE_OFFER"),
+            jss::NFTokenBurn,
+            getTxTypeFromName("ttNFTOKEN_BURN"),
+            {
+                {sfNFTokenID, soeREQUIRED},
+                {sfOwner, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfNFTokenID, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
-            {sfDestination, soeOPTIONAL},
-            {sfOwner, soeOPTIONAL},
-            {sfExpiration, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::NFTokenCancelOffer,
-        getTxTypeFromName("ttNFTOKEN_CANCEL_OFFER"),
+            jss::NFTokenCreateOffer,
+            getTxTypeFromName("ttNFTOKEN_CREATE_OFFER"),
+            {
+                {sfNFTokenID, soeREQUIRED},
+                {sfAmount, soeREQUIRED},
+                {sfDestination, soeOPTIONAL},
+                {sfOwner, soeOPTIONAL},
+                {sfExpiration, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfNFTokenOffers, soeREQUIRED},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::NFTokenAcceptOffer,
-        getTxTypeFromName("ttNFTOKEN_ACCEPT_OFFER"),
+            jss::NFTokenCancelOffer,
+            getTxTypeFromName("ttNFTOKEN_CANCEL_OFFER"),
+            {
+                {sfNFTokenOffers, soeREQUIRED},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfNFTokenBuyOffer, soeOPTIONAL},
-            {sfNFTokenSellOffer, soeOPTIONAL},
-            {sfNFTokenBrokerFee, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-    {
-        jss::DummyTx,
-        getTxTypeFromName("ttDUMMY_TX"),
+            jss::NFTokenAcceptOffer,
+            getTxTypeFromName("ttNFTOKEN_ACCEPT_OFFER"),
+            {
+                {sfNFTokenBuyOffer, soeOPTIONAL},
+                {sfNFTokenSellOffer, soeOPTIONAL},
+                {sfNFTokenBrokerFee, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
         {
-            {sfRegularKey, soeOPTIONAL},
-            {sfTicketSequence, soeOPTIONAL},
-        },
-        commonFields},
-};
+            jss::DummyTx,
+            getTxTypeFromName("ttDUMMY_TX"),
+            {
+                {sfRegularKey, soeOPTIONAL},
+                {sfTicketSequence, soeOPTIONAL},
+            },
+            commonFields()},
+    };
+}
 
 std::vector<TxFormatsWrapper> txFormatsList2{};
 
@@ -433,13 +441,14 @@ addToTxFormats(std::uint16_t type, std::string dynamicLib)
         name,
         type,
         convertToUniqueFields(txFormat),
-        commonFields});
+        commonFields()});
 }
 
 TxFormats::TxFormats()
 {
     // Fields shared by all txFormats:
-    for (auto &e: txFormatsList)
+    auto const txFormats = txFormatsList();
+    for (auto &e: txFormats)
     {
         std::vector<SOElement> uniqueFields(e.uniqueFields);
         add(e.name, e.type, uniqueFields, e.commonFields);
