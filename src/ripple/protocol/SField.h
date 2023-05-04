@@ -230,7 +230,7 @@ public:
     static int
     getNumFields()
     {
-        return num;
+        return knownCodeToField.size();
     }
 
     bool
@@ -261,7 +261,7 @@ public:
     static int
     compare(const SField& f1, const SField& f2);
 
-    static std::map<int, SField const*> knownCodeToField;
+    static std::map<int, SField const&> knownCodeToField;
 
 private:
     static int num;
@@ -292,7 +292,7 @@ struct SFieldInfo {
 void
 registerSField(SFieldInfo const& sfield);
 
-typedef void (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
+typedef SField const& (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
 
 void
 registerSType(int typeId, createNewSFieldPtr ptr);
@@ -376,6 +376,7 @@ extern SF_UINT16 const sfHookExecutionIndex;
 extern SF_UINT16 const sfHookApiVersion;
 
 // 32-bit integers (common)
+extern SF_UINT32 const sfNetworkID;
 extern SF_UINT32 const sfFlags;
 extern SF_UINT32 const sfSourceTag;
 extern SF_UINT32 const sfSequence;
@@ -422,6 +423,7 @@ extern SF_UINT32 const sfMintedNFTokens;
 extern SF_UINT32 const sfBurnedNFTokens;
 extern SF_UINT32 const sfHookStateCount;
 extern SF_UINT32 const sfEmitGeneration;
+extern SF_UINT32 const sfFirstNFTokenSequence;
 
 // 64-bit integers (common)
 extern SF_UINT64 const sfIndexNext;

@@ -95,7 +95,7 @@ addToTxTypes(std::string dynamicLib)
     txTypes.insert({ttName, type});
 }
 
-const std::initializer_list<SOElement> commonFields{
+const std::initializer_list<SOElement> commonFields {
     {sfTransactionType, soeREQUIRED},
     {sfFlags, soeOPTIONAL},
     {sfSourceTag, soeOPTIONAL},
@@ -110,6 +110,7 @@ const std::initializer_list<SOElement> commonFields{
     {sfSigningPubKey, soeREQUIRED},
     {sfTxnSignature, soeOPTIONAL},
     {sfSigners, soeOPTIONAL},  // submit_multisigned
+    {sfNetworkID, soeOPTIONAL},
 };
 
 std::initializer_list<TxFormatsWrapper> txFormatsList{
