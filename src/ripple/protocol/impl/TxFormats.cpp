@@ -26,6 +26,11 @@
 
 namespace ripple {
 
+struct FakeSOElement {
+    int fieldCode;
+    ripple::SOEStyle style;
+};
+
 typedef void (*getTxFormatPtr)(std::vector<FakeSOElement>&);
 typedef char const* (*getTxNamePtr)();
 typedef std::uint16_t (*getTxTypePtr)();
