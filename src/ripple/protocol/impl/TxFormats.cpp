@@ -98,7 +98,7 @@ addToTxTypes(std::string dynamicLib)
 std::initializer_list<SOElement> const
 commonFields()
 {
-    return {
+    static std::initializer_list<SOElement> const commonFields = {
         {sfTransactionType, soeREQUIRED},
         {sfFlags, soeOPTIONAL},
         {sfSourceTag, soeOPTIONAL},
@@ -115,12 +115,13 @@ commonFields()
         {sfSigners, soeOPTIONAL},  // submit_multisigned
         {sfNetworkID, soeOPTIONAL},
     };
+    return commonFields;
 }
 
 std::initializer_list<TxFormatsWrapper> const
 txFormatsList()
 {
-    return {
+    static std::initializer_list<TxFormatsWrapper> const txFormatsList = {
         {
             jss::AccountSet,
             getTxTypeFromName("ttACCOUNT_SET"),
@@ -416,6 +417,7 @@ txFormatsList()
             },
             commonFields()},
     };
+    return txFormatsList;
 }
 
 std::vector<TxFormatsWrapper> txFormatsList2{};

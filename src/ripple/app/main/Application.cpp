@@ -1177,8 +1177,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         });
 
     // Add plugin transactors
-    // addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/python/libdummy_tx.dylib");
-    addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib");
+    addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/python/libnew_escrow_create.dylib");
+    // addPluginTransactor("/Users/mvadari/Documents/plugin_transactor/cpp/build/libplugin_transactor.dylib");
 
     auto debug_log = config_->getDebugLogFile();
 
