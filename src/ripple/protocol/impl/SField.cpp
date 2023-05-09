@@ -351,8 +351,9 @@ CONSTRUCT_UNTYPED_SFIELD(sfHookGrants,          "HookGrants",           ARRAY,  
 
 */
 
-std::map<int, createNewSFieldPtr> pluginSTypes {};
+//std::map<int, createNewSFieldPtr> pluginSTypes {};
 
+/*
 void
 registerSType(int typeId, createNewSFieldPtr ptr)
 {
@@ -361,6 +362,7 @@ registerSType(int typeId, createNewSFieldPtr ptr)
     }
     pluginSTypes[typeId] = ptr;
 }
+*/
 
 void
 registerSField(SFieldInfo const& sfield)
@@ -385,13 +387,18 @@ registerSField(SFieldInfo const& sfield)
         // case STI_OBJECT: new SF_OBJECT(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         // case STI_ARRAY: new SF_ARRAY(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
-            if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                SField const& newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+            /*if (SField const& field = SField::getField(field_code(sfield.typeId, sfield.fieldValue)); field != sfInvalid)
+                return;*/
+            new SF_PLUGIN_TYPE(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+            break;
+//            SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
+            /*if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
+                SField const& newSField = it->second(sfield.typeId, sfield.fieldValue, sfield.txtName);
                 SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));
-            }
+            }*/
         }
     }
 }
@@ -417,6 +424,30 @@ SField::SField(
     , fieldNum(++num)
     , signingField(signing)
     , jsonName(fieldName.c_str())
+{
+    if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
+        if (it->second != *this)
+            throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
+    } else
+    {
+        knownCodeToField.emplace(fieldCode, *this);
+    }
+}
+
+SField::SField(
+        int tid,
+        int fv,
+        const char* fn,
+        int meta,
+        IsSigning signing)
+        : fieldCode(field_code(tid, fv))
+        , fieldType(tid)
+        , fieldValue(fv)
+        , fieldName(fn)
+        , fieldMeta(meta)
+        , fieldNum(++num)
+        , signingField(signing)
+        , jsonName(fieldName.c_str())
 {
     if (auto const it = knownCodeToField.find(fieldCode); it != knownCodeToField.end()) {
         if (it->second != *this)

@@ -699,7 +699,7 @@ parseLeafType<STAccount>(
     }
 }
 
-std::map<int, parseLeafTypePtr> leafParserMap{
+std::map<int, parseLeafTypePtr2> leafParserMap{
     {STI_UINT8, parseLeafType<STUInt8>},
     {STI_UINT16, parseLeafType<STUInt16>},
     {STI_UINT32, parseLeafType<STUInt32>},
@@ -714,6 +714,7 @@ std::map<int, parseLeafTypePtr> leafParserMap{
     {STI_ACCOUNT, parseLeafType<STAccount>},
 };
 
+std::map<int, parseLeafTypePtr> pluginLeafParserMap{};
 
 // This function is used by parseObject to parse any JSON type that doesn't
 // recurse.  Everything represented here is a leaf-type.
@@ -738,6 +739,12 @@ parseLeaf(
         it != leafParserMap.end())
     {
         return it->second(field, json_name, fieldName, name, value, error);
+    }
+
+    if (auto it = pluginLeafParserMap.find(field.fieldType);
+            it != pluginLeafParserMap.end())
+    {
+        return *it->second(field, json_name, fieldName, name, value, error);
     }
 
     std::optional<detail::STVar> ret;
@@ -997,7 +1004,7 @@ STParsedJSONArray::STParsedJSONArray(
 void
 registerLeafType(int type, parseLeafTypePtr functionPtr)
 {
-    STParsedJSONDetail::leafParserMap.insert({ type, functionPtr });
+    STParsedJSONDetail::pluginLeafParserMap.insert({ type, functionPtr });
 }
 
 }  // namespace ripple

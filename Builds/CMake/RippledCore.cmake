@@ -92,6 +92,7 @@ target_sources (xrpl_core PRIVATE
   src/ripple/protocol/impl/STAccount.cpp
   src/ripple/protocol/impl/STAmount.cpp
   src/ripple/protocol/impl/STArray.cpp
+  src/ripple/protocol/impl/STPluginType.cpp
   src/ripple/protocol/impl/STBase.cpp
   src/ripple/protocol/impl/STBlob.cpp
   src/ripple/protocol/impl/STInteger.cpp
@@ -252,6 +253,7 @@ install (
     src/ripple/protocol/STAccount.h
     src/ripple/protocol/STAmount.h
     src/ripple/protocol/STArray.h
+    src/ripple/protocol/STPluginType.h
     src/ripple/protocol/STBase.h
     src/ripple/protocol/STBitString.h
     src/ripple/protocol/STBlob.h

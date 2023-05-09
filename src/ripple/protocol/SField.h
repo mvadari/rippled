@@ -48,6 +48,7 @@ class STBitString;
 template <class>
 class STInteger;
 class STVector256;
+class STPluginType;
 
 enum SerializedTypeID {
     // special types
@@ -148,6 +149,13 @@ public:
     // These constructors can only be called from SField.cpp
     SField(
         private_access_tag_t,
+        int tid,
+        int fv,
+        const char* fn,
+        int meta = sMD_Default,
+        IsSigning signing = IsSigning::yes);
+
+    SField(
         int tid,
         int fv,
         const char* fn,
@@ -289,10 +297,10 @@ struct SFieldInfo {
     const char * txtName;
 };
 
+typedef SField const& (*createNewSFieldPtr)(int tid, int fv, const char* fn);
+
 void
 registerSField(SFieldInfo const& sfield);
-
-typedef SField const& (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
 
 void
 registerSType(int typeId, createNewSFieldPtr ptr);
@@ -342,6 +350,7 @@ using SF_ACCOUNT = TypedField<STAccount>;
 using SF_AMOUNT = TypedField<STAmount>;
 using SF_VL = TypedField<STBlob>;
 using SF_VECTOR256 = TypedField<STVector256>;
+using SF_PLUGIN_TYPE = TypedField<STPluginType>;
 
 //------------------------------------------------------------------------------
 

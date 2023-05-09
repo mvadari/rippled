@@ -239,13 +239,21 @@ parseLeafType(
     Json::Value const& value,
     Json::Value& error);
 
-typedef std::optional<detail::STVar> (*parseLeafTypePtr)(
+typedef std::unique_ptr<std::optional<detail::STVar>> (*parseLeafTypePtr)(
     SField const&,
     std::string const&,
     std::string const&,
     SField const*,
     Json::Value const&,
     Json::Value&);
+
+typedef std::optional<detail::STVar> (*parseLeafTypePtr2)(
+        SField const&,
+        std::string const&,
+        std::string const&,
+        SField const*,
+        Json::Value const&,
+        Json::Value&);
 
 void
 registerLeafType(int type, parseLeafTypePtr functionPtr);
