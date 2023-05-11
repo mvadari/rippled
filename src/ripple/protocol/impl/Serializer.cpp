@@ -219,6 +219,7 @@ Serializer::addVL(Slice const& slice)
 int
 Serializer::addVL(const void* ptr, int len)
 {
+    std::cout << "STPluginType addVL!" << std::endl;
     int ret = addEncoded(len);
 
     if (len)

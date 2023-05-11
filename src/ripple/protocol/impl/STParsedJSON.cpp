@@ -744,7 +744,8 @@ parseLeaf(
     if (auto it = pluginLeafParserMap.find(field.fieldType);
             it != pluginLeafParserMap.end())
     {
-        return *it->second(field, json_name, fieldName, name, value, error);
+        const std::optional<detail::STVar>* ret = it->second(field, json_name, fieldName, name, value, error);
+        return *ret;
     }
 
     std::optional<detail::STVar> ret;
