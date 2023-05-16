@@ -22,6 +22,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <iostream>
 
 namespace ripple {
 
@@ -351,9 +352,8 @@ CONSTRUCT_UNTYPED_SFIELD(sfHookGrants,          "HookGrants",           ARRAY,  
 
 */
 
-//std::map<int, createNewSFieldPtr> pluginSTypes {};
+std::map<int, createNewSFieldPtr> pluginSTypes {};
 
-/*
 void
 registerSType(int typeId, createNewSFieldPtr ptr)
 {
@@ -362,7 +362,6 @@ registerSType(int typeId, createNewSFieldPtr ptr)
     }
     pluginSTypes[typeId] = ptr;
 }
-*/
 
 void
 registerSField(SFieldInfo const& sfield)
@@ -389,16 +388,16 @@ registerSField(SFieldInfo const& sfield)
         default: {
             /*if (SField const& field = SField::getField(field_code(sfield.typeId, sfield.fieldValue)); field != sfInvalid)
                 return;*/
-            new SF_PLUGIN_TYPE(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
-            break;
+//            new SF_PLUGIN_TYPE(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+//            break;
 //            SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
-            /*if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
+            if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
                 SField const& newSField = it->second(sfield.typeId, sfield.fieldValue, sfield.txtName);
                 SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));
-            }*/
+            }
         }
     }
 }
@@ -430,6 +429,9 @@ SField::SField(
             throw std::runtime_error("Code " + std::to_string(fieldCode) + " already exists");
     } else
     {
+        if (tid == 24) {
+            std::cout << "Emplacing field with code " << fieldCode << " into knownCodeToField. Name is " << fn << std::endl;
+        }
         knownCodeToField.emplace(fieldCode, *this);
     }
 }

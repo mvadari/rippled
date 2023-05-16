@@ -23,10 +23,8 @@
 
 namespace ripple {
 
-    // TODO: Call function pointer for this constructor. All the function pointer should do is
-    //   read the correct number of bytes off of the SerialIter and set value_ to those bytes
 STPluginType::STPluginType(SerialIter& st, SField const& name)
-    : STBase(name), value_(st.getVLBuffer())
+        : STBase(name), value_(st.getVLBuffer())
 {
 }
 
@@ -48,20 +46,23 @@ STPluginType::getSType() const
     return getFName().fieldType;
 }
 
-// TODO: Call function pointer to get this as text
 std::string
 STPluginType::getText() const
 {
     return strHex(value_);
 }
 
-// TODO: Call function pointer to serialize
 void
 STPluginType::add(Serializer& s) const
 {
     std::cout << "STPluginType called!" << std::endl;
-    assert(false);
-//    s.addVL(value_.data(), uint160::bytes);
+    assert(getFName().isBinary());
+
+    // Preserve the serialization behavior of an STBlob:
+    //  o If we are default (all zeros) serialize as an empty blob.
+    //  o Otherwise serialize 160 bits.
+    int const size = isDefault() ? 0 : uint160::bytes;
+    s.addVL(value_.data(), size);
 }
 
 bool

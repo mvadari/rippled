@@ -224,6 +224,8 @@ public:
     getFieldH256(SField const& field) const;
     AccountID
     getAccountID(SField const& field) const;
+    STPluginType const&
+    getPluginType(SField const& field) const;
 
     Blob
     getFieldVL(SField const& field) const;
@@ -358,6 +360,9 @@ public:
 
     void
     setAccountID(SField const& field, AccountID const&);
+
+    void
+    setPluginType(SField const& field, STPluginType const&);
 
     void
     setFieldAmount(SField const& field, STAmount const&);
