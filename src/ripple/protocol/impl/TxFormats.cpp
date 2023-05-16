@@ -42,6 +42,13 @@ struct TxFormatsWrapper {
     std::initializer_list<SOElement> commonFields;
 };
 
+struct TxFormatsWrapper2 {
+    std::string name;
+    std::uint16_t type;
+    std::vector<SOElement> uniqueFields;
+    std::initializer_list<SOElement> commonFields;
+};
+
 std::map<std::string, std::uint16_t> txTypes{
     {"ttPAYMENT", 0},
     {"ttESCROW_CREATE", 1},
@@ -90,7 +97,7 @@ void
 addToTxTypes(std::string dynamicLib)
 {
     void* handle = dlopen(dynamicLib.c_str(), RTLD_LAZY);
-    auto const type = ((getTxTypePtr)dlsym(handle, "getTxName"))();
+    auto const type = ((getTxTypePtr)dlsym(handle, "getTxType"))();
     auto const ttName = ((getTTNamePtr)dlsym(handle, "getTTName"))();
     txTypes.insert({ttName, type});
 }
@@ -420,7 +427,7 @@ txFormatsList()
     return txFormatsList;
 }
 
-std::vector<TxFormatsWrapper> txFormatsList2{};
+std::vector<TxFormatsWrapper2> txFormatsList2{};
 
 std::vector<SOElement>
 convertToUniqueFields(std::vector<FakeSOElement> txFormat)
@@ -437,10 +444,10 @@ void
 addToTxFormats(std::uint16_t type, std::string dynamicLib)
 {
     void* handle = dlopen(dynamicLib.c_str(), RTLD_LAZY);
-    auto const name = ((getTxNamePtr)dlsym(handle, "getTxName"))();
+    auto const name = std::string(((getTxNamePtr)dlsym(handle, "getTxName"))());
     auto const txFormat = ((getTxFormatPtr)dlsym(handle, "getTxFormat"))();
     txFormatsList2.push_back({
-        name,
+        std::move(name),
         type,
         convertToUniqueFields(txFormat),
         commonFields()});
@@ -457,7 +464,7 @@ TxFormats::TxFormats()
     }
     for (auto &e: txFormatsList2)
     {
-        add(e.name, e.type, e.uniqueFields, e.commonFields);
+        add(e.name.c_str(), e.type, e.uniqueFields, e.commonFields);
     }
 }
 
