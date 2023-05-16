@@ -408,14 +408,14 @@ txFormatsList()
                 {sfTicketSequence, soeOPTIONAL},
             },
             commonFields()},
-        {
-            jss::DummyTx,
-            getTxTypeFromName("ttDUMMY_TX"),
-            {
-                {sfRegularKey, soeOPTIONAL},
-                {sfTicketSequence, soeOPTIONAL},
-            },
-            commonFields()},
+        // {
+        //     jss::DummyTx,
+        //     getTxTypeFromName("ttDUMMY_TX"),
+        //     {
+        //         {sfRegularKey, soeOPTIONAL},
+        //         {sfTicketSequence, soeOPTIONAL},
+        //     },
+        //     commonFields()},
     };
     return txFormatsList;
 }

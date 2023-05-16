@@ -295,6 +295,9 @@ public:
     // First, attempt to load the latest ledger directly from disk.
     bool FAST_LOAD = false;
 
+    // plugin locations
+    std::vector<std::string> PLUGINS = {};
+
 public:
     Config();
 

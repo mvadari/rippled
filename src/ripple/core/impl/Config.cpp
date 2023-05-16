@@ -982,6 +982,14 @@ Config::loadFromString(std::string const& fileContents)
                 "the maximum number of allowed peers (peers_max)");
         }
     }
+
+    {
+        auto const plugin = section(SECTION_PLUGINS);
+        for (auto const& s : plugin.lines())
+        {
+            PLUGINS.push_back(s);
+        }
+    }
 }
 
 boost::filesystem::path
