@@ -30,14 +30,7 @@ SField::IsSigning const SField::notSigning;
 int SField::num = 0;
 std::map<int, SField const&> SField::knownCodeToField __attribute__((init_priority(101))){};
 
-// // Give only this translation unit permission to construct SFields
-// struct SField::private_access_tag_t
-// {
-//     explicit private_access_tag_t() = default;
-// };
-
 static SField::private_access_tag_t access;
-
 // Construct all compile-time SFields, and register them in the knownCodeToField
 // database:
 
@@ -51,7 +44,7 @@ static SField::private_access_tag_t access;
 // where it is constructed.  These macros allow that grep to succeed.
 #define CONSTRUCT_UNTYPED_SFIELD(sfName, txtName, stiSuffix, fieldValue, ...) \
     SField const sfName(                                                      \
-        access, STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);         \
+        STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);         \
     static_assert(                                                            \
         std::string_view(#sfName) == "sf" txtName,                            \
         "Declaration of SField does not match its text name")
@@ -61,7 +54,7 @@ static SField::private_access_tag_t access;
 
 #define CONSTRUCT_TYPED_SFIELD(sfName, txtName, stiSuffix, fieldValue, ...) \
     SF_##stiSuffix const sfName __attribute__((init_priority(200)))(                                            \
-        access, STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);       \
+        STI_##stiSuffix, fieldValue, txtName, ##__VA_ARGS__);       \
     static_assert(                                                          \
         std::string_view(#sfName) == "sf" txtName,                          \
         "Declaration of SField does not match its text name")
@@ -71,8 +64,8 @@ static SField::private_access_tag_t access;
 // SFields which, for historical reasons, do not follow naming conventions.
 SField const sfInvalid(access, -1);
 SField const sfGeneric(access, 0);
-SField const sfHash(access, STI_UINT256, 257, "hash");
-SField const sfIndex(access, STI_UINT256, 258, "index");
+SField const sfHash(STI_UINT256, 257, "hash");
+SField const sfIndex(STI_UINT256, 258, "index");
 
 // Untyped SFields
 CONSTRUCT_UNTYPED_SFIELD(sfLedgerEntry,         "LedgerEntry",          LEDGERENTRY, 257);
@@ -368,25 +361,25 @@ registerSField(SFieldInfo const& sfield)
     // NOTE: there might be memory leak issues here
     switch (sfield.typeId)
     {
-        case STI_UINT16: new SF_UINT16(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT32: new SF_UINT32(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT64: new SF_UINT64(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT128: new SF_UINT128(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT256: new SF_UINT256(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT8: new SF_UINT8(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT160: new SF_UINT160(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT96: new SF_UINT96(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT192: new SF_UINT192(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT384: new SF_UINT384(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_UINT512: new SF_UINT512(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_AMOUNT: new SF_AMOUNT(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_VL: new SF_VL(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        case STI_ACCOUNT: new SF_ACCOUNT(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        // case STI_OBJECT: new SF_OBJECT(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
-        // case STI_ARRAY: new SF_ARRAY(access, sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT16: new SF_UINT16(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT32: new SF_UINT32(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT64: new SF_UINT64(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT128: new SF_UINT128(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT256: new SF_UINT256(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT8: new SF_UINT8(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT160: new SF_UINT160(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT96: new SF_UINT96(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT192: new SF_UINT192(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT384: new SF_UINT384(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_UINT512: new SF_UINT512(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_AMOUNT: new SF_AMOUNT(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_VL: new SF_VL(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        case STI_ACCOUNT: new SF_ACCOUNT(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        // case STI_OBJECT: new SF_OBJECT(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
+        // case STI_ARRAY: new SF_ARRAY(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                SField const& newSField = it->second(access, sfield.typeId, sfield.fieldValue, sfield.txtName);
+                SField const& newSField = it->second(sfield.typeId, sfield.fieldValue, sfield.txtName);
                 SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
             } else
             {
@@ -403,7 +396,6 @@ registerSField(SFieldInfo const& sfield)
 #pragma pop_macro("CONSTRUCT_UNTYPED_SFIELD")
 
 SField::SField(
-    private_access_tag_t,
     int tid,
     int fv,
     const char* fn,

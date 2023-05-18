@@ -599,6 +599,13 @@ STObject::getFieldVL(SField const& field) const
     return Blob(b.data(), b.data() + b.size());
 }
 
+STPluginType const&
+STObject::getFieldPluginType(SField const& field) const
+{
+    STPluginType empty;
+    return getFieldByConstRef<STPluginType>(field, empty);
+}
+
 STAmount const&
 STObject::getFieldAmount(SField const& field) const
 {
@@ -689,6 +696,11 @@ void
 STObject::setAccountID(SField const& field, AccountID const& v)
 {
     setFieldUsingSetValue<STAccount>(field, v);
+}
+
+void
+STObject::setFieldPluginType(SField const& field, STPluginType const& v) {
+    setFieldUsingSetValue<STPluginType>(field, Buffer(v.data(), v.size()));
 }
 
 void

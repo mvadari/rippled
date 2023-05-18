@@ -99,6 +99,7 @@ target_sources (xrpl_core PRIVATE
   src/ripple/protocol/impl/STObject.cpp
   src/ripple/protocol/impl/STParsedJSON.cpp
   src/ripple/protocol/impl/STPathSet.cpp
+  src/ripple/protocol/impl/STPluginType.cpp
   src/ripple/protocol/impl/STTx.cpp
   src/ripple/protocol/impl/STValidation.cpp
   src/ripple/protocol/impl/STVar.cpp
@@ -261,6 +262,7 @@ install (
     src/ripple/protocol/STObject.h
     src/ripple/protocol/STParsedJSON.h
     src/ripple/protocol/STPathSet.h
+    src/ripple/protocol/STPluginType.h
     src/ripple/protocol/STTx.h
     src/ripple/protocol/STValidation.h
     src/ripple/protocol/STVector256.h

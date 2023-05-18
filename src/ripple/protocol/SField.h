@@ -47,6 +47,7 @@ template <int>
 class STBitString;
 template <class>
 class STInteger;
+class STPluginType;
 class STVector256;
 
 enum SerializedTypeID {
@@ -145,9 +146,7 @@ public:
 public:
     struct private_access_tag_t;  // public, but still an implementation detail
 
-    // These constructors can only be called from SField.cpp
     SField(
-        private_access_tag_t,
         int tid,
         int fv,
         const char* fn,
@@ -292,7 +291,7 @@ struct SFieldInfo {
 void
 registerSField(SFieldInfo const& sfield);
 
-typedef SField const& (*createNewSFieldPtr)(SField::private_access_tag_t access, int tid, int fv, const char* fn);
+typedef SField const& (*createNewSFieldPtr)(int tid, int fv, const char* fn);
 
 void
 registerSType(int typeId, createNewSFieldPtr ptr);
@@ -341,6 +340,7 @@ using SF_UINT512 = TypedField<STBitString<512>>;
 using SF_ACCOUNT = TypedField<STAccount>;
 using SF_AMOUNT = TypedField<STAmount>;
 using SF_VL = TypedField<STBlob>;
+using SF_PLUGINTYPE = TypedField<STPluginType>;
 using SF_VECTOR256 = TypedField<STVector256>;
 
 //------------------------------------------------------------------------------
