@@ -23,6 +23,7 @@
 
 namespace ripple {
 
+// TODO: Consider removing this, as constructors are called via raw function pointers elsewhere.
 STPluginType::STPluginType(SerialIter& st, SField const& name)
         : STBase(name), value_(st.getVLBuffer())
 {
