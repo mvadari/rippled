@@ -161,12 +161,6 @@ operator!=(STVar const& lhs, STVar const& rhs)
 
 }  // namespace detail
 
-typedef STBase* (*constructSTypePtr)(SerialIter& sit, SField const& name);
-typedef STBase* (*constructSTypePtr2)(SField const& name);
-
-void
-registerSTConstructor(int type, constructSTypePtr functionPtr, constructSTypePtr2 functionPtr2);
-
 }  // namespace ripple
 
 #endif

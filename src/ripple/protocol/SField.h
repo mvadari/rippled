@@ -24,6 +24,7 @@
 #include <ripple/json/json_value.h>
 #include <cstdint>
 #include <map>
+#include <set>
 #include <utility>
 
 namespace ripple {
@@ -293,8 +294,10 @@ registerSField(SFieldInfo const& sfield);
 
 typedef SField const& (*createNewSFieldPtr)(int tid, int fv, const char* fn);
 
+extern std::set<int> pluginSTypes;
+
 void
-registerSType(int typeId, createNewSFieldPtr ptr);
+registerSType(int typeId);
 
 // TODO: moved from SField.cpp
 // Give only this translation unit permission to construct SFields

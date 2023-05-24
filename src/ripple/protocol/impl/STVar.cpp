@@ -37,14 +37,6 @@ namespace detail {
 defaultObject_t defaultObject;
 nonPresentObject_t nonPresentObject;
 
-struct constructSTypePtrs
-{
-    constructSTypePtr functionPtr;
-    constructSTypePtr2 functionPtr2;
-};
-
-std::map<int, constructSTypePtrs> constructPluginSTypeMap{};
-
 //------------------------------------------------------------------------------
 
 STVar::~STVar()
@@ -167,10 +159,12 @@ STVar::STVar(SerialIter& sit, SField const& name, int depth)
             construct<STArray>(sit, name, depth);
             return;
         default:
-            if (auto it = constructPluginSTypeMap.find(name.fieldType);
-                it != constructPluginSTypeMap.end())
+            if (auto it = pluginSTypes.find(name.fieldType);
+                it != pluginSTypes.end())
             {
-                p_ = it->second.functionPtr(sit, name);
+                // TODO: figure out how to handle more complex types that have depth
+                construct<STPluginType>(sit, name);
+                return;
             } else
             {
                 Throw<std::runtime_error>("Unknown object type");
@@ -229,10 +223,11 @@ STVar::STVar(int id, SField const& name)
             construct<STArray>(name);
             return;
         default:
-            if (auto it = constructPluginSTypeMap.find(id);
-                it != constructPluginSTypeMap.end())
+            if (auto it = pluginSTypes.find(name.fieldType);
+                it != pluginSTypes.end())
             {
-                p_ = it->second.functionPtr2(name);
+                construct<STPluginType>(name);
+                return;
             } else
             {
                 Throw<std::runtime_error>("Unknown object type");
@@ -252,11 +247,5 @@ STVar::destroy()
 }
 
 }  // namespace detail
-
-void
-registerSTConstructor(int type, constructSTypePtr functionPtr, constructSTypePtr2 functionPtr2)
-{
-    detail::constructPluginSTypeMap.insert({ type, {functionPtr, functionPtr2} });
-}
 
 }  // namespace ripple

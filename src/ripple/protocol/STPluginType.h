@@ -35,7 +35,8 @@ class STPluginType : public STBase
     Buffer value_;
 
 public:
-    using value_type = Slice;
+    using value_type = Buffer;
+    // TODO: avoid doing a memory allocation every time this is called
 
     STPluginType() = default;
     STPluginType(STPluginType const& rhs);
@@ -128,6 +129,7 @@ STPluginType::operator=(Slice const& slice)
 inline STPluginType::value_type
 STPluginType::value() const noexcept
 {
+    // TODO: avoid doing a memory allocation every time this is called
     return value_;
 }
 

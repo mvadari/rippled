@@ -55,7 +55,7 @@ STPluginType::getText() const
 void
 STPluginType::add(Serializer& s) const
 {
-    std::cout << "STPluginType called!" << std::endl;
+    std::cout << "STPluginType called! " << getText() << std::endl;
     assert(getFName().isBinary());
 
     // Preserve the serialization behavior of an STBlob:

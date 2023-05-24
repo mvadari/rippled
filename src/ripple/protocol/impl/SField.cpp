@@ -344,15 +344,15 @@ CONSTRUCT_UNTYPED_SFIELD(sfHookGrants,          "HookGrants",           ARRAY,  
 
 */
 
-std::map<int, createNewSFieldPtr> pluginSTypes {};
+std::set<int> pluginSTypes;
 
 void
-registerSType(int typeId, createNewSFieldPtr ptr)
+registerSType(int typeId)
 {
     if (auto const it = pluginSTypes.find(typeId); it != pluginSTypes.end()) {
         throw std::runtime_error("Code " + std::to_string(typeId) + " already exists");
     }
-    pluginSTypes[typeId] = ptr;
+    pluginSTypes.insert(typeId);
 }
 
 void
@@ -379,8 +379,7 @@ registerSField(SFieldInfo const& sfield)
         // case STI_ARRAY: new SF_ARRAY(sfield.typeId, sfield.fieldValue, sfield.txtName); break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId); it != pluginSTypes.end()) {
-                SField const& newSField = it->second(sfield.typeId, sfield.fieldValue, sfield.txtName);
-                SField::knownCodeToField.emplace(newSField.fieldCode, newSField);
+                new SF_PLUGINTYPE(sfield.typeId, sfield.fieldValue, sfield.txtName);
             } else
             {
                 throw std::runtime_error("Do not recognize type ID " + std::to_string(sfield.typeId));

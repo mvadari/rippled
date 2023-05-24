@@ -1121,10 +1121,7 @@ typedef std::vector<SFieldInfo> (*getSFieldsPtr)();
 
 struct STypeExport {
     int typeId;
-    createNewSFieldPtr createPtr;
     parseLeafTypePtr parsePtr;
-    constructSTypePtr constructPtr;
-    constructSTypePtr2 constructPtr2;
 };
 typedef std::vector<STypeExport> (*getSTypesPtr)();
 
@@ -1136,9 +1133,8 @@ addPluginTransactor(std::string libPath)
     auto const stypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
     for (auto const& stype : stypes)
     {
-        registerSType(stype.typeId, stype.createPtr);
+        registerSType(stype.typeId);
         registerLeafType(stype.typeId, stype.parsePtr);
-        registerSTConstructor(stype.typeId, stype.constructPtr, stype.constructPtr2);
     }
     auto const sfields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
     for (auto const& sfield : sfields)
