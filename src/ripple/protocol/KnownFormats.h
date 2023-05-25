@@ -29,6 +29,22 @@
 
 namespace ripple {
 
+struct FakeSOElement {
+    int fieldCode;
+    ripple::SOEStyle style;
+};
+
+static std::vector<SOElement>
+convertToUniqueFields(std::vector<FakeSOElement> txFormat)
+{
+    std::vector<SOElement> uniqueFields;
+    for (auto &param : txFormat)
+    {
+        uniqueFields.push_back({SField::getField(param.fieldCode), param.style});
+    }
+    return uniqueFields;
+}
+
 /** Manages a list of known formats.
 
     Each format has a name, an associated KeyType (typically an enumeration),

@@ -273,7 +273,7 @@ enum LedgerSpecificFlags {
 
 /** Holds the list of known ledger entry formats.
  */
-class LedgerFormats : public KnownFormats<LedgerEntryType, LedgerFormats>
+class LedgerFormats : public KnownFormats<std::uint16_t, LedgerFormats>
 {
 private:
     /** Create the object.
@@ -285,6 +285,12 @@ public:
     static LedgerFormats const&
     getInstance();
 };
+
+void
+registerLedgerObject(
+    std::uint16_t objectType,
+    char const* objectName,
+    std::vector<FakeSOElement> objectFormat);
 
 }  // namespace ripple
 

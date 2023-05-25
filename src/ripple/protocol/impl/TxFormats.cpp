@@ -25,11 +25,6 @@
 
 namespace ripple {
 
-struct FakeSOElement {
-    int fieldCode;
-    ripple::SOEStyle style;
-};
-
 typedef std::vector<FakeSOElement> (*getTxFormatPtr)();
 typedef char const* (*getTxNamePtr)();
 typedef std::uint16_t (*getTxTypePtr)();
@@ -428,17 +423,6 @@ txFormatsList()
 }
 
 std::vector<TxFormatsWrapper2> txFormatsList2{};
-
-std::vector<SOElement>
-convertToUniqueFields(std::vector<FakeSOElement> txFormat)
-{
-    std::vector<SOElement> uniqueFields;
-    for (auto &param : txFormat)
-    {
-        uniqueFields.push_back({SField::getField(param.fieldCode), param.style});
-    }
-    return uniqueFields;
-}
 
 void
 addToTxFormats(std::uint16_t type, std::string dynamicLib)

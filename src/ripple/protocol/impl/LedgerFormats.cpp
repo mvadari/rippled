@@ -20,8 +20,29 @@
 #include <ripple/protocol/LedgerFormats.h>
 #include <ripple/protocol/jss.h>
 #include <utility>
+#include <list>
 
 namespace ripple {
+
+struct LedgerFormatsWrapper {
+    std::string name;
+    std::uint16_t type;
+    std::vector<SOElement> uniqueFields;
+};
+
+std::list<LedgerFormatsWrapper> pluginObjectsList {};
+
+void
+registerLedgerObject(
+    std::uint16_t objectType,
+    char const* objectName,
+    std::vector<FakeSOElement> objectFormat)
+{
+    pluginObjectsList.push_back({
+        std::move(objectName),
+        objectType,
+        convertToUniqueFields(objectFormat)});
+}
 
 LedgerFormats::LedgerFormats()
 {
@@ -267,6 +288,11 @@ LedgerFormats::LedgerFormats()
             {sfPreviousTxnLgrSeq,    soeREQUIRED}
         },
         commonFields);
+    
+    for (auto &e: pluginObjectsList)
+    {
+        add(e.name.c_str(), e.type, e.uniqueFields, commonFields);
+    }
     // clang-format on
 }
 

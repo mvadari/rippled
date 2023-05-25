@@ -1125,6 +1125,16 @@ struct STypeExport {
 };
 typedef std::vector<STypeExport> (*getSTypesPtr)();
 
+struct LedgerObjectInfo {
+    std::uint16_t objectType;
+    char const* objectName; // CamelCase
+    char const* objectRpcName; // snake_case
+    std::vector<FakeSOElement> objectFormat;
+    bool isDeletionBlocker;
+    // FakeSOElement[] innerObjectFormat; // optional
+};
+typedef std::vector<LedgerObjectInfo> (*getLedgerObjectsPtr)();
+
 void
 addPluginTransactor(std::string libPath)
 {
@@ -1140,6 +1150,11 @@ addPluginTransactor(std::string libPath)
     for (auto const& sfield : sfields)
     {
         registerSField(sfield);
+    }
+    auto const ledgerObjects = ((getLedgerObjectsPtr)dlsym(handle, "getLedgerObjects"))();
+    for (auto const& ledgerObject: ledgerObjects)
+    {
+        registerLedgerObject(ledgerObject.objectType, ledgerObject.objectName, ledgerObject.objectFormat);
     }
     addToTxTypes(libPath);
     addToTxFormats(type, libPath);

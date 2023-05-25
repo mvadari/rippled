@@ -104,7 +104,7 @@ bool
 getAccountObjects(
     ReadView const& ledger,
     AccountID const& account,
-    std::optional<std::vector<LedgerEntryType>> const& typeFilter,
+    std::optional<std::vector<std::uint16_t>> const& typeFilter,
     uint256 dirIndex,
     uint256 entryIndex,
     std::uint32_t const limit,
@@ -268,7 +268,7 @@ setVersion(Object& parent, unsigned int apiVersion, bool betaEnabled)
     }
 }
 
-std::pair<RPC::Status, LedgerEntryType>
+std::pair<RPC::Status, std::uint16_t>
 chooseLedgerEntryType(Json::Value const& params);
 
 /**
