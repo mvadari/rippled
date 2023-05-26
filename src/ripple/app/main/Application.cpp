@@ -74,6 +74,7 @@
 #include <ripple/rpc/impl/RPCHelpers.h>
 #include <ripple/shamap/NodeFamily.h>
 #include <ripple/shamap/ShardFamily.h>
+#include <ripple/app/tx/impl/InvariantCheck.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -1131,6 +1132,7 @@ struct LedgerObjectInfo {
     char const* objectRpcName; // snake_case
     std::vector<FakeSOElement> objectFormat;
     bool isDeletionBlocker;
+    visitEntryXRPChangePtr visitEntryXRPChange;
     // FakeSOElement[] innerObjectFormat; // optional
 };
 typedef std::vector<LedgerObjectInfo> (*getLedgerObjectsPtr)();
@@ -1155,6 +1157,7 @@ addPluginTransactor(std::string libPath)
     for (auto const& ledgerObject: ledgerObjects)
     {
         registerLedgerObject(ledgerObject.objectType, ledgerObject.objectName, ledgerObject.objectFormat);
+        registerpluginXRPChangeFn(ledgerObject.objectType, ledgerObject.visitEntryXRPChange);
     }
     addToTxTypes(libPath);
     addToTxFormats(type, libPath);

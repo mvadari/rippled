@@ -107,6 +107,16 @@ public:
         beast::Journal const&);
 };
 
+typedef std::int64_t (*visitEntryXRPChangePtr)(
+    bool isDelete,
+    std::shared_ptr<SLE const> const& entry,
+    bool isBefore);
+
+extern std::map<std::uint16_t, visitEntryXRPChangePtr> pluginXRPChangeFns;
+
+void
+registerpluginXRPChangeFn(std::uint16_t type, visitEntryXRPChangePtr ptr);
+
 /**
  * @brief Invariant: A transaction must not create XRP and should only destroy
  * the XRP fee.

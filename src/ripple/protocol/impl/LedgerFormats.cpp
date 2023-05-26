@@ -30,6 +30,7 @@ struct LedgerFormatsWrapper {
     std::vector<SOElement> uniqueFields;
 };
 
+std::set<std::uint16_t> pluginObjectTypes {};
 std::list<LedgerFormatsWrapper> pluginObjectsList {};
 
 void
@@ -38,6 +39,7 @@ registerLedgerObject(
     char const* objectName,
     std::vector<FakeSOElement> objectFormat)
 {
+    pluginObjectTypes.insert(objectType);
     pluginObjectsList.push_back({
         std::move(objectName),
         objectType,

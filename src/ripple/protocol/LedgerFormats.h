@@ -286,6 +286,8 @@ public:
     getInstance();
 };
 
+extern std::set<std::uint16_t> pluginObjectTypes;
+
 void
 registerLedgerObject(
     std::uint16_t objectType,
