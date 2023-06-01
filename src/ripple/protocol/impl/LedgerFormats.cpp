@@ -20,18 +20,10 @@
 #include <ripple/protocol/LedgerFormats.h>
 #include <ripple/protocol/jss.h>
 #include <utility>
-#include <list>
 
 namespace ripple {
 
-struct LedgerFormatsWrapper {
-    std::string name;
-    std::uint16_t type;
-    std::vector<SOElement> uniqueFields;
-};
-
-std::set<std::uint16_t> pluginObjectTypes {};
-std::list<LedgerFormatsWrapper> pluginObjectsList {};
+std::map<std::uint16_t, LedgerFormatsWrapper> pluginObjectsMap {};
 
 void
 registerLedgerObject(
@@ -39,19 +31,21 @@ registerLedgerObject(
     char const* objectName,
     std::vector<FakeSOElement> objectFormat)
 {
-    if (auto it = pluginObjectsList.find(objectType);
-        it != pluginObjectsList.end())
+    if (auto it = pluginObjectsMap.find(objectType);
+        it != pluginObjectsMap.end())
     {
         if (it->second.name == std::string(objectName)) return;
         LogicError(
             std::string("Duplicate key for plugin ledger object '") + std::string(objectName) +
             "': already exists");
     }
-    pluginObjectTypes.insert(objectType);
-    pluginObjectsList.push_back({
-        std::move(objectName),
+    pluginObjectsMap.insert({
         objectType,
-        convertToUniqueFields(objectFormat)});
+        {
+            std::move(objectName),
+            convertToUniqueFields(objectFormat)
+        }
+    });
 }
 
 LedgerFormats::LedgerFormats()
@@ -299,9 +293,9 @@ LedgerFormats::LedgerFormats()
         },
         commonFields);
     
-    for (auto &e: pluginObjectsList)
+    for (auto &e: pluginObjectsMap)
     {
-        add(e.name.c_str(), e.type, e.uniqueFields, commonFields);
+        add(e.second.name.c_str(), e.first, e.second.uniqueFields, commonFields);
     }
     // clang-format on
 }

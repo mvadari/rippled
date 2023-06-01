@@ -391,7 +391,7 @@ LedgerEntryTypesMatch::visitEntry(
             case ltNFTOKEN_OFFER:
                 break;
             default:
-                if (pluginObjectsList.find(after->getType()) != pluginObjectsList.end()) {
+                if (pluginObjectsMap.find(after->getType()) != pluginObjectsMap.end()) {
                     break;
                 }
                 invalidTypeAdded_ = true;

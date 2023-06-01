@@ -286,7 +286,12 @@ public:
     getInstance();
 };
 
-extern std::set<std::uint16_t> pluginObjectTypes;
+struct LedgerFormatsWrapper {
+    std::string name;
+    std::vector<SOElement> uniqueFields;
+};
+
+extern std::map<std::uint16_t, LedgerFormatsWrapper> pluginObjectsMap;
 
 void
 registerLedgerObject(
