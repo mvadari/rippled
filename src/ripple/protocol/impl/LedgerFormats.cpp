@@ -39,8 +39,10 @@ registerLedgerObject(
     char const* objectName,
     std::vector<FakeSOElement> objectFormat)
 {
-    if (pluginObjectTypes.contains(objectType))
+    if (auto it = pluginObjectsList.find(objectType);
+        it != pluginObjectsList.end())
     {
+        if (it->second.name == std::string(objectName)) return;
         LogicError(
             std::string("Duplicate key for plugin ledger object '") + std::string(objectName) +
             "': already exists");
