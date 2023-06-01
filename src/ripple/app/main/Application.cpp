@@ -1132,7 +1132,7 @@ struct LedgerObjectInfo {
     char const* objectRpcName; // snake_case
     std::vector<FakeSOElement> objectFormat;
     bool isDeletionBlocker;
-    visitEntryXRPChangePtr visitEntryXRPChange;
+    std::optional<visitEntryXRPChangePtr> visitEntryXRPChange;
     // FakeSOElement[] innerObjectFormat; // optional
 };
 typedef std::vector<LedgerObjectInfo> (*getLedgerObjectsPtr)();
@@ -1157,7 +1157,9 @@ addPluginTransactor(std::string libPath)
     for (auto const& ledgerObject: ledgerObjects)
     {
         registerLedgerObject(ledgerObject.objectType, ledgerObject.objectName, ledgerObject.objectFormat);
-        registerpluginXRPChangeFn(ledgerObject.objectType, ledgerObject.visitEntryXRPChange);
+        if (ledgerObject.visitEntryXRPChange.has_value()) {
+            registerpluginXRPChangeFn(ledgerObject.objectType, ledgerObject.visitEntryXRPChange.value());
+        }
     }
     addToTxTypes(libPath);
     addToTxFormats(type, libPath);
