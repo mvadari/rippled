@@ -152,14 +152,14 @@ bool
 getAccountObjects(
     ReadView const& ledger,
     AccountID const& account,
-    std::optional<std::vector<LedgerEntryType>> const& typeFilter,
+    std::optional<std::vector<std::uint16_t>> const& typeFilter,
     uint256 dirIndex,
     uint256 entryIndex,
     std::uint32_t const limit,
     Json::Value& jvResult)
 {
-    auto typeMatchesFilter = [](std::vector<LedgerEntryType> const& typeFilter,
-                                LedgerEntryType ledgerType) {
+    auto typeMatchesFilter = [](std::vector<std::uint16_t> const& typeFilter,
+                                std::uint16_t ledgerType) {
         auto it = std::find(typeFilter.begin(), typeFilter.end(), ledgerType);
         return it != typeFilter.end();
     };
@@ -976,13 +976,13 @@ keypairForSignature(Json::Value const& params, Json::Value& error)
     return generateKeyPair(*keyType, *seed);
 }
 
-std::pair<RPC::Status, LedgerEntryType>
+std::pair<RPC::Status, std::uint16_t>
 chooseLedgerEntryType(Json::Value const& params)
 {
-    std::pair<RPC::Status, LedgerEntryType> result{RPC::Status::OK, ltANY};
+    std::pair<RPC::Status, std::uint16_t> result{RPC::Status::OK, ltANY};
     if (params.isMember(jss::type))
     {
-        static constexpr std::array<std::pair<char const*, LedgerEntryType>, 16>
+        static constexpr std::array<std::pair<char const*, std::uint16_t>, 16>
             types{
                 {{jss::account, ltACCOUNT_ROOT},
                  {jss::amendments, ltAMENDMENTS},

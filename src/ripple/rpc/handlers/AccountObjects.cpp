@@ -183,7 +183,7 @@ doAccountObjects(RPC::JsonContext& context)
     if (!ledger->exists(keylet::account(accountID)))
         return rpcError(rpcACT_NOT_FOUND);
 
-    std::optional<std::vector<LedgerEntryType>> typeFilter;
+    std::optional<std::vector<std::uint16_t>> typeFilter;
 
     if (params.isMember(jss::deletion_blockers_only) &&
         params[jss::deletion_blockers_only].asBool())
@@ -191,7 +191,7 @@ doAccountObjects(RPC::JsonContext& context)
         struct
         {
             Json::StaticString name;
-            LedgerEntryType type;
+            std::uint16_t type;
         } static constexpr deletionBlockers[] = {
             {jss::check, ltCHECK},
             {jss::escrow, ltESCROW},
@@ -224,7 +224,7 @@ doAccountObjects(RPC::JsonContext& context)
         }
         else if (type != ltANY)
         {
-            typeFilter = std::vector<LedgerEntryType>({type});
+            typeFilter = std::vector<std::uint16_t>({type});
         }
     }
 

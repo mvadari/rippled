@@ -469,7 +469,7 @@ requireAuth(ReadView const& view, Issue const& issue, AccountID const& account);
 cleanupOnAccountDelete(
     ApplyView& view,
     Keylet const& ownerDirKeylet,
-    std::function<TER(LedgerEntryType, uint256 const&, std::shared_ptr<SLE>&)>
+    std::function<TER(std::uint16_t, uint256 const&, std::shared_ptr<SLE>&)>
         deleter,
     beast::Journal j,
     std::optional<std::uint16_t> maxNodesToDelete = std::nullopt);

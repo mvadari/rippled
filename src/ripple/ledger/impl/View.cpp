@@ -1531,7 +1531,7 @@ TER
 cleanupOnAccountDelete(
     ApplyView& view,
     Keylet const& ownerDirKeylet,
-    std::function<TER(LedgerEntryType, uint256 const&, std::shared_ptr<SLE>&)>
+    std::function<TER(std::uint16_t, uint256 const&, std::shared_ptr<SLE>&)>
         deleter,
     beast::Journal j,
     std::optional<uint16_t> maxNodesToDelete)
@@ -1562,8 +1562,8 @@ cleanupOnAccountDelete(
                 return tefBAD_LEDGER;
             }
 
-            LedgerEntryType const nodeType{safe_cast<LedgerEntryType>(
-                sleItem->getFieldU16(sfLedgerEntryType))};
+            std::uint16_t const nodeType{
+                sleItem->getFieldU16(sfLedgerEntryType)};
 
             // Deleter handles the details of specific account-owned object
             // deletion

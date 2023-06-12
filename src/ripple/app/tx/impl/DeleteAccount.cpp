@@ -137,7 +137,7 @@ removeNFTokenOfferFromLedger(
 // be deleted.  Otherwise return the pointer to the function that can delete
 // the non-obligation
 DeleterFuncPtr
-nonObligationDeleter(LedgerEntryType t)
+nonObligationDeleter(std::uint16_t t)
 {
     switch (t)
     {
@@ -263,8 +263,8 @@ DeleteAccount::preclaim(PreclaimContext const& ctx)
             return tefBAD_LEDGER;
         }
 
-        LedgerEntryType const nodeType{
-            safe_cast<LedgerEntryType>((*sleItem)[sfLedgerEntryType])};
+        std::uint16_t const nodeType{
+            (*sleItem)[sfLedgerEntryType]};
 
         if (!nonObligationDeleter(nodeType))
             return tecHAS_OBLIGATIONS;
@@ -296,7 +296,7 @@ DeleteAccount::doApply()
     auto const ter = cleanupOnAccountDelete(
         view(),
         ownerDirKeylet,
-        [&](LedgerEntryType nodeType,
+        [&](std::uint16_t nodeType,
             uint256 const& dirEntry,
             std::shared_ptr<SLE>& sleItem) -> TER {
             if (auto deleter = nonObligationDeleter(nodeType))

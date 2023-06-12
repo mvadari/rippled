@@ -656,7 +656,7 @@ NFTokenCountTracking::finalize(
     ReadView const& view,
     beast::Journal const& j)
 {
-    if (TxType const txType = tx.getTxnType();
+    if (std::uint16_t const txType = tx.getTxnType();
         txType != ttNFTOKEN_MINT && txType != ttNFTOKEN_BURN)
     {
         if (beforeMintedTotal != afterMintedTotal)

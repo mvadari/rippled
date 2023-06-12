@@ -38,7 +38,7 @@ struct LedgerFill
         RPC::Context* ctx,
         int o = 0,
         std::vector<TxQ::TxDetails> q = {},
-        LedgerEntryType t = ltANY)
+        std::uint16_t t = ltANY)
         : ledger(l), options(o), txQueue(std::move(q)), type(t), context(ctx)
     {
     }
@@ -56,7 +56,7 @@ struct LedgerFill
     ReadView const& ledger;
     int options;
     std::vector<TxQ::TxDetails> txQueue;
-    LedgerEntryType type;
+    std::uint16_t type;
     RPC::Context* context;
 };
 

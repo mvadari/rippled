@@ -61,7 +61,7 @@ void
 STLedgerEntry::setSLEType()
 {
     auto format = LedgerFormats::getInstance().findByType(
-        safe_cast<LedgerEntryType>(getFieldU16(sfLedgerEntryType)));
+        getFieldU16(sfLedgerEntryType));
 
     if (format == nullptr)
         Throw<std::runtime_error>("invalid ledger entry type");

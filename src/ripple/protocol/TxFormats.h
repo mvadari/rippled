@@ -182,7 +182,7 @@ enum TxType : std::uint16_t
 
 /** Manages the list of known transaction formats.
  */
-class TxFormats : public KnownFormats<TxType, TxFormats>
+class TxFormats : public KnownFormats<std::uint16_t, TxFormats>
 {
 private:
     /** Create the object.
