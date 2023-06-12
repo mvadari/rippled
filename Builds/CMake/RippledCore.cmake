@@ -17,6 +17,8 @@ add_library(libxrpl INTERFACE)
 target_link_libraries(libxrpl INTERFACE xrpl_core)
 add_library(xrpl::libxrpl ALIAS libxrpl)
 
+add_library(xrpl_plugin ${rb_headers})
+
 
 #[===============================[
     beast/legacy FILES:
@@ -151,6 +153,19 @@ target_link_libraries (xrpl_core
     ed25519::ed25519
     date::date
     Ripple::opts)
+
+#[=================================[
+   xrpl_plugin installation
+#]=================================]
+target_sources (xrpl_plugin PRIVATE
+  src/ripple/app/tx/impl/validity.cpp
+  src/ripple/app/tx/impl/TxConsequences.cpp
+)
+
+add_library (Ripple::xrpl_plugin ALIAS xrpl_plugin)
+target_link_libraries(xrpl_plugin PUBLIC
+  xrpl_core
+)
 #[=================================[
    main/core headers installation
 #]=================================]
@@ -1097,6 +1112,7 @@ target_link_libraries (rippled
   Ripple::opts
   Ripple::libs
   Ripple::xrpl_core
+  Ripple::xrpl_plugin
   )
 exclude_if_included (rippled)
 # define a macro for tests that might need to
