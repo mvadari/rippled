@@ -19,10 +19,10 @@
 
 #include <ripple/app/main/Application.h>
 #include <ripple/app/misc/LoadFeeTrack.h>
-#include <ripple/app/tx/validity.h>
 #include <ripple/app/tx/impl/SignerEntries.h>
 #include <ripple/app/tx/impl/Transactor.h>
 #include <ripple/app/tx/impl/details/NFTokenUtils.h>
+#include <ripple/app/tx/validity.h>
 #include <ripple/basics/Log.h>
 #include <ripple/basics/contract.h>
 #include <ripple/core/Config.h>
