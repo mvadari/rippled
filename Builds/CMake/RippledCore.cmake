@@ -160,6 +160,19 @@ target_link_libraries (xrpl_core
 target_sources (xrpl_plugin PRIVATE
   src/ripple/app/tx/impl/validity.cpp
   src/ripple/app/tx/impl/TxConsequences.cpp
+  src/ripple/ledger/impl/ApplyStateTable.cpp
+  src/ripple/ledger/impl/ApplyView.cpp
+  src/ripple/ledger/impl/ApplyViewBase.cpp
+  src/ripple/ledger/impl/ApplyViewImpl.cpp
+  src/ripple/ledger/impl/OpenView.cpp
+  src/ripple/ledger/impl/RawStateTable.cpp
+  src/ripple/ledger/impl/ReadView.cpp
+  src/ripple/ledger/impl/View.cpp
+  src/ripple/app/tx/impl/ApplyContext.cpp
+  src/ripple/app/misc/impl/LoadFeeTrack.cpp
+  src/ripple/app/misc/HashRouter.cpp
+  src/ripple/app/tx/impl/SignerEntries.cpp
+  src/ripple/ledger/impl/Directory.cpp
 )
 
 add_library (Ripple::xrpl_plugin ALIAS xrpl_plugin)
@@ -470,14 +483,12 @@ target_sources (rippled PRIVATE
   src/ripple/app/misc/impl/AMMUtils.cpp
   src/ripple/app/misc/CanonicalTXSet.cpp
   src/ripple/app/misc/FeeVoteImpl.cpp
-  src/ripple/app/misc/HashRouter.cpp
   src/ripple/app/misc/NegativeUNLVote.cpp
   src/ripple/app/misc/NetworkOPs.cpp
   src/ripple/app/misc/SHAMapStoreImp.cpp
   src/ripple/app/misc/detail/impl/WorkSSL.cpp
   src/ripple/app/misc/impl/AccountTxPaging.cpp
   src/ripple/app/misc/impl/AmendmentTable.cpp
-  src/ripple/app/misc/impl/LoadFeeTrack.cpp
   src/ripple/app/misc/impl/Manifest.cpp
   src/ripple/app/misc/impl/Transaction.cpp
   src/ripple/app/misc/impl/TxQ.cpp
@@ -543,7 +554,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/SetRegularKey.cpp
   src/ripple/app/tx/impl/SetSignerList.cpp
   src/ripple/app/tx/impl/SetTrust.cpp
-  src/ripple/app/tx/impl/SignerEntries.cpp
   src/ripple/app/tx/impl/Taker.cpp
   src/ripple/app/tx/impl/Transactor.cpp
   src/ripple/app/tx/impl/apply.cpp
@@ -591,18 +601,9 @@ target_sources (rippled PRIVATE
      main sources:
        subdir: ledger
   #]===============================]
-  src/ripple/ledger/impl/ApplyStateTable.cpp
-  src/ripple/ledger/impl/ApplyView.cpp
-  src/ripple/ledger/impl/ApplyViewBase.cpp
-  src/ripple/ledger/impl/ApplyViewImpl.cpp
   src/ripple/ledger/impl/BookDirs.cpp
   src/ripple/ledger/impl/CachedView.cpp
-  src/ripple/ledger/impl/Directory.cpp
-  src/ripple/ledger/impl/OpenView.cpp
   src/ripple/ledger/impl/PaymentSandbox.cpp
-  src/ripple/ledger/impl/RawStateTable.cpp
-  src/ripple/ledger/impl/ReadView.cpp
-  src/ripple/ledger/impl/View.cpp
   #[===============================[
      main sources:
        subdir: net
