@@ -1,7 +1,7 @@
 
 #include <ripple/beast/utility/Journal.h>
-#include <ripple/protocol/st.h>
 #include <ripple/protocol/TER.h>
+#include <ripple/protocol/st.h>
 #ifndef RIPPLE_TX_TX_CONSEQUENCES_H_INCLUDED
 #define RIPPLE_TX_TX_CONSEQUENCES_H_INCLUDED
 

@@ -263,8 +263,7 @@ DeleteAccount::preclaim(PreclaimContext const& ctx)
             return tefBAD_LEDGER;
         }
 
-        std::uint16_t const nodeType{
-            (*sleItem)[sfLedgerEntryType]};
+        std::uint16_t const nodeType{(*sleItem)[sfLedgerEntryType]};
 
         if (!nonObligationDeleter(nodeType))
             return tecHAS_OBLIGATIONS;

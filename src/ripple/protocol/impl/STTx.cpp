@@ -49,8 +49,7 @@ getTxFormat(std::uint16_t type)
     if (format == nullptr)
     {
         Throw<std::runtime_error>(
-            "Invalid transaction type " +
-            std::to_string(type));
+            "Invalid transaction type " + std::to_string(type));
     }
 
     return format;
