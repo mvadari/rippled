@@ -38,7 +38,7 @@ struct LedgerFill
         RPC::Context* ctx,
         int o = 0,
         std::vector<TxQ::TxDetails> q = {},
-        std::uint16_t t = ltANY)
+        std::uint16_t t = ltANY)  // LedgerEntryType
         : ledger(l), options(o), txQueue(std::move(q)), type(t), context(ctx)
     {
     }

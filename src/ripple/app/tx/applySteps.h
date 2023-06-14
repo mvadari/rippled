@@ -20,13 +20,24 @@
 #ifndef RIPPLE_TX_APPLYSTEPS_H_INCLUDED
 #define RIPPLE_TX_APPLYSTEPS_H_INCLUDED
 
+#include <ripple/app/tx/TxConsequences.h>
 #include <ripple/beast/utility/Journal.h>
 #include <ripple/ledger/ApplyViewImpl.h>
+#include <ripple/plugin/plugin.h>
 
 namespace ripple {
 
 class Application;
 class STTx;
+
+/** Return true if the transaction can claim a fee (tec),
+    and the `ApplyFlags` do not allow soft failures.
+ */
+inline bool
+isTecClaimHardFail(TER ter, ApplyFlags flags)
+{
+    return isTecClaim(ter) && !(flags & tapRETRY);
+}
 
 /** Describes the results of the `preflight` check
 
@@ -222,6 +233,9 @@ calculateDefaultBaseFee(ReadView const& view, STTx const& tx);
 */
 std::pair<TER, bool>
 doApply(PreclaimResult const& preclaimResult, Application& app, OpenView& view);
+
+void
+registerTxFunctions(TransactorExport transactor);
 
 }  // namespace ripple
 

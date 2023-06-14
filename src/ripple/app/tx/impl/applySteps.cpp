@@ -25,6 +25,7 @@
 #include <ripple/app/tx/impl/AMMVote.h>
 #include <ripple/app/tx/impl/AMMWithdraw.h>
 #include <ripple/app/tx/impl/ApplyContext.h>
+#include <ripple/app/tx/impl/ApplyHandler.h>
 #include <ripple/app/tx/impl/CancelCheck.h>
 #include <ripple/app/tx/impl/CancelOffer.h>
 #include <ripple/app/tx/impl/CashCheck.h>
@@ -49,6 +50,14 @@
 #include <ripple/app/tx/impl/SetTrust.h>
 
 namespace ripple {
+
+std::map<std::uint16_t, TransactorExport> transactors{};
+
+void
+registerTxFunctions(TransactorExport transactor)
+{
+    transactors.insert({transactor.txType, transactor});
+}
 
 // Templates so preflight does the right thing with T::ConsequencesFactory.
 //
@@ -169,6 +178,33 @@ invoke_preflight(PreflightContext const& ctx)
         case ttAMM_DELETE:
             return invoke_preflight_helper<AMMDelete>(ctx);
         default:
+            if (auto it = transactors.find(ctx.tx.getTxnType());
+                it != transactors.end())
+            {
+                auto const tec = it->second.preflight == NULL
+                    ? tesSUCCESS
+                    : it->second.preflight(ctx);
+                if (isTesSuccess(tec))
+                {
+                    return {tec, TxConsequences{tec}};
+                }
+                else if (
+                    it->second.consequencesFactoryType == Transactor::Normal)
+                {
+                    return {tec, TxConsequences(ctx.tx)};
+                }
+                else if (
+                    it->second.consequencesFactoryType == Transactor::Blocker)
+                {
+                    return {
+                        tec, TxConsequences(ctx.tx, TxConsequences::blocker)};
+                }
+                else if (
+                    it->second.consequencesFactoryType == Transactor::Custom)
+                {
+                    return {tec, it->second.makeTxConsequences(ctx)};
+                }
+            }
             assert(false);
             return {temUNKNOWN, TxConsequences{temUNKNOWN}};
     }
@@ -210,6 +246,76 @@ invoke_preclaim(PreclaimContext const& ctx)
     }
 
     return T::preclaim(ctx);
+}
+
+static TER
+invoke_plugin_preclaim(TransactorExport t, PreclaimContext const& ctx)
+{
+    // If the transactor requires a valid account and the transaction doesn't
+    // list one, preflight will have already a flagged a failure.
+    auto const id = ctx.tx.getAccountID(sfAccount);
+
+    if (id != beast::zero)
+    {
+        TER result;
+        if (t.checkSeqProxy != NULL)
+        {
+            result = t.checkSeqProxy(ctx.view, ctx.tx, ctx.j);
+        }
+        else
+        {
+            result = Transactor::checkSeqProxy(ctx.view, ctx.tx, ctx.j);
+        }
+
+        if (result != tesSUCCESS)
+            return result;
+
+        if (t.checkPriorTxAndLastLedger != NULL)
+        {
+            result = t.checkPriorTxAndLastLedger(ctx);
+        }
+        else
+        {
+            result = Transactor::checkPriorTxAndLastLedger(ctx);
+        }
+
+        if (result != tesSUCCESS)
+            return result;
+
+        if (t.checkFee != NULL)
+        {
+            result = t.checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
+        }
+        else
+        {
+            result =
+                Transactor::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
+        }
+
+        if (result != tesSUCCESS)
+            return result;
+
+        if (t.checkSign != NULL)
+        {
+            result = t.checkSign(ctx);
+        }
+        else
+        {
+            result = Transactor::checkSign(ctx);
+        }
+
+        if (result != tesSUCCESS)
+            return result;
+    }
+
+    if (t.preclaim != NULL)
+    {
+        return t.preclaim(ctx);
+    }
+    else
+    {
+        return Transactor::preclaim(ctx);
+    }
 }
 
 static TER
@@ -284,6 +390,11 @@ invoke_preclaim(PreclaimContext const& ctx)
         case ttAMM_DELETE:
             return invoke_preclaim<AMMDelete>(ctx);
         default:
+            if (auto it = transactors.find(ctx.tx.getTxnType());
+                it != transactors.end())
+            {
+                return invoke_plugin_preclaim(it->second, ctx);
+            }
             assert(false);
             return temUNKNOWN;
     }
@@ -361,6 +472,11 @@ invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
         case ttAMM_DELETE:
             return AMMDelete::calculateBaseFee(view, tx);
         default:
+            if (auto it = transactors.find(tx.getTxnType());
+                it != transactors.end())
+            {
+                return it->second.calculateBaseFee(view, tx);
+            }
             assert(false);
             return XRPAmount{0};
     }
@@ -541,6 +657,12 @@ invoke_apply(ApplyContext& ctx)
             return p();
         }
         default:
+            if (auto it = transactors.find(ctx.tx.getTxnType());
+                it != transactors.end())
+            {
+                ApplyHandler p(ctx, it->second);
+                return p();
+            }
             assert(false);
             return {temUNKNOWN, false};
     }

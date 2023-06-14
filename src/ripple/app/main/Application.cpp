@@ -65,6 +65,7 @@
 #include <ripple/overlay/PeerReservationTable.h>
 #include <ripple/overlay/PeerSet.h>
 #include <ripple/overlay/make_Overlay.h>
+#include <ripple/plugin/plugin.h>
 #include <ripple/protocol/BuildInfo.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Protocol.h>
@@ -84,6 +85,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstring>
+#include <dlfcn.h>
 #include <iostream>
 #include <limits>
 #include <mutex>
@@ -1121,6 +1123,46 @@ private:
 
 //------------------------------------------------------------------------------
 
+void
+addPlugin(std::string libPath)
+{
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    auto const sTypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
+    for (int i = 0; i < sTypes.size; i++)
+    {
+        auto const stype = *(sTypes.data + i);
+        // registerSType(stype.typeId);
+        // registerLeafType(stype.typeId, stype.parsePtr);
+    }
+    auto const sFields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
+    for (int i = 0; i < sFields.size; i++)
+    {
+        auto const sField = *(sFields.data + i);
+        // registerSField(sField);
+    }
+    auto const ledgerObjects =
+        ((getLedgerObjectsPtr)dlsym(handle, "getLedgerObjects"))();
+    for (int i = 0; i < ledgerObjects.size; i++)
+    {
+        auto const ledgerObject = *(ledgerObjects.data + i);
+        // registerLedgerObject(ledgerObject.objectType,
+        // ledgerObject.objectName, ledgerObject.objectFormat); if
+        // (ledgerObject.visitEntryXRPChange.has_value()) {
+        //     registerpluginXRPChangeFn(ledgerObject.objectType,
+        //     ledgerObject.visitEntryXRPChange.value());
+        // }
+    }
+    auto const transactors =
+        ((getTransactorsPtr)dlsym(handle, "getTransactors"))();
+    for (int i = 0; i < transactors.size; i++)
+    {
+        auto const transactor = *(transactors.data + i);
+        // registerTxType(transactor.txType);
+        // registerTxFormat(transactor.txFormat);
+        registerTxFunctions(transactor);
+    }
+}
+
 // TODO Break this up into smaller, more digestible initialization segments.
 bool
 ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
@@ -1174,6 +1216,13 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
 
     // Optionally turn off logging to console.
     logs_->silent(config_->silent());
+
+    // Register plugin features with rippled
+    for (std::string plugin : config_->PLUGINS)
+    {
+        JLOG(m_journal.info()) << "Loading plugin from " << plugin;
+        addPlugin(plugin);
+    }
 
     if (!config_->standalone())
         timeKeeper_->run(config_->SNTP_SERVERS);
