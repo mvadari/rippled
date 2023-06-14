@@ -20,8 +20,7 @@
 #ifndef RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
 #define RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
 
-#include <ripple/app/tx/TxConsequences.h>
-#include <ripple/app/tx/impl/Transactor.h>
+#include <ripple/protocol/SOTemplate.h>
 #include <ripple/protocol/impl/STVar.h>
 #include <vector>
 
@@ -53,7 +52,6 @@ struct STypeExport
     int typeId;
     parseLeafTypePtr parsePtr;
 };
-typedef Container<STypeExport> (*getSTypesPtr)();
 
 struct SFieldExport
 {
@@ -62,11 +60,10 @@ struct SFieldExport
     const char* txtName;
 };
 
-typedef Container<SFieldExport> (*getSFieldsPtr)();
-
+class STLedgerEntry;
 typedef std::int64_t (*visitEntryXRPChangePtr)(
     bool isDelete,
-    std::shared_ptr<SLE const> const& entry,
+    std::shared_ptr<STLedgerEntry const> const& entry,
     bool isBefore);
 struct LedgerObjectExport
 {
@@ -78,44 +75,6 @@ struct LedgerObjectExport
     std::optional<visitEntryXRPChangePtr> visitEntryXRPChange;
     // SOElementExport[] innerObjectFormat; // optional
 };
-typedef Container<LedgerObjectExport> (*getLedgerObjectsPtr)();
-
-// Transactors
-
-typedef TxConsequences (*makeTxConsequencesPtr)(
-    PreflightContext const&);  // TODO: fix
-typedef NotTEC (*preflightPtr)(PreflightContext const&);
-typedef TER (*preclaimPtr)(PreclaimContext const&);
-typedef XRPAmount (*calculateBaseFeePtr)(ReadView const& view, STTx const& tx);
-typedef TER (*doApplyPtr)(
-    ApplyContext& ctx,
-    XRPAmount mPriorBalance,
-    XRPAmount mSourceBalance);
-
-// less common ones
-typedef NotTEC (
-    *checkSeqProxyPtr)(ReadView const& view, STTx const& tx, beast::Journal j);
-typedef NotTEC (*checkPriorTxAndLastLedgerPtr)(PreclaimContext const& ctx);
-typedef TER (*checkFeePtr)(PreclaimContext const& ctx, XRPAmount baseFee);
-typedef NotTEC (*checkSignPtr)(PreclaimContext const& ctx);
-
-struct TransactorExport
-{
-    char const* txName;
-    std::uint16_t txType;
-    Container<SOElementExport> txFormat;
-    Transactor::ConsequencesFactoryType consequencesFactoryType;
-    makeTxConsequencesPtr makeTxConsequences;
-    preflightPtr preflight;
-    preclaimPtr preclaim;
-    calculateBaseFeePtr calculateBaseFee;
-    doApplyPtr doApply;
-    checkSeqProxyPtr checkSeqProxy;
-    checkPriorTxAndLastLedgerPtr checkPriorTxAndLastLedger;
-    checkFeePtr checkFee;
-    checkSignPtr checkSign;
-};
-typedef Container<TransactorExport> (*getTransactorsPtr)();
 
 }  // namespace ripple
 

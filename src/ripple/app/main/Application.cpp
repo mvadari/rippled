@@ -65,7 +65,7 @@
 #include <ripple/overlay/PeerReservationTable.h>
 #include <ripple/overlay/PeerSet.h>
 #include <ripple/overlay/make_Overlay.h>
-#include <ripple/plugin/plugin.h>
+#include <ripple/plugin/exports.h>
 #include <ripple/protocol/BuildInfo.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Protocol.h>
@@ -1158,7 +1158,8 @@ addPlugin(std::string libPath)
     {
         auto const transactor = *(transactors.data + i);
         // registerTxType(transactor.txType);
-        // registerTxFormat(transactor.txFormat);
+        registerTxFormat(
+            transactor.txType, transactor.txName, transactor.txFormat);
         registerTxFunctions(transactor);
     }
 }

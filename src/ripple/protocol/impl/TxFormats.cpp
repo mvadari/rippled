@@ -17,10 +17,38 @@
 */
 //==============================================================================
 
+#include <ripple/plugin/plugin.h>
 #include <ripple/protocol/TxFormats.h>
 #include <ripple/protocol/jss.h>
 
 namespace ripple {
+
+struct PluginTxFormat
+{
+    std::string txName;
+    std::vector<SOElement> uniqueFields;
+};
+
+std::map<std::uint16_t, PluginTxFormat> pluginTxFormats{};
+
+void
+registerTxFormat(
+    std::uint16_t txType,
+    char const* txName,
+    Container<SOElementExport> txFormat)
+{
+    auto const strName = std::string(txName);
+    if (auto it = pluginTxFormats.find(txType); it != pluginTxFormats.end())
+    {
+        if (it->second.txName == strName)
+            return;
+        LogicError(
+            std::string("Duplicate key for plugin transactor '") + strName +
+            "': already exists");
+    }
+    pluginTxFormats.insert(
+        {txType, {strName, convertToUniqueFields(txFormat)}});
+}
 
 TxFormats::TxFormats()
 {
@@ -404,6 +432,14 @@ TxFormats::TxFormats()
             {sfTicketSequence, soeOPTIONAL},
         },
         commonFields);
+
+    for (auto& e : pluginTxFormats)
+    {
+        add(e.second.txName.c_str(),
+            e.first,
+            e.second.uniqueFields,
+            commonFields);
+    }
 }
 
 TxFormats const&

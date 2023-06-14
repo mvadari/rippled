@@ -195,6 +195,12 @@ public:
     getInstance();
 };
 
+void
+registerTxFormat(
+    std::uint16_t type,
+    char const* txName,
+    Container<SOElementExport> txFormat);
+
 }  // namespace ripple
 
 #endif

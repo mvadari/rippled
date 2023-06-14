@@ -184,7 +184,7 @@ invoke_preflight(PreflightContext const& ctx)
                 auto const tec = it->second.preflight == NULL
                     ? tesSUCCESS
                     : it->second.preflight(ctx);
-                if (isTesSuccess(tec))
+                if (!isTesSuccess(tec))
                 {
                     return {tec, TxConsequences{tec}};
                 }

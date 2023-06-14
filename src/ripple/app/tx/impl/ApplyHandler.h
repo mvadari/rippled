@@ -25,7 +25,7 @@
 #include <ripple/app/tx/impl/Transactor.h>
 #include <ripple/basics/XRPAmount.h>
 #include <ripple/beast/utility/Journal.h>
-#include <ripple/plugin/plugin.h>
+#include <ripple/plugin/exports.h>
 
 namespace ripple {
 
