@@ -171,6 +171,7 @@ target_sources (xrpl_plugin PRIVATE
   src/ripple/app/tx/impl/ApplyContext.cpp
   src/ripple/app/misc/impl/LoadFeeTrack.cpp
   src/ripple/app/misc/HashRouter.cpp
+  src/ripple/app/tx/impl/PreflightContext.cpp
   src/ripple/app/tx/impl/SignerEntries.cpp
   src/ripple/ledger/impl/Directory.cpp
 )

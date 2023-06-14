@@ -93,14 +93,11 @@ typedef TER (*doApplyPtr)(
     XRPAmount mSourceBalance);
 
 // less common ones
-typedef NotTEC
-(*checkSeqProxyPtr)(ReadView const& view, STTx const& tx, beast::Journal j);
-typedef NotTEC
-(*checkPriorTxAndLastLedgerPtr)(PreclaimContext const& ctx);
-typedef TER
-(*checkFeePtr)(PreclaimContext const& ctx, XRPAmount baseFee);
-typedef NotTEC
-(*checkSignPtr)(PreclaimContext const& ctx);
+typedef NotTEC (
+    *checkSeqProxyPtr)(ReadView const& view, STTx const& tx, beast::Journal j);
+typedef NotTEC (*checkPriorTxAndLastLedgerPtr)(PreclaimContext const& ctx);
+typedef TER (*checkFeePtr)(PreclaimContext const& ctx, XRPAmount baseFee);
+typedef NotTEC (*checkSignPtr)(PreclaimContext const& ctx);
 
 struct TransactorExport
 {

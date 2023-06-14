@@ -361,7 +361,8 @@ ApplyHandler::apply()
         ctx.view().update(sle);
     }
 
-    if (transactor_.doApply == NULL) return tesSUCCESS;
+    if (transactor_.doApply == NULL)
+        return tesSUCCESS;
     return transactor_.doApply(ctx, mPriorBalance, mSourceBalance);
 }
 

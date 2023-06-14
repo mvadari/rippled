@@ -22,62 +22,12 @@
 
 #include <ripple/app/tx/TxConsequences.h>
 #include <ripple/app/tx/impl/ApplyContext.h>
+#include <ripple/app/tx/impl/PreclaimContext.h>
+#include <ripple/app/tx/impl/PreflightContext.h>
 #include <ripple/basics/XRPAmount.h>
 #include <ripple/beast/utility/Journal.h>
 
 namespace ripple {
-
-/** State information when preflighting a tx. */
-struct PreflightContext
-{
-public:
-    Application& app;
-    STTx const& tx;
-    Rules const rules;
-    ApplyFlags flags;
-    beast::Journal const j;
-
-    PreflightContext(
-        Application& app_,
-        STTx const& tx_,
-        Rules const& rules_,
-        ApplyFlags flags_,
-        beast::Journal j_);
-
-    PreflightContext&
-    operator=(PreflightContext const&) = delete;
-};
-
-/** State information when determining if a tx is likely to claim a fee. */
-struct PreclaimContext
-{
-public:
-    Application& app;
-    ReadView const& view;
-    TER preflightResult;
-    STTx const& tx;
-    ApplyFlags flags;
-    beast::Journal const j;
-
-    PreclaimContext(
-        Application& app_,
-        ReadView const& view_,
-        TER preflightResult_,
-        STTx const& tx_,
-        ApplyFlags flags_,
-        beast::Journal j_ = beast::Journal{beast::Journal::getNullSink()})
-        : app(app_)
-        , view(view_)
-        , preflightResult(preflightResult_)
-        , tx(tx_)
-        , flags(flags_)
-        , j(j_)
-    {
-    }
-
-    PreclaimContext&
-    operator=(PreclaimContext const&) = delete;
-};
 
 struct PreflightResult;
 
@@ -198,18 +148,6 @@ private:
     static NotTEC
     checkMultiSign(PreclaimContext const& ctx);
 };
-
-/** Performs early sanity checks on the txid */
-NotTEC
-preflight0(PreflightContext const& ctx);
-
-/** Performs early sanity checks on the account and fee fields */
-NotTEC
-preflight1(PreflightContext const& ctx);
-
-/** Checks whether the signature appears valid */
-NotTEC
-preflight2(PreflightContext const& ctx);
 
 }  // namespace ripple
 
