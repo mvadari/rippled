@@ -17,57 +17,16 @@
 */
 //==============================================================================
 
-#ifndef RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
-#define RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
-
-#include <ripple/plugin/SField.h>
-#include <ripple/protocol/SOTemplate.h>
-#include <ripple/protocol/impl/STVar.h>
-#include <vector>
+#ifndef RIPPLE_PLUGIN_SFIELD_H_INCLUDED
+#define RIPPLE_PLUGIN_SFIELD_H_INCLUDED
 
 namespace ripple {
 
-template <typename T>
-struct Container
-{
-    T* data;
-    int size;
-};
-
-struct SOElementExport
-{
-    int fieldCode;
-    SOEStyle style;
-};
-
-typedef std::optional<detail::STVar> (*parseLeafTypePtr)(
-    SField const&,
-    std::string const&,
-    std::string const&,
-    SField const*,
-    Json::Value const&,
-    Json::Value&);
-
-struct STypeExport
+struct SFieldExport
 {
     int typeId;
-    parseLeafTypePtr parsePtr;
-};
-
-class STLedgerEntry;
-typedef std::int64_t (*visitEntryXRPChangePtr)(
-    bool isDelete,
-    std::shared_ptr<STLedgerEntry const> const& entry,
-    bool isBefore);
-struct LedgerObjectExport
-{
-    std::uint16_t objectType;
-    char const* objectName;     // CamelCase
-    char const* objectRpcName;  // snake_case
-    Container<SOElementExport> objectFormat;
-    bool isDeletionBlocker;
-    std::optional<visitEntryXRPChangePtr> visitEntryXRPChange;
-    // SOElementExport[] innerObjectFormat; // optional
+    int fieldValue;
+    const char* txtName;
 };
 
 }  // namespace ripple

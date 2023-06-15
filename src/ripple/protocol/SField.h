@@ -22,6 +22,7 @@
 
 #include <ripple/basics/safe_cast.h>
 #include <ripple/json/json_value.h>
+#include <ripple/plugin/SField.h>
 
 #include <cstdint>
 #include <map>
@@ -146,17 +147,13 @@ public:
     operator=(SField&&) = delete;
 
 public:
-    struct private_access_tag_t;  // public, but still an implementation detail
-
-    // These constructors can only be called from SField.cpp
     SField(
-        private_access_tag_t,
         SerializedTypeID tid,
         int fv,
         const char* fn,
         int meta = sMD_Default,
         IsSigning signing = IsSigning::yes);
-    explicit SField(private_access_tag_t, int fc);
+    explicit SField(int fc);
 
     static const SField&
     getField(int fieldCode);
@@ -233,7 +230,7 @@ public:
     static int
     getNumFields()
     {
-        return num;
+        return knownCodeToField.size();
     }
 
     bool
@@ -264,9 +261,10 @@ public:
     static int
     compare(const SField& f1, const SField& f2);
 
+    static std::map<int, SField const*> knownCodeToField;
+
 private:
     static int num;
-    static std::map<int, SField const*> knownCodeToField;
 };
 
 /** A field with a type known at compile time. */
@@ -276,7 +274,7 @@ struct TypedField : SField
     using type = T;
 
     template <class... Args>
-    explicit TypedField(private_access_tag_t pat, Args&&... args);
+    explicit TypedField(Args&&... args);
 };
 
 /** Indicate std::optional field semantics. */
@@ -298,6 +296,9 @@ operator~(TypedField<T> const& f)
 }
 
 //------------------------------------------------------------------------------
+
+void
+registerSField(SFieldExport const& sfield);
 
 //------------------------------------------------------------------------------
 

@@ -1127,41 +1127,51 @@ void
 addPlugin(std::string libPath)
 {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
-    auto const sTypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
-    for (int i = 0; i < sTypes.size; i++)
+
+    if (dlsym(handle, "getSTypes") != NULL)
     {
-        auto const stype = *(sTypes.data + i);
-        // registerSType(stype.typeId);
-        // registerLeafType(stype.typeId, stype.parsePtr);
+        auto const sTypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
+        for (int i = 0; i < sTypes.size; i++)
+        {
+            auto const stype = *(sTypes.data + i);
+            // registerSType(stype.typeId);
+            // registerLeafType(stype.typeId, stype.parsePtr);
+        }
     }
-    auto const sFields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
-    for (int i = 0; i < sFields.size; i++)
+    if (dlsym(handle, "getSFields") != NULL)
     {
-        auto const sField = *(sFields.data + i);
-        // registerSField(sField);
+        auto const sFields = ((getSFieldsPtr)dlsym(handle, "getSFields"))();
+        for (int i = 0; i < sFields.size; i++)
+        {
+            auto const sField = *(sFields.data + i);
+            registerSField(sField);
+        }
     }
-    auto const ledgerObjects =
-        ((getLedgerObjectsPtr)dlsym(handle, "getLedgerObjects"))();
-    for (int i = 0; i < ledgerObjects.size; i++)
+    if (dlsym(handle, "getLedgerObjects") != NULL)
     {
-        auto const ledgerObject = *(ledgerObjects.data + i);
-        // registerLedgerObject(ledgerObject.objectType,
-        // ledgerObject.objectName, ledgerObject.objectFormat); if
-        // (ledgerObject.visitEntryXRPChange.has_value()) {
-        //     registerpluginXRPChangeFn(ledgerObject.objectType,
-        //     ledgerObject.visitEntryXRPChange.value());
-        // }
+        auto const ledgerObjects =
+            ((getLedgerObjectsPtr)dlsym(handle, "getLedgerObjects"))();
+        for (int i = 0; i < ledgerObjects.size; i++)
+        {
+            auto const ledgerObject = *(ledgerObjects.data + i);
+            // registerLedgerObject(ledgerObject.objectType,
+            // ledgerObject.objectName, ledgerObject.objectFormat); if
+            // (ledgerObject.visitEntryXRPChange.has_value()) {
+            //     registerpluginXRPChangeFn(ledgerObject.objectType,
+            //     ledgerObject.visitEntryXRPChange.value());
+            // }
+        }
     }
     auto const transactors =
         ((getTransactorsPtr)dlsym(handle, "getTransactors"))();
     for (int i = 0; i < transactors.size; i++)
     {
         auto const transactor = *(transactors.data + i);
-        // registerTxType(transactor.txType);
         registerTxFormat(
             transactor.txType, transactor.txName, transactor.txFormat);
         registerTxFunctions(transactor);
     }
+    dlclose(handle);
 }
 
 // TODO Break this up into smaller, more digestible initialization segments.

@@ -51,41 +51,6 @@ public:
     std::pair<TER, bool>
     operator()();
 
-    /////////////////////////////////////////////////////
-    /*
-    These static functions are called from invoke_preclaim<Tx>
-    using name hiding to accomplish compile-time polymorphism,
-    so derived classes can override for different or extra
-    functionality. Use with care, as these are not really
-    virtual and so don't have the compiler-time protection that
-    comes with it.
-    */
-
-    static NotTEC
-    checkSeqProxy(ReadView const& view, STTx const& tx, beast::Journal j);
-
-    static NotTEC
-    checkPriorTxAndLastLedger(PreclaimContext const& ctx);
-
-    static TER
-    checkFee(PreclaimContext const& ctx, XRPAmount baseFee);
-
-    static NotTEC
-    checkSign(PreclaimContext const& ctx);
-
-    // Returns the fee in fee units, not scaled for load.
-    static XRPAmount
-    calculateBaseFee(ReadView const& view, STTx const& tx);
-
-    static TER
-    preclaim(PreclaimContext const& ctx)
-    {
-        // Most transactors do nothing
-        // after checkSeq/Fee/Sign.
-        return tesSUCCESS;
-    }
-    /////////////////////////////////////////////////////
-
     // Interface used by DeleteAccount
     static TER
     ticketDelete(
@@ -101,22 +66,6 @@ protected:
     void
     preCompute();
 
-    /** Compute the minimum fee required to process a transaction
-        with a given baseFee based on the current server load.
-
-        @param app The application hosting the server
-        @param baseFee The base fee of a candidate transaction
-            @see ripple::calculateBaseFee
-        @param fees Fee settings from the current ledger
-        @param flags Transaction processing fees
-     */
-    static XRPAmount
-    minimumFee(
-        Application& app,
-        XRPAmount baseFee,
-        Fees const& fees,
-        ApplyFlags flags);
-
 private:
     std::pair<TER, XRPAmount>
     reset(XRPAmount fee);
@@ -125,10 +74,6 @@ private:
     consumeSeqProxy(SLE::pointer const& sleAccount);
     TER
     payFee();
-    static NotTEC
-    checkSingleSign(PreclaimContext const& ctx);
-    static NotTEC
-    checkMultiSign(PreclaimContext const& ctx);
 };
 
 /** Performs early sanity checks on the txid */

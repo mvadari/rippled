@@ -475,6 +475,10 @@ invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
             if (auto it = transactors.find(tx.getTxnType());
                 it != transactors.end())
             {
+                if (it->second.calculateBaseFee == NULL)
+                {
+                    return Transactor::calculateBaseFee(view, tx);
+                }
                 return it->second.calculateBaseFee(view, tx);
             }
             assert(false);
