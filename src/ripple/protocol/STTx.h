@@ -78,7 +78,7 @@ public:
     STTx(std::uint16_t type, std::function<void(STObject&)> assembler);
 
     // STObject functions.
-    SerializedTypeID
+    int
     getSType() const override;
 
     std::string

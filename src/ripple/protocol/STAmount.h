@@ -238,7 +238,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    SerializedTypeID
+    int
     getSType() const override;
 
     std::string

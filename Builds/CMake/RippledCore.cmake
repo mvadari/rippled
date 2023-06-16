@@ -105,6 +105,7 @@ target_sources (xrpl_core PRIVATE
   src/ripple/protocol/impl/STObject.cpp
   src/ripple/protocol/impl/STParsedJSON.cpp
   src/ripple/protocol/impl/STPathSet.cpp
+  src/ripple/protocol/impl/STPluginType.cpp
   src/ripple/protocol/impl/STTx.cpp
   src/ripple/protocol/impl/STValidation.cpp
   src/ripple/protocol/impl/STVar.cpp

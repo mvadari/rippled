@@ -36,7 +36,7 @@ STInteger<unsigned char>::STInteger(SerialIter& sit, SField const& name)
 }
 
 template <>
-SerializedTypeID
+int
 STUInt8::getSType() const
 {
     return STI_UINT8;
@@ -86,7 +86,7 @@ STInteger<std::uint16_t>::STInteger(SerialIter& sit, SField const& name)
 }
 
 template <>
-SerializedTypeID
+int
 STUInt16::getSType() const
 {
     return STI_UINT16;
@@ -146,7 +146,7 @@ STInteger<std::uint32_t>::STInteger(SerialIter& sit, SField const& name)
 }
 
 template <>
-SerializedTypeID
+int
 STUInt32::getSType() const
 {
     return STI_UINT32;
@@ -174,7 +174,7 @@ STInteger<std::uint64_t>::STInteger(SerialIter& sit, SField const& name)
 }
 
 template <>
-SerializedTypeID
+int
 STUInt64::getSType() const
 {
     return STI_UINT64;

@@ -116,7 +116,7 @@ public:
 private:
     STVar() = default;
 
-    STVar(SerializedTypeID id, SField const& name);
+    STVar(int id, SField const& name);
 
     void
     destroy();
@@ -125,7 +125,7 @@ private:
     void
     construct(Args&&... args)
     {
-        if (sizeof(T) > max_size)
+        if (sizeof(T) > STVar::max_size)
             p_ = new T(std::forward<Args>(args)...);
         else
             p_ = new (&d_) T(std::forward<Args>(args)...);

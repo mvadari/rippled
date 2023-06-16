@@ -1134,8 +1134,8 @@ addPlugin(std::string libPath)
         for (int i = 0; i < sTypes.size; i++)
         {
             auto const stype = *(sTypes.data + i);
-            // registerSType(stype.typeId);
-            // registerLeafType(stype.typeId, stype.parsePtr);
+            registerSType(stype.typeId);
+            registerLeafType(stype.typeId, stype.parsePtr);
         }
     }
     if (dlsym(handle, "getSFields") != NULL)

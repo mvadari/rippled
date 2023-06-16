@@ -18,17 +18,7 @@
 //==============================================================================
 
 #include <ripple/basics/contract.h>
-#include <ripple/protocol/STAccount.h>
-#include <ripple/protocol/STAmount.h>
-#include <ripple/protocol/STArray.h>
-#include <ripple/protocol/STBase.h>
-#include <ripple/protocol/STBitString.h>
-#include <ripple/protocol/STBlob.h>
-#include <ripple/protocol/STInteger.h>
-#include <ripple/protocol/STIssue.h>
-#include <ripple/protocol/STObject.h>
-#include <ripple/protocol/STPathSet.h>
-#include <ripple/protocol/STVector256.h>
+#include <ripple/protocol/st.h>
 #include <ripple/protocol/impl/STVar.h>
 
 namespace ripple {
@@ -162,11 +152,20 @@ STVar::STVar(SerialIter& sit, SField const& name, int depth)
             construct<STIssue>(sit, name);
             return;
         default:
-            Throw<std::runtime_error>("Unknown object type");
+            if (auto it = pluginSTypes.find(name.fieldType);
+                it != pluginSTypes.end())
+            {
+                // TODO: figure out how to handle more complex types that have depth
+                construct<STPluginType>(sit, name);
+                return;
+            } else
+            {
+                Throw<std::runtime_error>("Unknown object type");
+            }
     }
 }
 
-STVar::STVar(SerializedTypeID id, SField const& name)
+STVar::STVar(int id, SField const& name)
 {
     assert((id == STI_NOTPRESENT) || (id == name.fieldType));
     switch (id)
@@ -220,7 +219,15 @@ STVar::STVar(SerializedTypeID id, SField const& name)
             construct<STIssue>(name);
             return;
         default:
-            Throw<std::runtime_error>("Unknown object type");
+            if (auto it = pluginSTypes.find(name.fieldType);
+                it != pluginSTypes.end())
+            {
+                construct<STPluginType>(name);
+                return;
+            } else
+            {
+                Throw<std::runtime_error>("Unknown object type");
+            }
     }
 }
 

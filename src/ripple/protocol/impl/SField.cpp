@@ -368,6 +368,17 @@ CONSTRUCT_UNTYPED_SFIELD(sfAuthAccounts,        "AuthAccounts",         ARRAY,  
 
 // clang-format on
 
+std::set<int> pluginSTypes;
+
+void
+registerSType(int typeId)
+{
+    if (auto const it = pluginSTypes.find(typeId); it != pluginSTypes.end()) {
+        throw std::runtime_error("Code " + std::to_string(typeId) + " already exists");
+    }
+    pluginSTypes.insert(typeId);
+}
+
 void
 registerSField(SFieldExport const& sfield)
 {
@@ -420,15 +431,15 @@ registerSField(SFieldExport const& sfield)
         // sfield.txtName); break; case STI_ARRAY: new SF_ARRAY(sfield.typeId,
         // sfield.fieldValue, sfield.txtName); break;
         default: {
-            // if (auto const it = pluginSTypes.find(sfield.typeId); it !=
-            // pluginSTypes.end()) {
-            //     new SF_PLUGINTYPE(sfield.typeId, sfield.fieldValue,
-            //     sfield.txtName);
-            // } else
-            // {
-            throw std::runtime_error(
-                "Do not recognize type ID " + std::to_string(sfield.typeId));
-            // }
+            if (auto const it = pluginSTypes.find(sfield.typeId); it !=
+            pluginSTypes.end()) {
+                new SF_PLUGINTYPE(sfield.typeId, sfield.fieldValue,
+                sfield.txtName);
+            } else
+            {
+                throw std::runtime_error(
+                    "Do not recognize type ID " + std::to_string(sfield.typeId));
+            }
         }
     }
 }
@@ -440,7 +451,7 @@ registerSField(SFieldExport const& sfield)
 #pragma pop_macro("CONSTRUCT_UNTYPED_SFIELD")
 
 SField::SField(
-    SerializedTypeID tid,
+    int tid,
     int fv,
     const char* fn,
     int meta,

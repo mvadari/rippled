@@ -18,58 +18,62 @@
 //==============================================================================
 
 #include <ripple/basics/StringUtilities.h>
-#include <ripple/protocol/STBlob.h>
+#include <ripple/protocol/STPluginType.h>
+#include <iostream>
 
 namespace ripple {
 
-STBlob::STBlob(SerialIter& st, SField const& name)
-    : STBase(name), value_(st.getVLBuffer())
+STPluginType::STPluginType(SerialIter& st, SField const& name)
+        : STBase(name), value_(st.getVLBuffer())
 {
 }
 
 STBase*
-STBlob::copy(std::size_t n, void* buf) const
+STPluginType::copy(std::size_t n, void* buf) const
 {
     return emplace(n, buf, *this);
 }
 
 STBase*
-STBlob::move(std::size_t n, void* buf)
+STPluginType::move(std::size_t n, void* buf)
 {
     return emplace(n, buf, std::move(*this));
 }
 
 int
-STBlob::getSType() const
+STPluginType::getSType() const
 {
-    return STI_VL;
+    return getFName().fieldType;
 }
 
 std::string
-STBlob::getText() const
+STPluginType::getText() const
 {
     return strHex(value_);
 }
 
 void
-STBlob::add(Serializer& s) const
+STPluginType::add(Serializer& s) const
 {
+    std::cout << "STPluginType called! " << getText() << std::endl;
     assert(getFName().isBinary());
-    assert(
-        (getFName().fieldType == STI_VL) ||
-        (getFName().fieldType == STI_ACCOUNT));
-    s.addVL(value_.data(), value_.size());
+
+    // Preserve the serialization behavior of an STBlob:
+    //  o If we are default (all zeros) serialize as an empty blob.
+    //  o Otherwise serialize 160 bits.
+    int const size = isDefault() ? 0 : uint160::bytes;
+    s.addVL(value_.data(), size);
 }
 
 bool
-STBlob::isEquivalent(const STBase& t) const
+STPluginType::isEquivalent(const STBase& t) const
 {
-    const STBlob* v = dynamic_cast<const STBlob*>(&t);
+    const STPluginType* v = dynamic_cast<const STPluginType*>(&t);
     return v && (value_ == v->value_);
 }
 
 bool
-STBlob::isDefault() const
+STPluginType::isDefault() const
 {
     return value_.empty();
 }

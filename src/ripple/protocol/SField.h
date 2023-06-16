@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <utility>
 
 namespace ripple {
@@ -50,6 +51,7 @@ template <int>
 class STBitString;
 template <class>
 class STInteger;
+class STPluginType;
 class STVector256;
 
 enum SerializedTypeID {
@@ -91,16 +93,16 @@ enum SerializedTypeID {
 
 // constexpr
 inline int
-field_code(SerializedTypeID id, int index)
+field_code(int id, int index)
 {
-    return (safe_cast<int>(id) << 16) | index;
+    return (id << 16) | index;
 }
 
 // constexpr
 inline int
-field_code(int id, int index)
+field_code(SerializedTypeID id, int index)
 {
-    return (id << 16) | index;
+    return field_code(safe_cast<int>(id), index);
 }
 
 /** Identifies fields.
@@ -131,7 +133,7 @@ public:
     static IsSigning const notSigning = IsSigning::no;
 
     int const fieldCode;               // (type<<16)|index
-    SerializedTypeID const fieldType;  // STI_*
+    int const fieldType;  // STI_*
     int const fieldValue;              // Code number for protocol
     std::string const fieldName;
     int const fieldMeta;
@@ -148,7 +150,7 @@ public:
 
 public:
     SField(
-        SerializedTypeID tid,
+        int tid,
         int fv,
         const char* fn,
         int meta = sMD_Default,
@@ -300,6 +302,11 @@ operator~(TypedField<T> const& f)
 void
 registerSField(SFieldExport const& sfield);
 
+extern std::set<int> pluginSTypes;
+
+void
+registerSType(int typeId);
+
 //------------------------------------------------------------------------------
 
 using SF_UINT8 = TypedField<STInteger<std::uint8_t>>;
@@ -318,6 +325,7 @@ using SF_ACCOUNT = TypedField<STAccount>;
 using SF_AMOUNT = TypedField<STAmount>;
 using SF_ISSUE = TypedField<STIssue>;
 using SF_VL = TypedField<STBlob>;
+using SF_PLUGINTYPE = TypedField<STPluginType>;
 using SF_VECTOR256 = TypedField<STVector256>;
 
 //------------------------------------------------------------------------------

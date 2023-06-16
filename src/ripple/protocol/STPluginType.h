@@ -17,8 +17,8 @@
 */
 //==============================================================================
 
-#ifndef RIPPLE_PROTOCOL_STBLOB_H_INCLUDED
-#define RIPPLE_PROTOCOL_STBLOB_H_INCLUDED
+#ifndef RIPPLED_STPLUGINTYPE_H
+#define RIPPLED_STPLUGINTYPE_H
 
 #include <ripple/basics/Buffer.h>
 #include <ripple/basics/Slice.h>
@@ -30,20 +30,21 @@
 namespace ripple {
 
 // variable length byte string
-class STBlob : public STBase
+class STPluginType : public STBase
 {
     Buffer value_;
 
 public:
-    using value_type = Slice;
+    using value_type = Buffer;
+    // TODO: avoid doing a memory allocation every time this is called
 
-    STBlob() = default;
-    STBlob(STBlob const& rhs);
+    STPluginType() = default;
+    STPluginType(STPluginType const& rhs);
 
-    STBlob(SField const& f, void const* data, std::size_t size);
-    STBlob(SField const& f, Buffer&& b);
-    STBlob(SField const& n);
-    STBlob(SerialIter&, SField const& name = sfGeneric);
+    STPluginType(SField const& f, void const* data, std::size_t size);
+    STPluginType(SField const& f, Buffer&& b);
+    STPluginType(SField const& n);
+    STPluginType(SerialIter&, SField const& name = sfGeneric);
 
     std::size_t
     size() const;
@@ -66,13 +67,13 @@ public:
     bool
     isDefault() const override;
 
-    STBlob&
+    STPluginType&
     operator=(Slice const& slice);
 
     value_type
     value() const noexcept;
 
-    STBlob&
+    STPluginType&
     operator=(Buffer&& buffer);
 
     void
@@ -87,63 +88,64 @@ private:
     friend class detail::STVar;
 };
 
-inline STBlob::STBlob(STBlob const& rhs)
-    : STBase(rhs), value_(rhs.data(), rhs.size())
+inline STPluginType::STPluginType(STPluginType const& rhs)
+        : STBase(rhs), value_(rhs.data(), rhs.size())
 {
 }
 
-inline STBlob::STBlob(SField const& f, void const* data, std::size_t size)
-    : STBase(f), value_(data, size)
+inline STPluginType::STPluginType(SField const& f, void const* data, std::size_t size)
+        : STBase(f), value_(data, size)
 {
 }
 
-inline STBlob::STBlob(SField const& f, Buffer&& b)
-    : STBase(f), value_(std::move(b))
+inline STPluginType::STPluginType(SField const& f, Buffer&& b)
+        : STBase(f), value_(std::move(b))
 {
 }
 
-inline STBlob::STBlob(SField const& n) : STBase(n)
+inline STPluginType::STPluginType(SField const& n) : STBase(n)
 {
 }
 
 inline std::size_t
-STBlob::size() const
+STPluginType::size() const
 {
     return value_.size();
 }
 
 inline std::uint8_t const*
-STBlob::data() const
+STPluginType::data() const
 {
     return reinterpret_cast<std::uint8_t const*>(value_.data());
 }
 
-inline STBlob&
-STBlob::operator=(Slice const& slice)
+inline STPluginType&
+STPluginType::operator=(Slice const& slice)
 {
     value_ = Buffer(slice.data(), slice.size());
     return *this;
 }
 
-inline STBlob::value_type
-STBlob::value() const noexcept
+inline STPluginType::value_type
+STPluginType::value() const noexcept
 {
+    // TODO: avoid doing a memory allocation every time this is called
     return value_;
 }
 
-inline STBlob&
-STBlob::operator=(Buffer&& buffer)
+inline STPluginType&
+STPluginType::operator=(Buffer&& buffer)
 {
     value_ = std::move(buffer);
     return *this;
 }
 
 inline void
-STBlob::setValue(Buffer&& b)
+STPluginType::setValue(Buffer&& b)
 {
     value_ = std::move(b);
 }
 
 }  // namespace ripple
 
-#endif
+#endif //RIPPLED_STPLUGINTYPE_H
