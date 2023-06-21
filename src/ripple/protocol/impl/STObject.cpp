@@ -729,7 +729,8 @@ STObject::setFieldPathSet(SField const& field, STPathSet const& v)
 }
 
 void
-STObject::setFieldPluginType(SField const& field, STPluginType const& v) {
+STObject::setFieldPluginType(SField const& field, STPluginType const& v)
+{
     setFieldUsingSetValue<STPluginType>(field, Buffer(v.data(), v.size()));
 }
 

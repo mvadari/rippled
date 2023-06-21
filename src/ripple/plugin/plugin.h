@@ -40,7 +40,7 @@ struct SOElementExport
     SOEStyle style;
 };
 
-typedef std::optional<detail::STVar> (*parseLeafTypePtr)(
+typedef Buffer (*parsePluginValuePtr)(
     SField const&,
     std::string const&,
     std::string const&,
@@ -51,7 +51,11 @@ typedef std::optional<detail::STVar> (*parseLeafTypePtr)(
 struct STypeExport
 {
     int typeId;
-    parseLeafTypePtr parsePtr;
+    parsePluginValuePtr parsePtr;
+    toStringPtr toString;
+    toJsonPtr toJson;
+    toSerializerPtr toSerializer;
+    fromSerialIterPtr fromSerialIter;
 };
 
 class STLedgerEntry;

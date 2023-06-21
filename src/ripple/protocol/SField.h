@@ -26,7 +26,6 @@
 
 #include <cstdint>
 #include <map>
-#include <set>
 #include <utility>
 
 namespace ripple {
@@ -133,7 +132,7 @@ public:
     static IsSigning const notSigning = IsSigning::no;
 
     int const fieldCode;               // (type<<16)|index
-    int const fieldType;  // STI_*
+    int const fieldType;               // STI_*
     int const fieldValue;              // Code number for protocol
     std::string const fieldName;
     int const fieldMeta;
@@ -302,10 +301,10 @@ operator~(TypedField<T> const& f)
 void
 registerSField(SFieldExport const& sfield);
 
-extern std::set<int> pluginSTypes;
+extern std::map<int, STypeFunctions> pluginSTypes;
 
 void
-registerSType(int typeId);
+registerSType(STypeFunctions type);
 
 //------------------------------------------------------------------------------
 

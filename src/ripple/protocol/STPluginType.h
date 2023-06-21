@@ -89,17 +89,20 @@ private:
 };
 
 inline STPluginType::STPluginType(STPluginType const& rhs)
-        : STBase(rhs), value_(rhs.data(), rhs.size())
+    : STBase(rhs), value_(rhs.data(), rhs.size())
 {
 }
 
-inline STPluginType::STPluginType(SField const& f, void const* data, std::size_t size)
-        : STBase(f), value_(data, size)
+inline STPluginType::STPluginType(
+    SField const& f,
+    void const* data,
+    std::size_t size)
+    : STBase(f), value_(data, size)
 {
 }
 
 inline STPluginType::STPluginType(SField const& f, Buffer&& b)
-        : STBase(f), value_(std::move(b))
+    : STBase(f), value_(std::move(b))
 {
 }
 
@@ -148,4 +151,4 @@ STPluginType::setValue(Buffer&& b)
 
 }  // namespace ripple
 
-#endif //RIPPLED_STPLUGINTYPE_H
+#endif  // RIPPLED_STPLUGINTYPE_H

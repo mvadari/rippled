@@ -1134,7 +1134,12 @@ addPlugin(std::string libPath)
         for (int i = 0; i < sTypes.size; i++)
         {
             auto const stype = *(sTypes.data + i);
-            registerSType(stype.typeId);
+            registerSType(
+                {stype.typeId,
+                 stype.toString,
+                 stype.toJson,
+                 stype.toSerializer,
+                 stype.fromSerialIter});
             registerLeafType(stype.typeId, stype.parsePtr);
         }
     }

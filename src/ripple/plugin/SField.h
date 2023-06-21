@@ -20,6 +20,9 @@
 #ifndef RIPPLE_PLUGIN_SFIELD_H_INCLUDED
 #define RIPPLE_PLUGIN_SFIELD_H_INCLUDED
 
+#include <ripple/basics/Buffer.h>
+#include <ripple/json/json_value.h>
+
 namespace ripple {
 
 struct SFieldExport
@@ -27,6 +30,23 @@ struct SFieldExport
     int typeId;
     int fieldValue;
     const char* txtName;
+};
+
+class Serializer;
+class SerialIter;
+
+typedef std::string (*toStringPtr)(Buffer buf);
+typedef Json::Value (*toJsonPtr)(Buffer buf);
+typedef void (*toSerializerPtr)(Buffer& buf, Serializer& s);
+typedef void (*fromSerialIterPtr)(SerialIter& st);
+
+struct STypeFunctions
+{
+    int typeId;
+    toStringPtr toString;
+    toJsonPtr toJson;
+    toSerializerPtr toSerializer;
+    fromSerialIterPtr fromSerialIter;
 };
 
 }  // namespace ripple

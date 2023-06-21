@@ -67,10 +67,8 @@ parseLeafType<STUInt8>(
     std::optional<detail::STVar> ret;
     try
     {
-        constexpr auto minValue =
-            std::numeric_limits<std::uint8_t>::min();
-        constexpr auto maxValue =
-            std::numeric_limits<std::uint8_t>::max();
+        constexpr auto minValue = std::numeric_limits<std::uint8_t>::min();
+        constexpr auto maxValue = std::numeric_limits<std::uint8_t>::max();
         if (value.isString())
         {
             std::string const strValue = value.asString();
@@ -90,8 +88,7 @@ parseLeafType<STUInt8>(
                     }
 
                     ret = detail::make_stvar<STUInt8>(
-                        field,
-                        static_cast<std::uint8_t>(TERtoInt(*ter)));
+                        field, static_cast<std::uint8_t>(TERtoInt(*ter)));
                 }
                 else
                 {
@@ -102,8 +99,7 @@ parseLeafType<STUInt8>(
             else
             {
                 ret = detail::make_stvar<STUInt8>(
-                    field,
-                    beast::lexicalCastThrow<std::uint8_t>(strValue));
+                    field, beast::lexicalCastThrow<std::uint8_t>(strValue));
             }
         }
         else if (value.isInt())
@@ -167,8 +163,7 @@ parseLeafType<STUInt16>(
                     ret = detail::make_stvar<STUInt16>(
                         field,
                         static_cast<std::uint16_t>(
-                            TxFormats::getInstance().findTypeByName(
-                                strValue)));
+                            TxFormats::getInstance().findTypeByName(strValue)));
 
                     if (*name == sfGeneric)
                         name = &sfTransaction;
@@ -193,8 +188,7 @@ parseLeafType<STUInt16>(
             else
             {
                 ret = detail::make_stvar<STUInt16>(
-                    field,
-                    beast::lexicalCastThrow<std::uint16_t>(strValue));
+                    field, beast::lexicalCastThrow<std::uint16_t>(strValue));
             }
         }
         else if (value.isInt())
@@ -238,8 +232,7 @@ parseLeafType<STUInt32>(
         {
             ret = detail::make_stvar<STUInt32>(
                 field,
-                beast::lexicalCastThrow<std::uint32_t>(
-                    value.asString()));
+                beast::lexicalCastThrow<std::uint32_t>(value.asString()));
         }
         else if (value.isInt())
         {
@@ -284,8 +277,8 @@ parseLeafType<STUInt64>(
 
             std::uint64_t val;
 
-            auto [p, ec] = std::from_chars(
-                str.data(), str.data() + str.size(), val, 16);
+            auto [p, ec] =
+                std::from_chars(str.data(), str.data() + str.size(), val, 16);
 
             if (ec != std::errc() || (p != str.data() + str.size()))
                 Throw<std::invalid_argument>("invalid data");
@@ -439,8 +432,8 @@ parseLeafType<STBlob>(
     {
         if (auto vBlob = strUnHex(value.asString()))
         {
-            ret = detail::make_stvar<STBlob>(
-                field, vBlob->data(), vBlob->size());
+            ret =
+                detail::make_stvar<STBlob>(field, vBlob->data(), vBlob->size());
         }
         else
         {
@@ -468,8 +461,7 @@ parseLeafType<STAmount>(
     std::optional<detail::STVar> ret;
     try
     {
-        ret =
-            detail::make_stvar<STAmount>(amountFromJson(field, value));
+        ret = detail::make_stvar<STAmount>(amountFromJson(field, value));
         return ret;
     }
     catch (std::exception const&)
@@ -553,8 +545,7 @@ parseLeafType<STPathSet>(
             {
                 std::stringstream ss;
                 ss << fieldName << "[" << i << "][" << j << "]";
-                std::string const element_name(
-                    json_name + "." + ss.str());
+                std::string const element_name(json_name + "." + ss.str());
 
                 // each element in this path has some combination of
                 // account, currency, or issuer
@@ -579,8 +570,7 @@ parseLeafType<STPathSet>(
                     // human account id
                     if (!account.isString())
                     {
-                        error =
-                            string_expected(element_name, "account");
+                        error = string_expected(element_name, "account");
                         return ret;
                     }
 
@@ -592,8 +582,7 @@ parseLeafType<STPathSet>(
                             parseBase58<AccountID>(account.asString());
                         if (!a)
                         {
-                            error =
-                                invalid_data(element_name, "account");
+                            error = invalid_data(element_name, "account");
                             return ret;
                         }
                         uAccount = *a;
@@ -605,8 +594,7 @@ parseLeafType<STPathSet>(
                     // human currency
                     if (!currency.isString())
                     {
-                        error =
-                            string_expected(element_name, "currency");
+                        error = string_expected(element_name, "currency");
                         return ret;
                     }
 
@@ -614,11 +602,9 @@ parseLeafType<STPathSet>(
 
                     if (!uCurrency.parseHex(currency.asString()))
                     {
-                        if (!to_currency(
-                                uCurrency, currency.asString()))
+                        if (!to_currency(uCurrency, currency.asString()))
                         {
-                            error =
-                                invalid_data(element_name, "currency");
+                            error = invalid_data(element_name, "currency");
                             return ret;
                         }
                     }
@@ -639,16 +625,14 @@ parseLeafType<STPathSet>(
                             parseBase58<AccountID>(issuer.asString());
                         if (!a)
                         {
-                            error =
-                                invalid_data(element_name, "issuer");
+                            error = invalid_data(element_name, "issuer");
                             return ret;
                         }
                         uIssuer = *a;
                     }
                 }
 
-                p.emplace_back(
-                    uAccount, uCurrency, uIssuer, hasCurrency);
+                p.emplace_back(uAccount, uCurrency, uIssuer, hasCurrency);
             }
 
             tail.push_back(p);
@@ -715,6 +699,7 @@ std::map<int, parseLeafTypePtr> leafParserMap{
     {STI_ACCOUNT, parseLeafType<STAccount>},
 };
 
+std::map<int, parsePluginValuePtr> pluginLeafParserMap{};
 
 // This function is used by parseObject to parse any JSON type that doesn't
 // recurse.  Everything represented here is a leaf-type.
@@ -727,10 +712,10 @@ parseLeaf(
     Json::Value& error)
 {
     auto const& field = SField::getField(fieldName);
+    std::optional<detail::STVar> ret;
 
     if (field == sfInvalid)
     {
-        std::optional<detail::STVar> ret;
         error = unknown_field(json_name, fieldName);
         return ret;
     }
@@ -741,7 +726,19 @@ parseLeaf(
         return it->second(field, json_name, fieldName, name, value, error);
     }
 
-    std::optional<detail::STVar> ret;
+    if (auto it = pluginLeafParserMap.find(field.fieldType);
+        it != pluginLeafParserMap.end())
+    {
+        Buffer buf =
+            it->second(field, json_name, fieldName, name, value, error);
+        if (buf.size() == 0)
+        {
+            ret =
+                detail::make_stvar<STPluginType>(field, buf.data(), buf.size());
+        }
+        return ret;
+    }
+
     error = unknown_type(json_name, fieldName, field.fieldType);
     return ret;
 }
@@ -996,9 +993,9 @@ STParsedJSONArray::STParsedJSONArray(
 }
 
 void
-registerLeafType(int type, parseLeafTypePtr functionPtr)
+registerLeafType(int type, parsePluginValuePtr functionPtr)
 {
-    STParsedJSONDetail::leafParserMap.insert({ type, functionPtr });
+    STParsedJSONDetail::pluginLeafParserMap.insert({type, functionPtr});
 }
 
 }  // namespace ripple

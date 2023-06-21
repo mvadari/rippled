@@ -24,7 +24,7 @@
 namespace ripple {
 
 STPluginType::STPluginType(SerialIter& st, SField const& name)
-        : STBase(name), value_(st.getVLBuffer())
+    : STBase(name), value_(st.getVLBuffer())
 {
 }
 

@@ -18,8 +18,8 @@
 //==============================================================================
 
 #include <ripple/basics/contract.h>
-#include <ripple/protocol/st.h>
 #include <ripple/protocol/impl/STVar.h>
+#include <ripple/protocol/st.h>
 
 namespace ripple {
 namespace detail {
@@ -155,10 +155,12 @@ STVar::STVar(SerialIter& sit, SField const& name, int depth)
             if (auto it = pluginSTypes.find(name.fieldType);
                 it != pluginSTypes.end())
             {
-                // TODO: figure out how to handle more complex types that have depth
+                // TODO: figure out how to handle more complex types that have
+                // depth
                 construct<STPluginType>(sit, name);
                 return;
-            } else
+            }
+            else
             {
                 Throw<std::runtime_error>("Unknown object type");
             }
@@ -224,7 +226,8 @@ STVar::STVar(int id, SField const& name)
             {
                 construct<STPluginType>(name);
                 return;
-            } else
+            }
+            else
             {
                 Throw<std::runtime_error>("Unknown object type");
             }

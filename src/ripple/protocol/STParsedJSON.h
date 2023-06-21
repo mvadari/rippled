@@ -20,8 +20,8 @@
 #ifndef RIPPLE_PROTOCOL_STPARSEDJSON_H_INCLUDED
 #define RIPPLE_PROTOCOL_STPARSEDJSON_H_INCLUDED
 
-#include <ripple/protocol/STArray.h>
 #include <ripple/protocol/ErrorCodes.h>
+#include <ripple/protocol/STArray.h>
 #include <optional>
 
 namespace ripple {
@@ -161,7 +161,8 @@ unknown_type(std::string const& object, std::string const& field, int fieldType)
 {
     return RPC::make_error(
         rpcINVALID_PARAMS,
-        "Field '" + make_name(object, field) + "' has unknown type value " + std::to_string(fieldType) + ".");
+        "Field '" + make_name(object, field) + "' has unknown type value " +
+            std::to_string(fieldType) + ".");
 }
 
 inline Json::Value
@@ -239,8 +240,16 @@ parseLeafType(
     Json::Value const& value,
     Json::Value& error);
 
+typedef std::optional<detail::STVar> (*parseLeafTypePtr)(
+    SField const& field,
+    std::string const& json_name,
+    std::string const& fieldName,
+    SField const* name,
+    Json::Value const& value,
+    Json::Value& error);
+
 void
-registerLeafType(int type, parseLeafTypePtr functionPtr);
+registerLeafType(int type, parsePluginValuePtr functionPtr);
 
 }  // namespace ripple
 
