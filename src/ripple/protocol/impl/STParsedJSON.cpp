@@ -731,7 +731,7 @@ parseLeaf(
     {
         Buffer buf =
             it->second(field, json_name, fieldName, name, value, error);
-        if (buf.size() == 0)
+        if (buf.empty())
         {
             ret =
                 detail::make_stvar<STPluginType>(field, buf.data(), buf.size());

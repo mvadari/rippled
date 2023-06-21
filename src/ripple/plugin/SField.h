@@ -38,7 +38,7 @@ class SerialIter;
 typedef std::string (*toStringPtr)(Buffer buf);
 typedef Json::Value (*toJsonPtr)(Buffer buf);
 typedef void (*toSerializerPtr)(Buffer& buf, Serializer& s);
-typedef void (*fromSerialIterPtr)(SerialIter& st);
+typedef Buffer (*fromSerialIterPtr)(SerialIter& st);
 
 struct STypeFunctions
 {
