@@ -23,9 +23,18 @@
 
 namespace ripple {
 
-STPluginType::STPluginType(SerialIter& st, SField const& name)
-    : STBase(name), value_(st.getVLBuffer())
+STPluginType::STPluginType(SerialIter& st, SField const& name) : STBase(name)
 {
+    int type = name.fieldType;
+    if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
+    {
+        value_ = it->second.fromSerialIter(st);
+    }
+    else
+    {
+        throw std::runtime_error(
+            "Type " + std::to_string(type) + " does not exist");
+    }
 }
 
 STBase*
@@ -49,20 +58,41 @@ STPluginType::getSType() const
 std::string
 STPluginType::getText() const
 {
-    return strHex(value_);
+    int type = getSType();
+    if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
+    {
+        return it->second.toString(value_);
+    }
+    throw std::runtime_error(
+        "Type " + std::to_string(type) + " does not exist");
+}
+
+Json::Value
+STPluginType::getJson(JsonOptions /*options*/) const
+{
+    int type = getSType();
+    if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
+    {
+        if (it->second.toJson != NULL)
+        {
+            return it->second.toJson(value_);
+        }
+        return it->second.toString(value_);
+    }
+    throw std::runtime_error(
+        "Type " + std::to_string(type) + " does not exist");
 }
 
 void
 STPluginType::add(Serializer& s) const
 {
-    std::cout << "STPluginType called! " << getText() << std::endl;
-    assert(getFName().isBinary());
-
-    // Preserve the serialization behavior of an STBlob:
-    //  o If we are default (all zeros) serialize as an empty blob.
-    //  o Otherwise serialize 160 bits.
-    int const size = isDefault() ? 0 : uint160::bytes;
-    s.addVL(value_.data(), size);
+    int type = getSType();
+    if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
+    {
+        return it->second.toSerializer(value_, s);
+    }
+    throw std::runtime_error(
+        "Type " + std::to_string(type) + " does not exist");
 }
 
 bool

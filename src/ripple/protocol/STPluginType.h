@@ -58,6 +58,8 @@ public:
     std::string
     getText() const override;
 
+    Json::Value getJson(JsonOptions /*options*/) const override;
+
     void
     add(Serializer& s) const override;
 
