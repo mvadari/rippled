@@ -20,6 +20,7 @@
 #ifndef RIPPLE_PROTOCOL_LEDGERFORMATS_H_INCLUDED
 #define RIPPLE_PROTOCOL_LEDGERFORMATS_H_INCLUDED
 
+#include <ripple/plugin/plugin.h>
 #include <ripple/protocol/KnownFormats.h>
 
 namespace ripple {
@@ -296,6 +297,17 @@ public:
     static LedgerFormats const&
     getInstance();
 };
+
+struct PluginLedgerFormat
+{
+    std::string objectName;
+    std::vector<SOElement> uniqueFields;
+};
+
+extern std::map<std::uint16_t, PluginLedgerFormat> pluginObjectsMap;
+
+void
+registerLedgerObject(LedgerObjectExport object);
 
 }  // namespace ripple
 

@@ -79,6 +79,14 @@ TransactionFeeCheck::finalize(
 
 //------------------------------------------------------------------------------
 
+std::map<std::uint16_t, visitEntryXRPChangePtr> pluginXRPChangeFns{};
+
+void
+registerPluginXRPChangeFn(std::uint16_t type, visitEntryXRPChangePtr ptr)
+{
+    pluginXRPChangeFns.insert({type, ptr});
+}
+
 void
 XRPNotCreated::visitEntry(
     bool isDelete,
@@ -107,6 +115,11 @@ XRPNotCreated::visitEntry(
                 drops_ -= (*before)[sfAmount].xrp().drops();
                 break;
             default:
+                if (auto it = pluginXRPChangeFns.find(before->getType());
+                    it != pluginXRPChangeFns.end())
+                {
+                    drops_ += it->second(isDelete, before, true);
+                }
                 break;
         }
     }
@@ -129,6 +142,11 @@ XRPNotCreated::visitEntry(
                     drops_ += (*after)[sfAmount].xrp().drops();
                 break;
             default:
+                if (auto it = pluginXRPChangeFns.find(after->getType());
+                    it != pluginXRPChangeFns.end())
+                {
+                    drops_ += it->second(isDelete, after, false);
+                }
                 break;
         }
     }
@@ -389,6 +407,11 @@ LedgerEntryTypesMatch::visitEntry(
             case ltAMM:
                 break;
             default:
+                if (pluginObjectsMap.find(after->getType()) !=
+                    pluginObjectsMap.end())
+                {
+                    break;
+                }
                 invalidTypeAdded_ = true;
                 break;
         }

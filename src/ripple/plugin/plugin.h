@@ -65,12 +65,12 @@ typedef std::int64_t (*visitEntryXRPChangePtr)(
     bool isBefore);
 struct LedgerObjectExport
 {
-    std::uint16_t objectType;
-    char const* objectName;     // CamelCase
-    char const* objectRpcName;  // snake_case
-    Container<SOElementExport> objectFormat;
+    std::uint16_t type;
+    char const* name;     // CamelCase
+    char const* rpcName;  // snake_case
+    Container<SOElementExport> format;
     bool isDeletionBlocker;
-    std::optional<visitEntryXRPChangePtr> visitEntryXRPChange;
+    visitEntryXRPChangePtr visitEntryXRPChange;
     // SOElementExport[] innerObjectFormat; // optional
 };
 

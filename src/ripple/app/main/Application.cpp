@@ -49,6 +49,7 @@
 #include <ripple/app/rdb/backend/PostgresDatabase.h>
 #include <ripple/app/reporting/ReportingETL.h>
 #include <ripple/app/tx/apply.h>
+#include <ripple/app/tx/impl/InvariantCheck.h>
 #include <ripple/basics/ByteUtilities.h>
 #include <ripple/basics/PerfLog.h>
 #include <ripple/basics/ResolverAsio.h>
@@ -1159,12 +1160,12 @@ addPlugin(std::string libPath)
         for (int i = 0; i < ledgerObjects.size; i++)
         {
             auto const ledgerObject = *(ledgerObjects.data + i);
-            // registerLedgerObject(ledgerObject.objectType,
-            // ledgerObject.objectName, ledgerObject.objectFormat); if
-            // (ledgerObject.visitEntryXRPChange.has_value()) {
-            //     registerpluginXRPChangeFn(ledgerObject.objectType,
-            //     ledgerObject.visitEntryXRPChange.value());
-            // }
+            registerLedgerObject(ledgerObject);
+            if (ledgerObject.visitEntryXRPChange != NULL)
+            {
+                registerPluginXRPChangeFn(
+                    ledgerObject.type, ledgerObject.visitEntryXRPChange);
+            }
         }
     }
     auto const transactors =

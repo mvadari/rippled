@@ -433,6 +433,16 @@ using InvariantChecks = std::tuple<
     NFTokenCountTracking,
     ValidClawback>;
 
+typedef std::int64_t (*visitEntryXRPChangePtr)(
+    bool isDelete,
+    std::shared_ptr<SLE const> const& entry,
+    bool isBefore);
+
+extern std::map<std::uint16_t, visitEntryXRPChangePtr> pluginXRPChangeFns;
+
+void
+registerPluginXRPChangeFn(std::uint16_t type, visitEntryXRPChangePtr ptr);
+
 /**
  * @brief get a tuple of all invariant checks
  *
