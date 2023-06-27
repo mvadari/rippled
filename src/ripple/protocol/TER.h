@@ -22,6 +22,7 @@
 
 #include <ripple/basics/safe_cast.h>
 #include <ripple/json/json_value.h>
+#include <ripple/plugin/plugin.h>
 
 #include <optional>
 #include <ostream>
@@ -628,6 +629,9 @@ transHuman(TER code);
 
 std::optional<TER>
 transCode(std::string const& token);
+
+void
+registerPluginTER(TERExport ter);
 
 }  // namespace ripple
 

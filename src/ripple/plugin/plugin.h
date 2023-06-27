@@ -40,6 +40,13 @@ struct SOElementExport
     SOEStyle style;
 };
 
+struct TERExport
+{
+    int code;
+    char const* codeStr;
+    char const* description;
+};
+
 typedef Buffer (*parsePluginValuePtr)(
     SField const&,
     std::string const&,

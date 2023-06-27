@@ -34,6 +34,8 @@ typedef Container<SFieldExport> (*getSFieldsPtr)();
 
 typedef Container<LedgerObjectExport> (*getLedgerObjectsPtr)();
 
+typedef Container<TERExport> (*getTERcodesPtr)();
+
 // Transactors
 
 typedef TxConsequences (*makeTxConsequencesPtr)(

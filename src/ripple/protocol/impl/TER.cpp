@@ -21,8 +21,17 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <type_traits>
 #include <unordered_map>
+#include <vector>
 
 namespace ripple {
+
+std::vector<TERExport> pluginTERcodes{};
+
+void
+registerPluginTER(TERExport ter)
+{
+    pluginTERcodes.emplace_back(ter);
+}
 
 namespace detail {
 
@@ -40,7 +49,7 @@ transResults()
     static
     std::unordered_map<
             TERUnderlyingType,
-            std::pair<char const* const, char const* const>> const results
+            std::pair<char const* const, char const* const>> results
     {
         MAKE_ERROR(tecAMM_BALANCE,                   "AMM has invalid balance."),
         MAKE_ERROR(tecAMM_INVALID_TOKENS,            "AMM invalid LP tokens."),
@@ -197,7 +206,16 @@ transResults()
 
 #undef MAKE_ERROR
 
-    return results;
+    for (TERExport ter : pluginTERcodes)
+    {
+        results.insert({ter.code, {ter.codeStr, ter.description}});
+    }
+
+    static std::unordered_map<
+        TERUnderlyingType,
+        std::pair<char const* const, char const* const>> const finalResults =
+        results;
+    return finalResults;
 }
 
 }  // namespace detail

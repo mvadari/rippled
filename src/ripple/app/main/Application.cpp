@@ -1177,6 +1177,15 @@ addPlugin(std::string libPath)
             transactor.txType, transactor.txName, transactor.txFormat);
         registerTxFunctions(transactor);
     }
+    if (dlsym(handle, "getTERcodes") != NULL)
+    {
+        auto const TERcodes = ((getTERcodesPtr)dlsym(handle, "getTERcodes"))();
+        for (int i = 0; i < TERcodes.size; i++)
+        {
+            auto const TERcode = *(TERcodes.data + i);
+            registerPluginTER(TERcode);
+        }
+    }
     dlclose(handle);
 }
 
