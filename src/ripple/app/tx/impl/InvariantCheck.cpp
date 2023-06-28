@@ -79,7 +79,7 @@ TransactionFeeCheck::finalize(
 
 //------------------------------------------------------------------------------
 
-std::map<std::uint16_t, visitEntryXRPChangePtr> pluginXRPChangeFns{};
+static std::map<std::uint16_t, visitEntryXRPChangePtr> pluginXRPChangeFns{};
 
 void
 registerPluginXRPChangeFn(std::uint16_t type, visitEntryXRPChangePtr ptr)
@@ -813,6 +813,46 @@ ValidClawback::finalize(
     }
 
     return true;
+}
+
+//------------------------------------------------------------------------------
+
+std::vector<InvariantCheckExport> pluginInvariantChecks{};
+
+void
+registerPluginInvariantCheck(InvariantCheckExport invariantCheck)
+{
+    pluginInvariantChecks.emplace_back(invariantCheck);
+}
+
+void
+PluginInvariantChecks::visitEntry(
+    bool isDelete,
+    std::shared_ptr<SLE const> const& before,
+    std::shared_ptr<SLE const> const& after)
+{
+    for (InvariantCheckExport invariantCheck : pluginInvariantChecks)
+    {
+        invariantCheck.visitEntry(
+            static_cast<void*>(this), isDelete, before, after);
+    }
+}
+
+bool
+PluginInvariantChecks::finalize(
+    STTx const& tx,
+    TER const result,
+    XRPAmount const fee,
+    ReadView const& view,
+    beast::Journal const& j)
+{
+    bool finalizeResult = true;
+    for (InvariantCheckExport invariantCheck : pluginInvariantChecks)
+    {
+        finalizeResult &= invariantCheck.finalize(
+            static_cast<void*>(this), tx, result, fee, view, j);
+    }
+    return finalizeResult;
 }
 
 }  // namespace ripple

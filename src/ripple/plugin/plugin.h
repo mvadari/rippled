@@ -27,6 +27,8 @@
 
 namespace ripple {
 
+class STLedgerEntry;
+
 template <typename T>
 struct Container
 {
@@ -64,8 +66,6 @@ struct STypeExport
     toSerializerPtr toSerializer;
     fromSerialIterPtr fromSerialIter;
 };
-
-class STLedgerEntry;
 typedef std::int64_t (*visitEntryXRPChangePtr)(
     bool isDelete,
     std::shared_ptr<STLedgerEntry const> const& entry,

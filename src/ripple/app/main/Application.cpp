@@ -1186,6 +1186,16 @@ addPlugin(std::string libPath)
             registerPluginTER(TERcode);
         }
     }
+    if (dlsym(handle, "getInvariantChecks") != NULL)
+    {
+        auto const invariantChecks =
+            ((getInvariantChecksPtr)dlsym(handle, "getInvariantChecks"))();
+        for (int i = 0; i < invariantChecks.size; i++)
+        {
+            auto const invariantCheck = *(invariantChecks.data + i);
+            registerPluginInvariantCheck(invariantCheck);
+        }
+    }
     dlclose(handle);
 }
 

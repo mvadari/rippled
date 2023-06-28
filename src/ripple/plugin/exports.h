@@ -22,6 +22,7 @@
 
 #include <ripple/app/tx/TxConsequences.h>
 #include <ripple/app/tx/impl/Transactor.h>
+#include <ripple/plugin/invariantChecks.h>
 #include <ripple/plugin/plugin.h>
 #include <ripple/protocol/impl/STVar.h>
 #include <vector>
@@ -35,6 +36,8 @@ typedef Container<SFieldExport> (*getSFieldsPtr)();
 typedef Container<LedgerObjectExport> (*getLedgerObjectsPtr)();
 
 typedef Container<TERExport> (*getTERcodesPtr)();
+
+typedef Container<InvariantCheckExport> (*getInvariantChecksPtr)();
 
 // Transactors
 

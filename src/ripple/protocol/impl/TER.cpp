@@ -25,7 +25,7 @@
 
 namespace ripple {
 
-std::vector<TERExport> pluginTERcodes{};
+static std::vector<TERExport> pluginTERcodes{};
 
 void
 registerPluginTER(TERExport ter)
