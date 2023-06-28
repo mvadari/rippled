@@ -21,6 +21,7 @@
 #define RIPPLE_PROTOCOL_FEATURE_H_INCLUDED
 
 #include <ripple/basics/base_uint.h>
+#include <ripple/plugin/plugin.h>
 #include <boost/container/flat_map.hpp>
 #include <array>
 #include <bitset>
@@ -109,6 +110,9 @@ bitsetIndexToFeature(size_t i);
 
 std::string
 featureToName(uint256 const& f);
+
+void
+registerPluginAmendment(AmendmentExport amendment);
 
 class FeatureBitset : private std::bitset<detail::numFeatures>
 {

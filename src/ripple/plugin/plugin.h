@@ -22,12 +22,12 @@
 
 #include <ripple/plugin/SField.h>
 #include <ripple/protocol/SOTemplate.h>
-#include <ripple/protocol/impl/STVar.h>
 #include <vector>
 
 namespace ripple {
 
 class STLedgerEntry;
+enum class VoteBehavior;
 
 template <typename T>
 struct Container
@@ -66,10 +66,12 @@ struct STypeExport
     toSerializerPtr toSerializer;
     fromSerialIterPtr fromSerialIter;
 };
+
 typedef std::int64_t (*visitEntryXRPChangePtr)(
     bool isDelete,
     std::shared_ptr<STLedgerEntry const> const& entry,
     bool isBefore);
+
 struct LedgerObjectExport
 {
     std::uint16_t type;
@@ -78,7 +80,13 @@ struct LedgerObjectExport
     Container<SOElementExport> format;
     bool isDeletionBlocker;
     visitEntryXRPChangePtr visitEntryXRPChange;
-    // SOElementExport[] innerObjectFormat; // optional
+};
+
+struct AmendmentExport
+{
+    char const* name;
+    bool supported;
+    VoteBehavior vote;
 };
 
 }  // namespace ripple

@@ -1196,6 +1196,16 @@ addPlugin(std::string libPath)
             registerPluginInvariantCheck(invariantCheck);
         }
     }
+    if (dlsym(handle, "getAmendments") != NULL)
+    {
+        auto const amendments =
+            ((getAmendmentsPtr)dlsym(handle, "getAmendments"))();
+        for (int i = 0; i < amendments.size; i++)
+        {
+            auto const amendment = *(amendments.data + i);
+            registerPluginAmendment(amendment);
+        }
+    }
     dlclose(handle);
 }
 
@@ -1258,6 +1268,15 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     {
         JLOG(m_journal.info()) << "Loading plugin from " << plugin;
         addPlugin(plugin);
+    }
+
+    for (std::string const& s : config_->rawFeatures)
+    {
+        if (auto const f = getRegisteredFeature(s))
+            config_->features.insert(*f);
+        else
+            Throw<std::runtime_error>(
+                "Unknown feature: " + s + "  in config file.");
     }
 
     if (!config_->standalone())

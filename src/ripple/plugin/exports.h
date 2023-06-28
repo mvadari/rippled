@@ -24,7 +24,6 @@
 #include <ripple/app/tx/impl/Transactor.h>
 #include <ripple/plugin/invariantChecks.h>
 #include <ripple/plugin/plugin.h>
-#include <ripple/protocol/impl/STVar.h>
 #include <vector>
 
 namespace ripple {
@@ -38,6 +37,8 @@ typedef Container<LedgerObjectExport> (*getLedgerObjectsPtr)();
 typedef Container<TERExport> (*getTERcodesPtr)();
 
 typedef Container<InvariantCheckExport> (*getInvariantChecksPtr)();
+
+typedef Container<AmendmentExport> (*getAmendmentsPtr)();
 
 // Transactors
 

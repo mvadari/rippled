@@ -383,6 +383,13 @@ featureToName(uint256 const& f)
     return featureCollections.featureToName(f);
 }
 
+void
+registerPluginAmendment(AmendmentExport amendment)
+{
+    Supported supported = amendment.supported ? Supported::yes : Supported::no;
+    registerFeature(amendment.name, supported, amendment.vote);
+}
+
 #pragma push_macro("REGISTER_FEATURE")
 #undef REGISTER_FEATURE
 

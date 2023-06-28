@@ -950,13 +950,9 @@ Config::loadFromString(std::string const& fileContents)
 
     {
         auto const part = section("features");
-        for (auto const& s : part.values())
+        for (std::string const& s : part.values())
         {
-            if (auto const f = getRegisteredFeature(s))
-                features.insert(*f);
-            else
-                Throw<std::runtime_error>(
-                    "Unknown feature: " + s + "  in config file.");
+            rawFeatures.push_back(s);
         }
     }
 
