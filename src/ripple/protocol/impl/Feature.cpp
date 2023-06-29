@@ -383,11 +383,11 @@ featureToName(uint256 const& f)
     return featureCollections.featureToName(f);
 }
 
-void
+uint256
 registerPluginAmendment(AmendmentExport amendment)
 {
     Supported supported = amendment.supported ? Supported::yes : Supported::no;
-    registerFeature(amendment.name, supported, amendment.vote);
+    return registerFeature(amendment.name, supported, amendment.vote);
 }
 
 #pragma push_macro("REGISTER_FEATURE")
@@ -514,7 +514,7 @@ uint256 const
 //
 // Use initialization of one final static variable to set
 // featureCollections::readOnly.
-[[maybe_unused]] static const bool readOnlySet =
-    featureCollections.registrationIsDone();
+// [[maybe_unused]] static const bool readOnlySet =
+//     featureCollections.registrationIsDone();
 
 }  // namespace ripple

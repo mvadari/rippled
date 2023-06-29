@@ -1206,6 +1206,7 @@ addPlugin(std::string libPath)
             registerPluginAmendment(amendment);
         }
     }
+    registrationIsDone();
     dlclose(handle);
 }
 
