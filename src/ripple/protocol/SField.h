@@ -131,9 +131,9 @@ public:
     enum class IsSigning : unsigned char { no, yes };
     static IsSigning const notSigning = IsSigning::no;
 
-    int const fieldCode;               // (type<<16)|index
-    int const fieldType;               // STI_*
-    int const fieldValue;              // Code number for protocol
+    int const fieldCode;   // (type<<16)|index
+    int const fieldType;   // STI_*
+    int const fieldValue;  // Code number for protocol
     std::string const fieldName;
     int const fieldMeta;
     int const fieldNum;

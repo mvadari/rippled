@@ -67,8 +67,7 @@ STPluginType::getText() const
         "Type " + std::to_string(type) + " does not exist");
 }
 
-Json::Value
-STPluginType::getJson(JsonOptions /*options*/) const
+Json::Value STPluginType::getJson(JsonOptions /*options*/) const
 {
     int type = getSType();
     if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
