@@ -96,6 +96,17 @@ public:
         std::vector<SOElement> uniqueFields,
         std::initializer_list<SOElement> commonFields = {});
 
+    /** Create a template populated with all fields.
+        After creating the template fields cannot be
+        added, modified, or removed.
+    */
+    SOTemplate(
+        std::initializer_list<SOElement> uniqueFields,
+        std::initializer_list<SOElement> commonFields = {})
+        : SOTemplate(std::vector<SOElement>(uniqueFields), commonFields)
+    {
+    }
+
     /* Provide for the enumeration of fields */
     std::vector<SOElement>::const_iterator
     begin() const

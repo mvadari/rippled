@@ -20,6 +20,7 @@
 #ifndef RIPPLE_PROTOCOL_STPARSEDJSON_H_INCLUDED
 #define RIPPLE_PROTOCOL_STPARSEDJSON_H_INCLUDED
 
+#include <ripple/plugin/plugin.h>
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/STArray.h>
 #include <optional>
