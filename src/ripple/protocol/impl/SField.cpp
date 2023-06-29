@@ -32,8 +32,7 @@ std::map<int, SField const*> SField::knownCodeToField;
 
 template <class T>
 template <class... Args>
-TypedField<T>::TypedField(Args&&... args)
-    : SField(std::forward<Args>(args)...)
+TypedField<T>::TypedField(Args&&... args) : SField(std::forward<Args>(args)...)
 {
 }
 
