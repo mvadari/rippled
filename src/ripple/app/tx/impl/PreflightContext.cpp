@@ -30,6 +30,18 @@
 
 namespace ripple {
 
+PreflightContext::PreflightContext(
+    Application& app_,
+    STTx const& tx_,
+    Rules const& rules_,
+    ApplyFlags flags_,
+    beast::Journal j_)
+    : app(app_), tx(tx_), rules(rules_), flags(flags_), j(j_)
+{
+}
+
+//------------------------------------------------------------------------------
+
 /** Performs early sanity checks on the txid */
 NotTEC
 preflight0(PreflightContext const& ctx)
@@ -131,18 +143,6 @@ preflight2(PreflightContext const& ctx)
         return temINVALID;
     }
     return tesSUCCESS;
-}
-
-//------------------------------------------------------------------------------
-
-PreflightContext::PreflightContext(
-    Application& app_,
-    STTx const& tx_,
-    Rules const& rules_,
-    ApplyFlags flags_,
-    beast::Journal j_)
-    : app(app_), tx(tx_), rules(rules_), flags(flags_), j(j_)
-{
 }
 
 }  // namespace ripple

@@ -125,7 +125,7 @@ private:
     void
     construct(Args&&... args)
     {
-        if (sizeof(T) > STVar::max_size)
+        if (sizeof(T) > max_size)
             p_ = new T(std::forward<Args>(args)...);
         else
             p_ = new (&d_) T(std::forward<Args>(args)...);
