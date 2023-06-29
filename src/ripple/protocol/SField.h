@@ -275,7 +275,9 @@ struct TypedField : SField
     using type = T;
 
     template <class... Args>
-    explicit TypedField(Args&&... args);
+    explicit TypedField(Args&&... args) : SField(std::forward<Args>(args)...)
+    {
+    }
 };
 
 /** Indicate std::optional field semantics. */

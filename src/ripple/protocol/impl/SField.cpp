@@ -30,12 +30,6 @@ SField::IsSigning const SField::notSigning;
 int SField::num = 0;
 std::map<int, SField const*> SField::knownCodeToField;
 
-template <class T>
-template <class... Args>
-TypedField<T>::TypedField(Args&&... args) : SField(std::forward<Args>(args)...)
-{
-}
-
 // Construct all compile-time SFields, and register them in the knownCodeToField
 // database:
 
