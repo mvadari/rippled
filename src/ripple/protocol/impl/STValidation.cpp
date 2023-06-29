@@ -44,7 +44,7 @@ STValidation::validationFormat()
     // it relies on the SField's below being initialized, and we can't
     // guarantee the initialization order.
     // clang-format off
-    std::vector<SOElement> uniqueFields{
+    static SOTemplate const format{
         {sfFlags,               soeREQUIRED},
         {sfLedgerHash,          soeREQUIRED},
         {sfLedgerSequence,      soeREQUIRED},
@@ -67,7 +67,6 @@ STValidation::validationFormat()
         {sfReserveBaseDrops,      soeOPTIONAL},
         {sfReserveIncrementDrops, soeOPTIONAL},
     };
-    static SOTemplate const format{uniqueFields};
     // clang-format on
 
     return format;

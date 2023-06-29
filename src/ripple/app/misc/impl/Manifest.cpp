@@ -55,7 +55,7 @@ deserializeManifest(Slice s, beast::Journal journal)
     if (s.empty())
         return std::nullopt;
 
-    std::vector<SOElement> uniqueFields{
+    static SOTemplate const manifestFormat{
         // A manifest must include:
         // - the master public key
         {sfPublicKey, soeREQUIRED},
@@ -79,7 +79,6 @@ deserializeManifest(Slice s, beast::Journal journal)
         // - a signature using the ephemeral signing key, if it is present
         {sfSignature, soeOPTIONAL},
     };
-    static SOTemplate const manifestFormat(uniqueFields);
 
     try
     {
