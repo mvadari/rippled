@@ -36,6 +36,12 @@
 
 namespace ripple {
 
+struct DeletionBlocker
+{
+    Json::StaticString name;
+    std::uint16_t type;
+};
+
 static std::vector<DeletionBlocker> pluginDeletionBlockers{};
 
 void
