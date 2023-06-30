@@ -17,7 +17,6 @@
 */
 //==============================================================================
 
-#include <ripple/app/main/Application.h>
 #include <ripple/app/tx/impl/details/NFTokenUtils.h>
 #include <ripple/ledger/ReadView.h>
 #include <ripple/net/RPCErr.h>
@@ -28,6 +27,7 @@
 #include <ripple/protocol/nftPageMask.h>
 #include <ripple/resource/Fees.h>
 #include <ripple/rpc/Context.h>
+#include <ripple/rpc/handlers/Handlers.h>
 #include <ripple/rpc/impl/RPCHelpers.h>
 #include <ripple/rpc/impl/Tuning.h>
 
@@ -35,6 +35,14 @@
 #include <string>
 
 namespace ripple {
+
+static std::vector<DeletionBlocker> pluginDeletionBlockers{};
+
+void
+registerPluginDeletionBlockers(char const* name, std::uint16_t type)
+{
+    pluginDeletionBlockers.push_back({Json::StaticString{name}, type});
+}
 
 /** General RPC command that can retrieve objects in the account root.
     {
@@ -188,16 +196,22 @@ doAccountObjects(RPC::JsonContext& context)
     if (params.isMember(jss::deletion_blockers_only) &&
         params[jss::deletion_blockers_only].asBool())
     {
-        struct
-        {
-            Json::StaticString name;
-            std::uint16_t type;
-        } static constexpr deletionBlockers[] = {
+        DeletionBlocker static constexpr originalDeletionBlockers[] = {
             {jss::check, ltCHECK},
             {jss::escrow, ltESCROW},
             {jss::nft_page, ltNFTOKEN_PAGE},
             {jss::payment_channel, ltPAYCHAN},
             {jss::state, ltRIPPLE_STATE}};
+
+        static std::vector<DeletionBlocker> deletionBlockers;
+        std::copy(
+            originalDeletionBlockers,
+            originalDeletionBlockers + sizeof(originalDeletionBlockers),
+            std::back_inserter(deletionBlockers));
+        std::copy(
+            pluginDeletionBlockers.begin(),
+            pluginDeletionBlockers.end(),
+            std::back_inserter(deletionBlockers));
 
         typeFilter.emplace();
         typeFilter->reserve(std::size(deletionBlockers));

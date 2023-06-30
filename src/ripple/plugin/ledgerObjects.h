@@ -17,61 +17,49 @@
 */
 //==============================================================================
 
-#ifndef RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
-#define RIPPLE_PLUGIN_PLUGIN_H_INCLUDED
+#ifndef RIPPLE_PLUGIN_LEDGEROBJECTS_H_INCLUDED
+#define RIPPLE_PLUGIN_LEDGEROBJECTS_H_INCLUDED
 
+#include <ripple/ledger/ApplyView.h>
 #include <ripple/plugin/SField.h>
-#include <ripple/protocol/SOTemplate.h>
-#include <vector>
+#include <ripple/protocol/st.h>
+#include <map>
 
 namespace ripple {
 
-class STLedgerEntry;
-enum class VoteBehavior;
+class Application;
 
-template <typename T>
-struct Container
+typedef std::int64_t (*visitEntryXRPChangePtr)(
+    bool isDelete,
+    std::shared_ptr<STLedgerEntry const> const& entry,
+    bool isBefore);
+
+// Define a function pointer type that can be used to delete ledger node types.
+using DeleterFuncPtr = TER (*)(
+    Application& app,
+    ApplyView& view,
+    AccountID const& account,
+    uint256 const& delIndex,
+    std::shared_ptr<SLE> const& sleDel,
+    beast::Journal j);
+
+static std::map<std::uint16_t, DeleterFuncPtr> pluginDeleterFunctions{};
+
+inline void
+registerDeleterFunction(std::uint16_t objectType, DeleterFuncPtr ptr)
 {
-    T* data;
-    int size;
-};
+    pluginDeleterFunctions.insert({objectType, ptr});
+}
 
-struct SOElementExport
+struct LedgerObjectExport
 {
-    int fieldCode;
-    SOEStyle style;
-};
-
-struct TERExport
-{
-    int code;
-    char const* codeStr;
-    char const* description;
-};
-
-typedef Buffer (*parsePluginValuePtr)(
-    SField const&,
-    std::string const&,
-    std::string const&,
-    SField const*,
-    Json::Value const&,
-    Json::Value&);
-
-struct STypeExport
-{
-    int typeId;
-    parsePluginValuePtr parsePtr;
-    toStringPtr toString;
-    toJsonPtr toJson;
-    toSerializerPtr toSerializer;
-    fromSerialIterPtr fromSerialIter;
-};
-
-struct AmendmentExport
-{
-    char const* name;
-    bool supported;
-    VoteBehavior vote;
+    std::uint16_t type;
+    char const* name;     // CamelCase
+    char const* rpcName;  // snake_case
+    Container<SOElementExport> format;
+    bool isDeletionBlocker;
+    DeleterFuncPtr deleteFn;
+    visitEntryXRPChangePtr visitEntryXRPChange;
 };
 
 }  // namespace ripple

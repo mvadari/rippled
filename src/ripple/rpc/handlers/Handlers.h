@@ -24,6 +24,15 @@
 
 namespace ripple {
 
+struct DeletionBlocker
+{
+    Json::StaticString name;
+    std::uint16_t type;
+};
+
+void
+registerPluginDeletionBlockers(char const* name, std::uint16_t type);
+
 Json::Value
 doAccountCurrencies(RPC::JsonContext&);
 Json::Value

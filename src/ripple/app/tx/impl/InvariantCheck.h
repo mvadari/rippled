@@ -23,6 +23,7 @@
 #include <ripple/basics/base_uint.h>
 #include <ripple/beast/utility/Journal.h>
 #include <ripple/plugin/invariantChecks.h>
+#include <ripple/plugin/ledgerObjects.h>
 #include <ripple/protocol/STLedgerEntry.h>
 #include <ripple/protocol/STTx.h>
 #include <ripple/protocol/TER.h>

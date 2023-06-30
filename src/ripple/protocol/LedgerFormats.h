@@ -307,7 +307,7 @@ struct PluginLedgerFormat
 extern std::map<std::uint16_t, PluginLedgerFormat> pluginObjectsMap;
 
 void
-registerLedgerObject(LedgerObjectExport object);
+registerLedgerObject(std::uint16_t type, char const* name, Container<SOElementExport> format);
 
 }  // namespace ripple
 

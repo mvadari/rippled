@@ -25,6 +25,7 @@
 #include <ripple/basics/Log.h>
 #include <ripple/basics/mulDiv.h>
 #include <ripple/ledger/View.h>
+#include <ripple/plugin/ledgerObjects.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Indexes.h>
 #include <ripple/protocol/Protocol.h>
@@ -60,14 +61,6 @@ DeleteAccount::calculateBaseFee(ReadView const& view, STTx const& tx)
 }
 
 namespace {
-// Define a function pointer type that can be used to delete ledger node types.
-using DeleterFuncPtr = TER (*)(
-    Application& app,
-    ApplyView& view,
-    AccountID const& account,
-    uint256 const& delIndex,
-    std::shared_ptr<SLE> const& sleDel,
-    beast::Journal j);
 
 // Local function definitions that provides signature compatibility.
 TER
@@ -152,6 +145,11 @@ nonObligationDeleter(std::uint16_t t)
         case ltNFTOKEN_OFFER:
             return removeNFTokenOfferFromLedger;
         default:
+            if (auto it = pluginDeleterFunctions.find(t);
+                it != pluginDeleterFunctions.end())
+            {
+                return it->second;
+            }
             return nullptr;
     }
 }

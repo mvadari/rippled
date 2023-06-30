@@ -23,6 +23,7 @@
 #include <ripple/app/tx/TxConsequences.h>
 #include <ripple/app/tx/impl/Transactor.h>
 #include <ripple/plugin/invariantChecks.h>
+#include <ripple/plugin/ledgerObjects.h>
 #include <ripple/plugin/plugin.h>
 #include <vector>
 

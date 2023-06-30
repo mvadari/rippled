@@ -73,6 +73,7 @@
 #include <ripple/protocol/STParsedJSON.h>
 #include <ripple/resource/Fees.h>
 #include <ripple/rpc/ShardArchiveHandler.h>
+#include <ripple/rpc/handlers/Handlers.h>
 #include <ripple/rpc/impl/RPCHelpers.h>
 #include <ripple/shamap/NodeFamily.h>
 #include <ripple/shamap/ShardFamily.h>
@@ -1160,11 +1161,27 @@ addPlugin(std::string libPath)
         for (int i = 0; i < ledgerObjects.size; i++)
         {
             auto const ledgerObject = *(ledgerObjects.data + i);
-            registerLedgerObject(ledgerObject);
+            registerLedgerObject(
+                ledgerObject.type, ledgerObject.name, ledgerObject.format);
             if (ledgerObject.visitEntryXRPChange != NULL)
             {
                 registerPluginXRPChangeFn(
                     ledgerObject.type, ledgerObject.visitEntryXRPChange);
+            }
+            if (ledgerObject.isDeletionBlocker)
+            {
+                registerPluginDeletionBlockers(
+                    ledgerObject.rpcName, ledgerObject.type);
+            }
+            else
+            {
+                if (ledgerObject.deleteFn == NULL)
+                {
+                    Throw<std::runtime_error>(
+                        "Ledger object " + std::string(ledgerObject.name) +
+                        "  is not a deletion blocker and does not have a "
+                        "delete function.");
+                }
             }
         }
     }
