@@ -48,6 +48,9 @@ namespace RPC {
 
 struct JsonContext;
 
+void
+registerPluginLedgerTypes(char const* name, std::uint16_t type);
+
 /** Get an AccountID from an account ID or public key. */
 std::optional<AccountID>
 accountFromStringStrict(std::string const&);

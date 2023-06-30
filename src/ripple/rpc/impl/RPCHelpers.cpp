@@ -39,6 +39,14 @@
 namespace ripple {
 namespace RPC {
 
+static std::vector<std::pair<char const*, std::uint16_t>> pluginLedgerTypes{};
+
+void
+registerPluginLedgerTypes(char const* name, std::uint16_t type)
+{
+    pluginLedgerTypes.push_back({name, type});
+}
+
 std::optional<AccountID>
 accountFromStringStrict(std::string const& account)
 {
@@ -982,24 +990,25 @@ chooseLedgerEntryType(Json::Value const& params)
     std::pair<RPC::Status, std::uint16_t> result{RPC::Status::OK, ltANY};
     if (params.isMember(jss::type))
     {
-        static constexpr std::array<std::pair<char const*, std::uint16_t>, 16>
-            types{
-                {{jss::account, ltACCOUNT_ROOT},
-                 {jss::amendments, ltAMENDMENTS},
-                 {jss::check, ltCHECK},
-                 {jss::deposit_preauth, ltDEPOSIT_PREAUTH},
-                 {jss::directory, ltDIR_NODE},
-                 {jss::escrow, ltESCROW},
-                 {jss::fee, ltFEE_SETTINGS},
-                 {jss::hashes, ltLEDGER_HASHES},
-                 {jss::offer, ltOFFER},
-                 {jss::payment_channel, ltPAYCHAN},
-                 {jss::signer_list, ltSIGNER_LIST},
-                 {jss::state, ltRIPPLE_STATE},
-                 {jss::ticket, ltTICKET},
-                 {jss::nft_offer, ltNFTOKEN_OFFER},
-                 {jss::nft_page, ltNFTOKEN_PAGE},
-                 {jss::amm, ltAMM}}};
+        static std::vector<std::pair<char const*, std::uint16_t>> types{
+            {{jss::account, ltACCOUNT_ROOT},
+             {jss::amendments, ltAMENDMENTS},
+             {jss::check, ltCHECK},
+             {jss::deposit_preauth, ltDEPOSIT_PREAUTH},
+             {jss::directory, ltDIR_NODE},
+             {jss::escrow, ltESCROW},
+             {jss::fee, ltFEE_SETTINGS},
+             {jss::hashes, ltLEDGER_HASHES},
+             {jss::offer, ltOFFER},
+             {jss::payment_channel, ltPAYCHAN},
+             {jss::signer_list, ltSIGNER_LIST},
+             {jss::state, ltRIPPLE_STATE},
+             {jss::ticket, ltTICKET},
+             {jss::nft_offer, ltNFTOKEN_OFFER},
+             {jss::nft_page, ltNFTOKEN_PAGE},
+             {jss::amm, ltAMM}}};
+        types.insert(
+            types.end(), pluginLedgerTypes.begin(), pluginLedgerTypes.end());
 
         auto const& p = params[jss::type];
         if (!p.isString())
