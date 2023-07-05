@@ -1163,7 +1163,8 @@ addPlugin(std::string libPath)
             auto const ledgerObject = *(ledgerObjects.data + i);
             registerLedgerObject(
                 ledgerObject.type, ledgerObject.name, ledgerObject.format);
-            RPC::registerPluginLedgerTypes(ledgerObject.rpcName, ledgerObject.type);
+            RPC::registerPluginLedgerTypes(
+                ledgerObject.rpcName, ledgerObject.type);
             if (ledgerObject.visitEntryXRPChange != NULL)
             {
                 registerPluginXRPChangeFn(
