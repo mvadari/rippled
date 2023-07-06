@@ -45,9 +45,9 @@ typedef Container<AmendmentExport> (*getAmendmentsPtr)();
 
 typedef TxConsequences (*makeTxConsequencesPtr)(
     PreflightContext const&);  // TODO: fix
+typedef XRPAmount (*calculateBaseFeePtr)(ReadView const& view, STTx const& tx);
 typedef NotTEC (*preflightPtr)(PreflightContext const&);
 typedef TER (*preclaimPtr)(PreclaimContext const&);
-typedef XRPAmount (*calculateBaseFeePtr)(ReadView const& view, STTx const& tx);
 typedef TER (*doApplyPtr)(
     ApplyContext& ctx,
     XRPAmount mPriorBalance,
@@ -66,15 +66,15 @@ struct TransactorExport
     std::uint16_t txType;
     Container<SOElementExport> txFormat;
     Transactor::ConsequencesFactoryType consequencesFactoryType;
-    makeTxConsequencesPtr makeTxConsequences;
-    preflightPtr preflight;
-    preclaimPtr preclaim;
-    calculateBaseFeePtr calculateBaseFee;
-    doApplyPtr doApply;
-    checkSeqProxyPtr checkSeqProxy;
-    checkPriorTxAndLastLedgerPtr checkPriorTxAndLastLedger;
-    checkFeePtr checkFee;
-    checkSignPtr checkSign;
+    makeTxConsequencesPtr makeTxConsequences = nullptr;
+    calculateBaseFeePtr calculateBaseFee = nullptr;
+    preflightPtr preflight = nullptr;
+    preclaimPtr preclaim = nullptr;
+    doApplyPtr doApply = nullptr;
+    checkSeqProxyPtr checkSeqProxy = nullptr;
+    checkPriorTxAndLastLedgerPtr checkPriorTxAndLastLedger = nullptr;
+    checkFeePtr checkFee = nullptr;
+    checkSignPtr checkSign = nullptr;
 };
 typedef Container<TransactorExport> (*getTransactorsPtr)();
 
