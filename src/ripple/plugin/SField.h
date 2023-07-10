@@ -35,10 +35,10 @@ struct SFieldExport
 class Serializer;
 class SerialIter;
 
-typedef std::string (*toStringPtr)(Buffer const& buf);
-typedef Json::Value (*toJsonPtr)(Buffer const& buf);
-typedef void (*toSerializerPtr)(Buffer const& buf, Serializer& s);
-typedef Buffer (*fromSerialIterPtr)(SerialIter& st);
+typedef std::string (*toStringPtr)(int typeId, Buffer const& buf);
+typedef Json::Value (*toJsonPtr)(int typeId, Buffer const& buf);
+typedef void (*toSerializerPtr)(int typeId, Buffer const& buf, Serializer& s);
+typedef Buffer (*fromSerialIterPtr)(int typeId, SerialIter& st);
 
 struct STypeFunctions
 {

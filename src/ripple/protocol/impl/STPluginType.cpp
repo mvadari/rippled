@@ -28,7 +28,7 @@ STPluginType::STPluginType(SerialIter& st, SField const& name) : STBase(name)
     int type = name.fieldType;
     if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
     {
-        value_ = it->second.fromSerialIter(st);
+        value_ = it->second.fromSerialIter(type, st);
     }
     else
     {
@@ -61,7 +61,7 @@ STPluginType::getText() const
     int type = getSType();
     if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
     {
-        return it->second.toString(value_);
+        return it->second.toString(type, value_);
     }
     throw std::runtime_error(
         "Type " + std::to_string(type) + " does not exist");
@@ -74,9 +74,9 @@ Json::Value STPluginType::getJson(JsonOptions /*options*/) const
     {
         if (it->second.toJson != NULL)
         {
-            return it->second.toJson(value_);
+            return it->second.toJson(type, value_);
         }
-        return it->second.toString(value_);
+        return it->second.toString(type, value_);
     }
     throw std::runtime_error(
         "Type " + std::to_string(type) + " does not exist");
@@ -88,7 +88,7 @@ STPluginType::add(Serializer& s) const
     int type = getSType();
     if (auto const it = pluginSTypes.find(type); it != pluginSTypes.end())
     {
-        return it->second.toSerializer(value_, s);
+        return it->second.toSerializer(type, value_, s);
     }
     throw std::runtime_error(
         "Type " + std::to_string(type) + " does not exist");
