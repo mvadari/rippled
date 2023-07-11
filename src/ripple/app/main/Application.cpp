@@ -1225,7 +1225,6 @@ addPlugin(std::string libPath)
             registerPluginAmendment(amendment);
         }
     }
-    registrationIsDone();
     dlclose(handle);
 }
 
@@ -1289,6 +1288,7 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         JLOG(m_journal.info()) << "Loading plugin from " << plugin;
         addPlugin(plugin);
     }
+    registrationIsDone();
 
     for (std::string const& s : config_->rawFeatures)
     {
