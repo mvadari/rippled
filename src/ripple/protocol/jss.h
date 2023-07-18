@@ -67,6 +67,9 @@ JSS(CheckCash);            // transaction type.
 JSS(CheckCreate);          // transaction type.
 JSS(Clawback);             // transaction type.
 JSS(ClearFlag);            // field.
+JSS(Document);             // ledger type.
+JSS(DocumentDelete);       // transaction type.
+JSS(DocumentSet);          // transaction type.
 JSS(DeliverMin);           // in: TransactionSign
 JSS(DepositPreauth);       // transaction and ledger type.
 JSS(Destination);          // in: TransactionSign; field.
@@ -258,6 +261,7 @@ JSS(destination_currencies);  // in: PathRequest, RipplePathFind
 JSS(destination_tag);         // in: PathRequest
                               // out: AccountChannels
 JSS(details);                 // out: Manifest, server_info
+JSS(document);                // in: LedgerEntry
 JSS(dir_entry);               // out: DirectoryEntryIterator
 JSS(dir_index);               // out: DirectoryEntryIterator
 JSS(dir_root);                // out: DirectoryEntryIterator
@@ -466,6 +470,7 @@ JSS(node_written_bytes);         // out: GetCounts
 JSS(node_writes_duration_us);    // out: GetCounts
 JSS(node_write_retries);         // out: GetCounts
 JSS(node_writes_delayed);        // out::GetCounts
+JSS(number);                     // in: LedgerEntry
 JSS(obligations);                // out: GatewayBalances
 JSS(offer);                      // in: LedgerEntry
 JSS(offers);                     // out: NetworkOPs, AccountOffers, Subscribe

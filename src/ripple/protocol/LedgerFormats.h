@@ -167,6 +167,12 @@ enum LedgerEntryType : std::uint16_t
     */
     ltAMM = 0x0079,
 
+    /** The ledger object which tracks a Document.
+
+       \sa keylet::document
+    */
+    ltDOCUMENT = 0x0044,
+
     //---------------------------------------------------------------------------
     /** A special type, matching any ledger entry type.
 

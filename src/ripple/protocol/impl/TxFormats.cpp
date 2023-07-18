@@ -394,6 +394,24 @@ TxFormats::TxFormats()
             {sfTicketSequence, soeOPTIONAL},
         },
         commonFields);
+
+    add(jss::DocumentSet,
+        ttDOCUMENT_SET,
+        {
+            {sfDocumentNumber, soeREQUIRED},
+            {sfURI, soeOPTIONAL},
+            {sfData, soeOPTIONAL},
+            {sfTicketSequence, soeOPTIONAL},
+        },
+        commonFields);
+
+    add(jss::DocumentDelete,
+        ttDOCUMENT_DELETE,
+        {
+            {sfDocumentNumber, soeREQUIRED},
+            {sfTicketSequence, soeOPTIONAL},
+        },
+        commonFields);
 }
 
 TxFormats const&

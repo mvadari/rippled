@@ -34,6 +34,7 @@
 #include <ripple/app/tx/impl/CreateTicket.h>
 #include <ripple/app/tx/impl/DeleteAccount.h>
 #include <ripple/app/tx/impl/DepositPreauth.h>
+#include <ripple/app/tx/impl/Document.h>
 #include <ripple/app/tx/impl/Escrow.h>
 #include <ripple/app/tx/impl/NFTokenAcceptOffer.h>
 #include <ripple/app/tx/impl/NFTokenBurn.h>
@@ -165,6 +166,10 @@ invoke_preflight(PreflightContext const& ctx)
             return invoke_preflight_helper<AMMVote>(ctx);
         case ttAMM_BID:
             return invoke_preflight_helper<AMMBid>(ctx);
+        case ttDOCUMENT_SET:
+            return invoke_preflight_helper<DocumentSet>(ctx);
+        case ttDOCUMENT_DELETE:
+            return invoke_preflight_helper<DocumentDelete>(ctx);
         default:
             assert(false);
             return {temUNKNOWN, TxConsequences{temUNKNOWN}};
@@ -278,6 +283,10 @@ invoke_preclaim(PreclaimContext const& ctx)
             return invoke_preclaim<AMMVote>(ctx);
         case ttAMM_BID:
             return invoke_preclaim<AMMBid>(ctx);
+        case ttDOCUMENT_SET:
+            return invoke_preclaim<DocumentSet>(ctx);
+        case ttDOCUMENT_DELETE:
+            return invoke_preclaim<DocumentDelete>(ctx);
         default:
             assert(false);
             return temUNKNOWN;
@@ -353,6 +362,10 @@ invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
             return AMMVote::calculateBaseFee(view, tx);
         case ttAMM_BID:
             return AMMBid::calculateBaseFee(view, tx);
+        case ttDOCUMENT_SET:
+            return DocumentSet::calculateBaseFee(view, tx);
+        case ttDOCUMENT_DELETE:
+            return DocumentDelete::calculateBaseFee(view, tx);
         default:
             assert(false);
             return XRPAmount{0};
@@ -527,6 +540,14 @@ invoke_apply(ApplyContext& ctx)
         }
         case ttAMM_BID: {
             AMMBid p(ctx);
+            return p();
+        }
+        case ttDOCUMENT_SET: {
+            DocumentSet p(ctx);
+            return p();
+        }
+        case ttDOCUMENT_DELETE: {
+            DocumentDelete p(ctx);
             return p();
         }
         default:

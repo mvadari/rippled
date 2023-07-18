@@ -377,6 +377,38 @@ doLedgerEntry(RPC::JsonContext& context)
             }
         }
     }
+    else if (context.params.isMember(jss::document))
+    {
+        expectedType = ltDOCUMENT;
+        if (!context.params[jss::document].isObject())
+        {
+            if (!uNodeIndex.parseHex(context.params[jss::document].asString()))
+            {
+                uNodeIndex = beast::zero;
+                jvResult[jss::error] = "malformedRequest";
+            }
+        }
+        else if (
+            !context.params[jss::document].isMember(jss::owner) ||
+            !context.params[jss::document].isMember(jss::number) ||
+            !context.params[jss::document][jss::number].isIntegral())
+        {
+            jvResult[jss::error] = "malformedRequest";
+        }
+        else
+        {
+            auto const id = parseBase58<AccountID>(
+                context.params[jss::document][jss::owner].asString());
+            if (!id)
+                jvResult[jss::error] = "malformedAddress";
+            else
+                uNodeIndex =
+                    keylet::document(
+                        *id,
+                        context.params[jss::document][jss::number].asUInt())
+                        .key;
+        }
+    }
     else
     {
         if (context.params.isMember("params") &&

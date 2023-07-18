@@ -64,6 +64,7 @@ enum class LedgerNameSpace : std::uint16_t {
     NFTOKEN_BUY_OFFERS = 'h',
     NFTOKEN_SELL_OFFERS = 'i',
     AMM = 'A',
+    DOCUMENT = 'D',
 
     // No longer used or supported. Left here to reserve the space
     // to avoid accidental reuse.
@@ -387,6 +388,14 @@ Keylet
 amm(uint256 const& id) noexcept
 {
     return {ltAMM, id};
+}
+
+Keylet
+document(AccountID const& account, std::uint32_t documentNumber) noexcept
+{
+    return {
+        ltDOCUMENT,
+        indexHash(LedgerNameSpace::DOCUMENT, account, documentNumber)};
 }
 
 }  // namespace keylet

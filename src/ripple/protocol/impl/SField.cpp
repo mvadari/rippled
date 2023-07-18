@@ -163,6 +163,7 @@ CONSTRUCT_TYPED_SFIELD(sfEmitGeneration,        "EmitGeneration",       UINT32, 
 // 47 is reserved for LockCount(Hooks)
 CONSTRUCT_TYPED_SFIELD(sfVoteWeight,            "VoteWeight",           UINT32,    48);
 CONSTRUCT_TYPED_SFIELD(sfFirstNFTokenSequence,  "FirstNFTokenSequence", UINT32,    50);
+CONSTRUCT_TYPED_SFIELD(sfDocumentNumber,        "DocumentNumber",       UINT32,    51);
 
 // 64-bit integers (common)
 CONSTRUCT_TYPED_SFIELD(sfIndexNext,             "IndexNext",            UINT64,     1);
@@ -281,6 +282,7 @@ CONSTRUCT_TYPED_SFIELD(sfCreateCode,            "CreateCode",           VL,     
 CONSTRUCT_TYPED_SFIELD(sfMemoType,              "MemoType",             VL,        12);
 CONSTRUCT_TYPED_SFIELD(sfMemoData,              "MemoData",             VL,        13);
 CONSTRUCT_TYPED_SFIELD(sfMemoFormat,            "MemoFormat",           VL,        14);
+CONSTRUCT_TYPED_SFIELD(sfData,                  "Data",                 VL,        15);
 
 // variable length (uncommon)
 CONSTRUCT_TYPED_SFIELD(sfFulfillment,           "Fulfillment",          VL,        16);

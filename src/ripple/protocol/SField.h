@@ -403,6 +403,7 @@ extern SF_UINT32 const sfHookStateCount;
 extern SF_UINT32 const sfEmitGeneration;
 extern SF_UINT32 const sfVoteWeight;
 extern SF_UINT32 const sfFirstNFTokenSequence;
+extern SF_UINT32 const sfDocumentNumber;
 
 // 64-bit integers (common)
 extern SF_UINT64 const sfIndexNext;
@@ -515,6 +516,7 @@ extern SF_VL const sfCreateCode;
 extern SF_VL const sfMemoType;
 extern SF_VL const sfMemoData;
 extern SF_VL const sfMemoFormat;
+extern SF_VL const sfData;
 
 // variable length (uncommon)
 extern SF_VL const sfFulfillment;
