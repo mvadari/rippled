@@ -21,6 +21,32 @@
 
 namespace ripple {
 
+struct PluginInnerObjectFormat
+{
+    std::string name;
+    std::vector<SOElement> uniqueFields;
+};
+
+std::map<std::uint16_t, PluginInnerObjectFormat> pluginInnerObjectFormats{};
+
+void
+registerPluginInnerObjectFormat(InnerObjectExport innerObject)
+{
+    auto const strName = std::string(innerObject.name);
+    if (auto it = pluginInnerObjectFormats.find(innerObject.code);
+        it != pluginInnerObjectFormats.end())
+    {
+        if (it->second.name == strName)
+            return;
+        LogicError(
+            std::string("Duplicate key for plugin transactor '") + strName +
+            "': already exists");
+    }
+    pluginInnerObjectFormats.insert(
+        {innerObject.code,
+         {strName, convertToUniqueFields(innerObject.format)}});
+}
+
 InnerObjectFormats::InnerObjectFormats()
 {
     add(sfSignerEntry.jsonName.c_str(),

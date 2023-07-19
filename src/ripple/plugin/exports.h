@@ -41,6 +41,8 @@ typedef Container<InvariantCheckExport> (*getInvariantChecksPtr)();
 
 typedef Container<AmendmentExport> (*getAmendmentsPtr)();
 
+typedef Container<InnerObjectExport> (*getInnerObjectFormatsPtr)();
+
 // Transactors
 
 typedef TxConsequences (*makeTxConsequencesPtr)(

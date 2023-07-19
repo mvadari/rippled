@@ -69,6 +69,7 @@
 #include <ripple/plugin/exports.h>
 #include <ripple/protocol/BuildInfo.h>
 #include <ripple/protocol/Feature.h>
+#include <ripple/protocol/InnerObjectFormats.h>
 #include <ripple/protocol/Protocol.h>
 #include <ripple/protocol/STParsedJSON.h>
 #include <ripple/resource/Fees.h>
@@ -1223,6 +1224,16 @@ addPlugin(std::string libPath)
         {
             auto const amendment = *(amendments.data + i);
             registerPluginAmendment(amendment);
+        }
+    }
+    if (dlsym(handle, "getInnerObjectFormats") != NULL)
+    {
+        auto const innerObjectFormats = ((getInnerObjectFormatsPtr)dlsym(
+            handle, "getInnerObjectFormats"))();
+        for (int i = 0; i < innerObjectFormats.size; i++)
+        {
+            auto const innerObjectFormat = *(innerObjectFormats.data + i);
+            registerPluginInnerObjectFormat(innerObjectFormat);
         }
     }
     dlclose(handle);

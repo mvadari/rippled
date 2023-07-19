@@ -74,6 +74,13 @@ struct AmendmentExport
     VoteBehavior vote;
 };
 
+struct InnerObjectExport
+{
+    std::uint16_t code;
+    char const* name;
+    Container<SOElementExport> format;
+};
+
 }  // namespace ripple
 
 #endif

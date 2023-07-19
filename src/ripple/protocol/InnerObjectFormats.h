@@ -42,6 +42,9 @@ public:
     findSOTemplateBySField(SField const& sField) const;
 };
 
+void
+registerPluginInnerObjectFormat(InnerObjectExport innerObject);
+
 }  // namespace ripple
 
 #endif
