@@ -76,7 +76,7 @@ struct AmendmentExport
 
 struct InnerObjectExport
 {
-    std::uint16_t code;
+    int code;
     char const* name;
     Container<SOElementExport> format;
 };
