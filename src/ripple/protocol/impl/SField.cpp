@@ -423,9 +423,12 @@ registerSField(SFieldExport const& sfield)
         case STI_ACCOUNT:
             new SF_ACCOUNT(STI_ACCOUNT, sfield.fieldValue, sfield.txtName);
             break;
-        // case STI_OBJECT: new SF_OBJECT(sfield.typeId, sfield.fieldValue,
-        // sfield.txtName); break; case STI_ARRAY: new SF_ARRAY(sfield.typeId,
-        // sfield.fieldValue, sfield.txtName); break;
+        case STI_OBJECT:
+            new SField(STI_OBJECT, sfield.fieldValue, sfield.txtName);
+            break;
+        case STI_ARRAY:
+            new SField(STI_ARRAY, sfield.fieldValue, sfield.txtName);
+            break;
         default: {
             if (auto const it = pluginSTypes.find(sfield.typeId);
                 it != pluginSTypes.end())
