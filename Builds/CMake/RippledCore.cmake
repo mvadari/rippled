@@ -1021,6 +1021,11 @@ if (tests)
     src/test/peerfinder/PeerFinder_test.cpp
     #[===============================[
        test sources:
+         subdir: plugin
+    #]===============================]
+    src/test/plugin/Plugins_test.cpp
+    #[===============================[
+       test sources:
          subdir: protocol
     #]===============================]
     src/test/protocol/BuildInfo_test.cpp
@@ -1109,6 +1114,20 @@ if (tests)
          subdir: unit_test
     #]===============================]
     src/test/unit_test/multi_runner.cpp)
+
+    add_library(plugin_test_trustset SHARED)
+    target_sources(plugin_test_trustset PRIVATE 
+      src/test/plugin/fixtures/TrustSet.cpp
+    )
+    target_link_libraries(plugin_test_trustset PUBLIC Ripple::xrpl_plugin)
+    install(TARGETS plugin_test_trustset)
+
+    add_library(plugin_test_escrowcreate SHARED)
+    target_sources(plugin_test_escrowcreate PRIVATE 
+      src/test/plugin/fixtures/EscrowCreate.cpp
+    )
+    target_link_libraries(plugin_test_escrowcreate PUBLIC Ripple::xrpl_plugin)
+    install(TARGETS plugin_test_escrowcreate)
 endif () #tests
 
 target_link_libraries (rippled
