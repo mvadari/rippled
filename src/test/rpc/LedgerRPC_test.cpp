@@ -679,6 +679,107 @@ class LedgerRPC_test : public beast::unit_test::suite
     }
 
     void
+    testLedgerEntryDocument()
+    {
+        testcase("ledger_entry Request Document");
+        using namespace test::jtx;
+        using namespace std::literals::chrono_literals;
+        Env env{*this};
+        Account const alice{"alice"};
+
+        env.fund(XRP(10000), alice);
+        env.close();
+
+        env(document::set(alice, 2),
+            document::uri("uri"),
+            document::data("data"));
+        env.close();
+
+        std::string const ledgerHash{to_string(env.closed()->info().hash)};
+
+        std::string documentIndex;
+        {
+            // Request the document using owner and document number.
+            Json::Value jvParams;
+            jvParams[jss::document] = Json::objectValue;
+            jvParams[jss::document][jss::owner] = alice.human();
+            jvParams[jss::document][jss::number] = 2;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            BEAST_EXPECT(
+                jrr[jss::node][sfURI.jsonName] == strHex(std::string{"uri"}));
+            BEAST_EXPECT(
+                jrr[jss::node][sfData.jsonName] == strHex(std::string{"data"}));
+            documentIndex = jrr[jss::index].asString();
+        }
+        {
+            // Request the document by index.
+            Json::Value jvParams;
+            jvParams[jss::document] = documentIndex;
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            BEAST_EXPECT(
+                jrr[jss::node][sfURI.jsonName] == strHex(std::string{"uri"}));
+            BEAST_EXPECT(
+                jrr[jss::node][sfData.jsonName] == strHex(std::string{"data"}));
+        }
+        {
+            // Malformed document.
+            Json::Value jvParams;
+            jvParams[jss::document] = alice.human();
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            checkErrorValue(jrr, "malformedRequest", "");
+        }
+        {
+            // Malformed owner entry.
+            Json::Value jvParams;
+            jvParams[jss::document] = Json::objectValue;
+
+            std::string const badAddress = makeBadAddress(alice.human());
+            jvParams[jss::document][jss::owner] = badAddress;
+            jvParams[jss::document][jss::number] = 2;
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            checkErrorValue(jrr, "malformedOwner", "");
+        }
+        {
+            // Missing owner.
+            Json::Value jvParams;
+            jvParams[jss::document] = Json::objectValue;
+            jvParams[jss::document][jss::number] = 2;
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            checkErrorValue(jrr, "malformedRequest", "");
+        }
+        {
+            // Missing number.
+            Json::Value jvParams;
+            jvParams[jss::document] = Json::objectValue;
+            jvParams[jss::document][jss::owner] = alice.human();
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            checkErrorValue(jrr, "malformedRequest", "");
+        }
+        {
+            // Non-integer number.
+            Json::Value jvParams;
+            jvParams[jss::document] = Json::objectValue;
+            jvParams[jss::document][jss::owner] = alice.human();
+            jvParams[jss::document][jss::number] = "2";
+            jvParams[jss::ledger_hash] = ledgerHash;
+            Json::Value const jrr = env.rpc(
+                "json", "ledger_entry", to_string(jvParams))[jss::result];
+            checkErrorValue(jrr, "malformedRequest", "");
+        }
+    }
+
+    void
     testLedgerEntryEscrow()
     {
         testcase("ledger_entry Request Escrow");
@@ -1727,6 +1828,7 @@ public:
         testLedgerEntryCheck();
         testLedgerEntryDepositPreauth();
         testLedgerEntryDirectory();
+        testLedgerEntryDocument();
         testLedgerEntryEscrow();
         testLedgerEntryOffer();
         testLedgerEntryPayChan();

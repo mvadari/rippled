@@ -149,12 +149,12 @@ DocumentSet::doApply()
 
     // Create new ledger object otherwise
     auto const sleDoc = std::make_shared<SLE>(docKeylet);
+    (*sleDoc)[sfDocumentNumber] = ctx_.tx[sfDocumentNumber];
     (*sleDoc)[sfOwner] = account_;
     if (auto const uri = ctx_.tx[~sfURI]; uri.has_value() && !uri->empty())
         (*sleDoc)[sfURI] = uri.value();
     if (auto const data = ctx_.tx[~sfData]; data.has_value() && !data->empty())
         (*sleDoc)[sfData] = data.value();
-
     return addSLE(ctx_, sleDoc, account_);
 }
 

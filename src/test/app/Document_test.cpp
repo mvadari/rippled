@@ -40,77 +40,6 @@ ownerCount(test::jtx::Env const& env, test::jtx::Account const& acct)
     return ret;
 }
 
-namespace document {
-
-Json::Value
-set(jtx::Account const& account)
-{
-    Json::Value jv;
-    jv[jss::TransactionType] = jss::DocumentSet;
-    jv[jss::Account] = to_string(account.id());
-    jv[jss::Flags] = tfUniversal;
-    return jv;
-}
-
-Json::Value
-setValid(jtx::Account const& account)
-{
-    Json::Value jv;
-    jv[jss::TransactionType] = jss::DocumentSet;
-    jv[jss::Account] = to_string(account.id());
-    jv[jss::Flags] = tfUniversal;
-    jv[sfURI.jsonName] = strHex(std::string{"uri"});
-    return jv;
-}
-
-/** Sets the optional URI on a DocumentSet. */
-class uri
-{
-private:
-    std::string uri_;
-
-public:
-    explicit uri(std::string const& u) : uri_(strHex(u))
-    {
-    }
-
-    void
-    operator()(jtx::Env&, jtx::JTx& jtx) const
-    {
-        jtx.jv[sfURI.jsonName] = uri_;
-    }
-};
-
-/** Sets the optional URI on a DocumentSet. */
-class data
-{
-private:
-    std::string data_;
-
-public:
-    explicit data(std::string const& u) : data_(strHex(u))
-    {
-    }
-
-    void
-    operator()(jtx::Env&, jtx::JTx& jtx) const
-    {
-        jtx.jv[sfData.jsonName] = data_;
-    }
-};
-
-Json::Value
-del(jtx::Account const& account)
-{
-    Json::Value jv;
-    jv[jss::TransactionType] = jss::DocumentDelete;
-    jv[jss::Account] = to_string(account.id());
-    jv[jss::Flags] = tfUniversal;
-    return jv;
-}
-
-}  // namespace document
-
 bool
 checkVL(Slice const& result, std::string expected)
 {
@@ -139,7 +68,7 @@ struct Document_test : public beast::unit_test::suite
         env.close();
 
         BEAST_EXPECT(ownerCount(env, alice) == 0);
-        env(document::del(alice), ter(temDISABLED));
+        env(document::del(alice, 0), ter(temDISABLED));
         env.close();
     }
 
@@ -188,7 +117,7 @@ struct Document_test : public beast::unit_test::suite
         BEAST_EXPECT(ownerCount(env, alice) == 1);
 
         // alice deletes her Document.
-        env(document::del(alice));
+        env(document::del(alice, 0));
         BEAST_EXPECT(ownerCount(env, alice) == 0);
         env.close();
     }
@@ -217,13 +146,13 @@ struct Document_test : public beast::unit_test::suite
         env.close();
         BEAST_EXPECT(ownerCount(env, alice) == 0);
 
-        // no fields
-        env(document::set(alice), ter(temEMPTY_DOCUMENT));
+        // no Data/URI fields
+        env(document::set(alice, 0), ter(temEMPTY_DOCUMENT));
         env.close();
         BEAST_EXPECT(ownerCount(env, alice) == 0);
 
-        // both empty fields
-        env(document::set(alice),
+        // both Data/URI empty fields
+        env(document::set(alice, 0),
             document::uri(""),
             document::data(""),
             ter(temEMPTY_DOCUMENT));
@@ -232,12 +161,14 @@ struct Document_test : public beast::unit_test::suite
 
         // uri is too long
         const std::string longString(257, 'a');
-        env(document::set(alice), document::uri(longString), ter(temMALFORMED));
+        env(document::set(alice, 2),
+            document::uri(longString),
+            ter(temMALFORMED));
         env.close();
         BEAST_EXPECT(ownerCount(env, alice) == 0);
 
         // data is too long
-        env(document::set(alice),
+        env(document::set(alice, 4),
             document::data(longString),
             ter(temMALFORMED));
         env.close();
@@ -256,7 +187,8 @@ struct Document_test : public beast::unit_test::suite
 
         Env env(*this);
         Account const alice{"alice"};
-        env.fund(XRP(5000), alice);
+        Account const bob{"bob"};
+        env.fund(XRP(5000), alice, bob);
         env.close();
 
         //----------------------------------------------------------------------
@@ -264,7 +196,9 @@ struct Document_test : public beast::unit_test::suite
 
         // invalid flags
         BEAST_EXPECT(ownerCount(env, alice) == 0);
-        env(document::del(alice), txflags(0x00010000), ter(temINVALID_FLAG));
+        env(document::del(alice, 23),
+            txflags(0x00010000),
+            ter(temINVALID_FLAG));
         env.close();
         BEAST_EXPECT(ownerCount(env, alice) == 0);
 
@@ -272,9 +206,16 @@ struct Document_test : public beast::unit_test::suite
         // doApply
 
         // Document doesn't exist
-        env(document::del(alice), ter(tecNO_ENTRY));
+        env(document::del(alice, 0), ter(tecNO_ENTRY));
         env.close();
         BEAST_EXPECT(ownerCount(env, alice) == 0);
+
+        // Account owns a document, but wrong DocumentNumber
+        env(document::set(bob, 2), document::uri("uri"));
+        BEAST_EXPECT(ownerCount(env, bob) == 1);
+        env(document::del(bob, 3), ter(tecNO_ENTRY));
+        env.close();
+        BEAST_EXPECT(ownerCount(env, bob) == 1);
     }
 
     void
@@ -296,15 +237,15 @@ struct Document_test : public beast::unit_test::suite
         BEAST_EXPECT(ownerCount(env, charlie) == 0);
 
         // only URI
-        env(document::set(alice), document::uri("uri"));
+        env(document::set(alice, 0), document::uri("uri"));
         BEAST_EXPECT(ownerCount(env, alice) == 1);
 
         // only Data
-        env(document::set(bob), document::data("data"));
+        env(document::set(bob, 1), document::data("data"));
         BEAST_EXPECT(ownerCount(env, bob) == 1);
 
         // both URI and Data
-        env(document::set(charlie),
+        env(document::set(charlie, 65536),
             document::uri("uri"),
             document::data("data"));
         BEAST_EXPECT(ownerCount(env, charlie) == 1);
@@ -327,22 +268,24 @@ struct Document_test : public beast::unit_test::suite
 
         // Create Document
         std::string const initialURI = "uri";
+        std::uint32_t const docNum = 3;
         {
-            env(document::set(alice), document::uri(initialURI));
+            env(document::set(alice, docNum), document::uri(initialURI));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(sleDoc);
             BEAST_EXPECT(checkVL((*sleDoc)[sfURI], initialURI));
+            BEAST_EXPECT((*sleDoc)[sfDocumentNumber] == docNum);
             BEAST_EXPECT(!sleDoc->isFieldPresent(sfData));
         }
 
         // Try to delete URI, fails because no elements are set
         {
-            env(document::set(alice),
+            env(document::set(alice, docNum),
                 document::uri(""),
                 ter(tecEMPTY_DOCUMENT));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(checkVL((*sleDoc)[sfURI], initialURI));
             BEAST_EXPECT(!sleDoc->isFieldPresent(sfData));
         }
@@ -350,18 +293,18 @@ struct Document_test : public beast::unit_test::suite
         // Set Data
         std::string const initialData = "data";
         {
-            env(document::set(alice), document::data("data"));
+            env(document::set(alice, docNum), document::data("data"));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(checkVL((*sleDoc)[sfURI], initialURI));
             BEAST_EXPECT(checkVL((*sleDoc)[sfData], initialData));
         }
 
         // Remove URI
         {
-            env(document::set(alice), document::uri(""));
+            env(document::set(alice, docNum), document::uri(""));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(!sleDoc->isFieldPresent(sfURI));
             BEAST_EXPECT(checkVL((*sleDoc)[sfData], initialData));
         }
@@ -369,11 +312,11 @@ struct Document_test : public beast::unit_test::suite
         // Remove Data + set URI
         std::string const secondURI = "uri2";
         {
-            env(document::set(alice),
+            env(document::set(alice, docNum),
                 document::uri(secondURI),
                 document::data(""));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(checkVL((*sleDoc)[sfURI], secondURI));
             BEAST_EXPECT(!sleDoc->isFieldPresent(sfData));
         }
@@ -381,20 +324,20 @@ struct Document_test : public beast::unit_test::suite
         // Remove URI + set Data
         std::string const secondData = "data2";
         {
-            env(document::set(alice),
+            env(document::set(alice, docNum),
                 document::uri(""),
                 document::data(secondData));
             BEAST_EXPECT(ownerCount(env, alice) == 1);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(!sleDoc->isFieldPresent(sfURI));
             BEAST_EXPECT(checkVL((*sleDoc)[sfData], secondData));
         }
 
         // Delete Document
         {
-            env(document::del(alice));
+            env(document::del(alice, docNum));
             BEAST_EXPECT(ownerCount(env, alice) == 0);
-            auto const sleDoc = env.le(keylet::document(alice.id(), 0));
+            auto const sleDoc = env.le(keylet::document(alice.id(), docNum));
             BEAST_EXPECT(!sleDoc);
         }
     }

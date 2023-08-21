@@ -400,7 +400,7 @@ doLedgerEntry(RPC::JsonContext& context)
             auto const id = parseBase58<AccountID>(
                 context.params[jss::document][jss::owner].asString());
             if (!id)
-                jvResult[jss::error] = "malformedAddress";
+                jvResult[jss::error] = "malformedOwner";
             else
                 uNodeIndex =
                     keylet::document(

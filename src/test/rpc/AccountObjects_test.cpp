@@ -585,6 +585,7 @@ public:
         BEAST_EXPECT(acct_objs_is_size(acct_objs(gw, jss::signer_list), 0));
         BEAST_EXPECT(acct_objs_is_size(acct_objs(gw, jss::state), 0));
         BEAST_EXPECT(acct_objs_is_size(acct_objs(gw, jss::ticket), 0));
+        BEAST_EXPECT(acct_objs_is_size(acct_objs(gw, jss::document), 0));
 
         // gw mints an NFT so we can find it.
         uint256 const nftID{token::getNextID(env, gw, 0u, tfTransferable)};
@@ -703,6 +704,22 @@ public:
             BEAST_EXPECT(
                 payChan[sfSettleDelay.jsonName].asUInt() == 24 * 60 * 60);
         }
+
+        // gw creates a Document that we can look for in the ledger.
+        env(document::set(gw, 2), document::uri("uri"));
+        env.close();
+        {
+            // Find the Document.
+            Json::Value const resp = acct_objs(gw, jss::document);
+            BEAST_EXPECT(acct_objs_is_size(resp, 1));
+
+            auto const& document = resp[jss::result][jss::account_objects][0u];
+            BEAST_EXPECT(document[sfOwner.jsonName] == gw.human());
+            BEAST_EXPECT(
+                document[sfURI.jsonName] == strHex(std::string{"uri"}));
+            BEAST_EXPECT(document[sfDocumentNumber.jsonName] == 2);
+        }
+
         // Make gw multisigning by adding a signerList.
         env(signers(gw, 6, {{alice, 7}}));
         env.close();
@@ -730,7 +747,7 @@ public:
             auto const& ticket = resp[jss::result][jss::account_objects][0u];
             BEAST_EXPECT(ticket[sfAccount.jsonName] == gw.human());
             BEAST_EXPECT(ticket[sfLedgerEntryType.jsonName] == jss::Ticket);
-            BEAST_EXPECT(ticket[sfTicketSequence.jsonName].asUInt() == 13);
+            BEAST_EXPECT(ticket[sfTicketSequence.jsonName].asUInt() == 14);
         }
         {
             // See how "deletion_blockers_only" handles gw's directory.
