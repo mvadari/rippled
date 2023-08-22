@@ -66,30 +66,24 @@ registerTxFunctions(TransactorExport transactor)
 // building with Visual Studio 2017 we can consider replacing the four
 // templates with a single template function that uses if constexpr.
 //
-// For Transactor::Normal
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Normal, int> = 0>
+// For Normal
+template <class T, std::enable_if_t<T::ConsequencesFactory == Normal, int> = 0>
 TxConsequences
 consequences_helper(PreflightContext const& ctx)
 {
     return TxConsequences(ctx.tx);
 };
 
-// For Transactor::Blocker
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Blocker, int> = 0>
+// For Blocker
+template <class T, std::enable_if_t<T::ConsequencesFactory == Blocker, int> = 0>
 TxConsequences
 consequences_helper(PreflightContext const& ctx)
 {
     return TxConsequences(ctx.tx, TxConsequences::blocker);
 };
 
-// For Transactor::Custom
-template <
-    class T,
-    std::enable_if_t<T::ConsequencesFactory == Transactor::Custom, int> = 0>
+// For Custom
+template <class T, std::enable_if_t<T::ConsequencesFactory == Custom, int> = 0>
 TxConsequences
 consequences_helper(PreflightContext const& ctx)
 {
@@ -188,19 +182,16 @@ invoke_preflight(PreflightContext const& ctx)
                 {
                     return {tec, TxConsequences{tec}};
                 }
-                else if (
-                    it->second.consequencesFactoryType == Transactor::Normal)
+                else if (it->second.consequencesFactoryType == Normal)
                 {
                     return {tec, TxConsequences(ctx.tx)};
                 }
-                else if (
-                    it->second.consequencesFactoryType == Transactor::Blocker)
+                else if (it->second.consequencesFactoryType == Blocker)
                 {
                     return {
                         tec, TxConsequences(ctx.tx, TxConsequences::blocker)};
                 }
-                else if (
-                    it->second.consequencesFactoryType == Transactor::Custom)
+                else if (it->second.consequencesFactoryType == Custom)
                 {
                     return {tec, it->second.makeTxConsequences(ctx)};
                 }

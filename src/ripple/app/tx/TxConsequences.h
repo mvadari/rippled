@@ -7,6 +7,8 @@
 
 namespace ripple {
 
+enum ConsequencesFactoryType { Normal, Blocker, Custom };
+
 /** Class describing the consequences to the account
     of applying a transaction if the transaction consumes
     the maximum XRP allowed.

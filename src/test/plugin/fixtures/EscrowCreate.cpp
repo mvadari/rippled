@@ -301,7 +301,7 @@ getTransactors()
         {"NewEscrowCreate",
          49,
          {formatPtr, 7},
-         Transactor::ConsequencesFactoryType::Normal,
+         ConsequencesFactoryType::Normal,
          NULL,
          calculateBaseFee,
          preflight,

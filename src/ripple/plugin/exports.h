@@ -43,6 +43,8 @@ typedef Container<AmendmentExport> (*getAmendmentsPtr)();
 
 typedef Container<InnerObjectExport> (*getInnerObjectFormatsPtr)();
 
+typedef void (*shutdownPtr)();
+
 // Transactors
 
 typedef TxConsequences (*makeTxConsequencesPtr)(
@@ -67,7 +69,7 @@ struct TransactorExport
     char const* txName;
     std::uint16_t txType;
     Container<SOElementExport> txFormat;
-    Transactor::ConsequencesFactoryType consequencesFactoryType;
+    ConsequencesFactoryType consequencesFactoryType;
     makeTxConsequencesPtr makeTxConsequences = nullptr;
     calculateBaseFeePtr calculateBaseFee = nullptr;
     preflightPtr preflight = nullptr;

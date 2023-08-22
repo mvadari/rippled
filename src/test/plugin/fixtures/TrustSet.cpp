@@ -750,7 +750,7 @@ getTransactors()
         {"TrustSet2",
          50,
          {formatPtr, 5},
-         Transactor::ConsequencesFactoryType::Normal,
+         ConsequencesFactoryType::Normal,
          NULL,
          NULL,
          preflight,
@@ -831,11 +831,13 @@ getInnerObjectFormats()
 }
 
 extern "C" Container<TERExport>
-getTERcodes() static TERExport sfields[] = {
-    {temINVALID_FLAG2, "temINVALID_FLAG2", "Test code"},
-};
-TERExport* ptr = sfields;
-return {ptr, 1};
+getTERcodes()
+{
+    static TERExport sfields[] = {
+        {temINVALID_FLAG2, "temINVALID_FLAG2", "Test code"},
+    };
+    TERExport* ptr = sfields;
+    return {ptr, 1};
 }
 
 extern "C" Container<AmendmentExport>
