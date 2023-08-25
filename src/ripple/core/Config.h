@@ -280,7 +280,7 @@ public:
     // These override the command line client settings
     std::optional<beast::IP::Endpoint> rpc_ip;
 
-    std::vector<std::string const> rawFeatures;
+    std::vector<std::string> rawFeatures;
     std::unordered_set<uint256, beast::uhash<>> features;
 
     std::string SERVER_DOMAIN;
