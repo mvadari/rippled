@@ -28,20 +28,111 @@ namespace test {
 
 class Plugins_test : public beast::unit_test::suite
 {
+    std::unique_ptr<Config>
+    makeConfig(std::string pluginPath)
+    {
+        auto cfg = test::jtx::envconfig();
+        cfg->PLUGINS.push_back(pluginPath);
+        return cfg;
+    }
+
     void
-    testBasicTransactor()
+    testTransactorLoading(FeatureBitset features)
     {
         testcase("Normal Plugin Transactor");
 
         using namespace jtx;
+        Account const alice{"alice"};
 
-        Account const alice("alice");
+        // plugin that doesn't exist
+        {
+            try
+            {
+                // this should crash
+                Env env{
+                    *this,
+                    makeConfig("libplugin_test_faketest.dylib"),
+                    features};
+                BEAST_EXPECT(false);
+            }
+            catch (std::runtime_error)
+            {
+                BEAST_EXPECT(true);
+            }
+        }
+
+        // valid plugin that exists
+        {
+            Env env{
+                *this,
+                makeConfig("libplugin_test_setregularkey.dylib"),
+                features};
+            env.fund(XRP(5000), alice);
+            BEAST_EXPECT(env.balance(alice) == XRP(5000));
+            env.close();
+        }
+
+        // valid plugin with custom SType/SField
+        {
+            Env env{
+                *this, makeConfig("libplugin_test_trustset.dylib"), features};
+            env.fund(XRP(5000), alice);
+            BEAST_EXPECT(env.balance(alice) == XRP(5000));
+            env.close();
+        }
+
+        // valid plugin with other features
+        {
+            Env env{
+                *this,
+                makeConfig("libplugin_test_escrowcreate.dylib"),
+                features};
+            env.fund(XRP(5000), alice);
+            BEAST_EXPECT(env.balance(alice) == XRP(5000));
+            env.close();
+        }
+    }
+
+    void
+    testBasicTransactor(FeatureBitset features)
+    {
+        testcase("Normal Plugin Transactor");
+
+        using namespace jtx;
+        Account const alice{"alice"};
+        Account const bob{"bob"};
+
+        Env env{
+            *this, makeConfig("libplugin_test_setregularkey.dylib"), features};
+        env.fund(XRP(5000), alice);
+        BEAST_EXPECT(env.balance(alice) == XRP(5000));
+
+        // empty (but valid) transaction
+        Json::Value jv;
+        jv[jss::TransactionType] = "SetRegularKey2";
+        jv[jss::Account] = to_string(alice.id());
+        env(jv);
+
+        //
+        Json::Value jv2;
+        jv2[jss::TransactionType] = "SetRegularKey2";
+        jv2[jss::Account] = to_string(alice.id());
+        jv2[jss::SetRegularKey] = to_string(bob.id());
+        env(jv2);
+        auto const accountRoot = env.le(alice);
+        BEAST_EXPECT(
+            accountRoot->isFieldPresent(sfRegularKey) &&
+            (accountRoot->getAccountID(sfRegularKey) == bob.id()));
+
+        env.close();
     }
 
     void
     run() override
     {
-        testBasicTransactor();
+        using namespace test::jtx;
+        FeatureBitset const all{supported_amendments()};
+        testTransactorLoading(all);
     }
 };
 

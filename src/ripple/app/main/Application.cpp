@@ -1129,6 +1129,11 @@ private:
 void
 addPlugin(std::string libPath)
 {
+    struct stat buffer;
+    if (stat(libPath.c_str(), &buffer) != 0)
+    {
+        Throw<std::runtime_error>("Plugin at " + libPath + " doesn't exist.");
+    }
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
 
     if (dlsym(handle, "getSTypes") != NULL)

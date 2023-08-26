@@ -1115,6 +1115,13 @@ if (tests)
     #]===============================]
     src/test/unit_test/multi_runner.cpp)
 
+    add_library(plugin_test_setregularkey SHARED)
+    target_sources(plugin_test_setregularkey PRIVATE 
+      src/test/plugin/fixtures/SetRegularKey.cpp
+    )
+    target_link_libraries(plugin_test_setregularkey PUBLIC Ripple::xrpl_plugin)
+    install(TARGETS plugin_test_setregularkey)
+
     add_library(plugin_test_trustset SHARED)
     target_sources(plugin_test_trustset PRIVATE 
       src/test/plugin/fixtures/TrustSet.cpp
