@@ -114,6 +114,9 @@ featureToName(uint256 const& f);
 bool
 registrationIsDone();
 
+bool
+reinitialize();
+
 uint256
 registerPluginAmendment(AmendmentExport amendment);
 

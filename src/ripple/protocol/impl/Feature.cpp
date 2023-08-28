@@ -170,6 +170,10 @@ public:
     bool
     registrationIsDone();
 
+    /** Reinitialize FeatureCollections for tests. */
+    bool
+    reinitialize();
+
     std::size_t
     featureToBitsetIndex(uint256 const& f) const;
 
@@ -281,6 +285,19 @@ FeatureCollections::registrationIsDone()
     return true;
 }
 
+/** Reinitialize FeatureCollections for tests. */
+bool
+FeatureCollections::reinitialize()
+{
+    features = {};
+    features.reserve(ripple::detail::numFeatures);
+    supported = {};
+    upVotes = 0;
+    downVotes = 0;
+    readOnly = false;
+    return true;
+}
+
 size_t
 FeatureCollections::featureToBitsetIndex(uint256 const& f) const
 {
@@ -363,6 +380,13 @@ bool
 registrationIsDone()
 {
     return featureCollections.registrationIsDone();
+}
+
+/** Reinitialize FeatureCollections for tests. */
+bool
+reinitialize()
+{
+    return featureCollections.reinitialize();
 }
 
 size_t

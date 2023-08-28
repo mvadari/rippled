@@ -37,7 +37,7 @@ class Plugins_test : public beast::unit_test::suite
     }
 
     void
-    testTransactorLoading(FeatureBitset features)
+    testTransactorLoading()
     {
         testcase("Normal Plugin Transactor");
 
@@ -52,7 +52,7 @@ class Plugins_test : public beast::unit_test::suite
                 Env env{
                     *this,
                     makeConfig("libplugin_test_faketest.dylib"),
-                    features};
+                    FeatureBitset{supported_amendments()}};
                 BEAST_EXPECT(false);
             }
             catch (std::runtime_error)
@@ -66,7 +66,7 @@ class Plugins_test : public beast::unit_test::suite
             Env env{
                 *this,
                 makeConfig("libplugin_test_setregularkey.dylib"),
-                features};
+                FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -75,7 +75,9 @@ class Plugins_test : public beast::unit_test::suite
         // valid plugin with custom SType/SField
         {
             Env env{
-                *this, makeConfig("libplugin_test_trustset.dylib"), features};
+                *this,
+                makeConfig("libplugin_test_trustset.dylib"),
+                FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -86,7 +88,7 @@ class Plugins_test : public beast::unit_test::suite
             Env env{
                 *this,
                 makeConfig("libplugin_test_escrowcreate.dylib"),
-                features};
+                FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -94,7 +96,7 @@ class Plugins_test : public beast::unit_test::suite
     }
 
     void
-    testBasicTransactor(FeatureBitset features)
+    testBasicTransactor()
     {
         testcase("Normal Plugin Transactor");
 
@@ -103,7 +105,9 @@ class Plugins_test : public beast::unit_test::suite
         Account const bob{"bob"};
 
         Env env{
-            *this, makeConfig("libplugin_test_setregularkey.dylib"), features};
+            *this,
+            makeConfig("libplugin_test_setregularkey.dylib"),
+            FeatureBitset{supported_amendments()}};
         env.fund(XRP(5000), alice);
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
 
@@ -131,8 +135,7 @@ class Plugins_test : public beast::unit_test::suite
     run() override
     {
         using namespace test::jtx;
-        FeatureBitset const all{supported_amendments()};
-        testTransactorLoading(all);
+        testTransactorLoading();
     }
 };
 

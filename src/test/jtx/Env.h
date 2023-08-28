@@ -70,7 +70,7 @@ noripple(Account const& account, Args const&... args)
 inline FeatureBitset
 supported_amendments()
 {
-    registrationIsDone();
+    reinitialize();
     static const FeatureBitset ids = [] {
         auto const& sa = ripple::detail::supportedAmendments();
         std::vector<uint256> feats;
