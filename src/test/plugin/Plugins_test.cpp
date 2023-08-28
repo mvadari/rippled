@@ -39,7 +39,7 @@ class Plugins_test : public beast::unit_test::suite
     void
     testTransactorLoading()
     {
-        testcase("Normal Plugin Transactor");
+        testcase("Load Plugin Transactors");
 
         using namespace jtx;
         Account const alice{"alice"};
@@ -117,11 +117,11 @@ class Plugins_test : public beast::unit_test::suite
         jv[jss::Account] = to_string(alice.id());
         env(jv);
 
-        //
+        // a transaction that actually sets the regular key of the account
         Json::Value jv2;
         jv2[jss::TransactionType] = "SetRegularKey2";
         jv2[jss::Account] = to_string(alice.id());
-        jv2[jss::SetRegularKey] = to_string(bob.id());
+        jv2[sfRegularKey.jsonName] = to_string(bob.id());
         env(jv2);
         auto const accountRoot = env.le(alice);
         BEAST_EXPECT(
@@ -136,6 +136,7 @@ class Plugins_test : public beast::unit_test::suite
     {
         using namespace test::jtx;
         testTransactorLoading();
+        testBasicTransactor();
     }
 };
 
