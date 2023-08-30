@@ -39,7 +39,7 @@ registerPluginInnerObjectFormat(InnerObjectExport innerObject)
         if (it->second.name == strName)
             return;
         LogicError(
-            std::string("Duplicate key for plugin transactor '") + strName +
+            std::string("Duplicate key for plugin inner object '") + strName +
             "': already exists");
     }
     pluginInnerObjectFormats.insert(

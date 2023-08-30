@@ -37,7 +37,7 @@ registerLedgerObject(
         if (it->second.objectName == strName)
             return;
         LogicError(
-            std::string("Duplicate key for plugin transactor '") + strName +
+            std::string("Duplicate key for plugin ledger object '") + strName +
             "': already exists");
     }
     pluginObjectsMap.insert({type, {strName, convertToUniqueFields(format)}});

@@ -169,6 +169,7 @@ target_sources (xrpl_plugin PRIVATE
   src/ripple/ledger/impl/RawStateTable.cpp
   src/ripple/ledger/impl/ReadView.cpp
   src/ripple/ledger/impl/View.cpp
+  src/ripple/app/tx/impl/InvariantCheck.cpp
   src/ripple/app/tx/impl/ApplyContext.cpp
   src/ripple/app/misc/impl/LoadFeeTrack.cpp
   src/ripple/app/misc/HashRouter.cpp
@@ -543,7 +544,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/DeleteAccount.cpp
   src/ripple/app/tx/impl/DepositPreauth.cpp
   src/ripple/app/tx/impl/Escrow.cpp
-  src/ripple/app/tx/impl/InvariantCheck.cpp
   src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp
   src/ripple/app/tx/impl/NFTokenBurn.cpp
   src/ripple/app/tx/impl/NFTokenCancelOffer.cpp
