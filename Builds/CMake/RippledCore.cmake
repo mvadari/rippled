@@ -170,6 +170,7 @@ target_sources (xrpl_plugin PRIVATE
   src/ripple/ledger/impl/ReadView.cpp
   src/ripple/ledger/impl/View.cpp
   src/ripple/app/tx/impl/InvariantCheck.cpp
+  src/ripple/app/tx/impl/details/NFTokenUtils.cpp
   src/ripple/app/tx/impl/ApplyContext.cpp
   src/ripple/app/misc/impl/LoadFeeTrack.cpp
   src/ripple/app/misc/HashRouter.cpp
@@ -531,7 +532,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/AMMDeposit.cpp
   src/ripple/app/tx/impl/AMMVote.cpp
   src/ripple/app/tx/impl/AMMWithdraw.cpp
-  src/ripple/app/tx/impl/ApplyContext.cpp
   src/ripple/app/tx/impl/BookTip.cpp
   src/ripple/app/tx/impl/CancelCheck.cpp
   src/ripple/app/tx/impl/CancelOffer.cpp
@@ -561,7 +561,6 @@ target_sources (rippled PRIVATE
   src/ripple/app/tx/impl/apply.cpp
   src/ripple/app/tx/impl/applySteps.cpp
   src/ripple/app/tx/impl/ApplyHandler.cpp
-  src/ripple/app/tx/impl/details/NFTokenUtils.cpp
   #[===============================[
      main sources:
        subdir: basics (partial)
