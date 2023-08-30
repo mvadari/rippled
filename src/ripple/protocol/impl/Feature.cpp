@@ -274,7 +274,7 @@ FeatureCollections::registerFeature(
     }
     else
         // Each feature should only be registered once
-        LogicError("Duplicate feature registration");
+        LogicError("Duplicate feature registration " + name);
 }
 
 /** Tell FeatureCollections when registration is complete. */
