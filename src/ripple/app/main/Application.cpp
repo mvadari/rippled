@@ -1134,7 +1134,12 @@ addPlugin(std::string libPath)
     {
         Throw<std::runtime_error>("Plugin at " + libPath + " doesn't exist.");
     }
-    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+#if __APPLE__
+    void* handle = dlopen(libPath.c_str(), RTLD_LOCAL);
+#else
+    void* handle =
+        dlopen(libPath.c_str(), RTLD_NOW | RTLD_DEEPBIND | RTLD_LOCAL);
+#endif
 
     if (dlsym(handle, "getSTypes") != NULL)
     {
