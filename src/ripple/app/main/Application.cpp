@@ -1138,7 +1138,7 @@ addPlugin(std::string libPath)
     void* handle = dlopen(libPath.c_str(), RTLD_LOCAL);
 #else
     void* handle =
-        dlopen(libPath.c_str(), RTLD_NOW | RTLD_DEEPBIND | RTLD_LOCAL);
+        dlopen(libPath.c_str(), RTLD_NOW | RTLD_DEEPBIND | RTLD_GLOBAL);
 #endif
 
     if (dlsym(handle, "getSTypes") != NULL)
