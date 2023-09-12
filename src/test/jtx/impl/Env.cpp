@@ -26,6 +26,7 @@
 #include <ripple/json/to_string.h>
 #include <ripple/net/HTTPClient.h>
 #include <ripple/net/RPCCall.h>
+#include <ripple/plugin/reset.h>
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/HashPrefix.h>
@@ -127,6 +128,7 @@ Env::close(
     bool res = true;
     closeTime += closed()->info().closeTimeResolution - 1s;
     timeKeeper().set(closeTime);
+    resetPlugins();
     // Go through the rpc interface unless we need to simulate
     // a specific consensus delay.
     if (consensusDelay)

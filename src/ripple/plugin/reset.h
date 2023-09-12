@@ -17,40 +17,28 @@
 */
 //==============================================================================
 
-#ifndef RIPPLE_PLUGIN_SFIELD_H_INCLUDED
-#define RIPPLE_PLUGIN_SFIELD_H_INCLUDED
+#ifndef RIPPLE_PLUGIN_RESET_H_INCLUDED
+#define RIPPLE_PLUGIN_RESET_H_INCLUDED
 
-#include <ripple/basics/Buffer.h>
-#include <ripple/json/json_value.h>
+#include <ripple/plugin/SField.h>
+#include <ripple/protocol/Feature.h>
 
 namespace ripple {
 
-struct SFieldExport
+void
+resetPlugins()
 {
-    int typeId;
-    int fieldValue;
-    const char* txtName;
-};
-
-class Serializer;
-class SerialIter;
-
-typedef std::string (*toStringPtr)(int typeId, Buffer const& buf);
-typedef Json::Value (*toJsonPtr)(int typeId, Buffer const& buf);
-typedef void (*toSerializerPtr)(int typeId, Buffer const& buf, Serializer& s);
-typedef Buffer (*fromSerialIterPtr)(int typeId, SerialIter& st);
-
-struct STypeFunctions
-{
-    int typeId;
-    toStringPtr toString;
-    toJsonPtr toJson;
-    toSerializerPtr toSerializer;
-    fromSerialIterPtr fromSerialIter;
-};
-
-extern std::map<int, STypeFunctions> pluginSTypes;
-extern std::vector<int> pluginSFieldCodes;
+    pluginSTypes.clear();
+    for (auto& code : pluginSFieldCodes)
+    {
+        if (auto const it = SField::knownCodeToField.find(code);
+            it != SField::knownCodeToField.end())
+        {
+            SField::knownCodeToField.erase(code);
+        }
+    }
+    // resetPluginFeatures();
+}
 
 }  // namespace ripple
 

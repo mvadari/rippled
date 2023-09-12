@@ -25,6 +25,7 @@
 #include <ripple/plugin/invariantChecks.h>
 #include <ripple/plugin/ledgerObjects.h>
 #include <ripple/plugin/plugin.h>
+#include <ripple/protocol/SField.h>
 #include <vector>
 
 namespace ripple {

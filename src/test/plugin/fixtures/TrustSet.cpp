@@ -21,6 +21,7 @@
 #include <ripple/beast/core/LexicalCast.h>
 #include <ripple/ledger/View.h>
 #include <ripple/plugin/exports.h>
+#include <ripple/plugin/reset.h>
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Indexes.h>
@@ -738,12 +739,14 @@ doApply(ApplyContext& ctx, XRPAmount mPriorBalance, XRPAmount mSourceBalance)
 extern "C" Container<TransactorExport>
 getTransactors()
 {
+    resetPlugins();
     static SOElementExport format[] = {
         {sfLimitAmount.getCode(), soeOPTIONAL},
         {sfQualityIn2().getCode(), soeOPTIONAL},
         {sfQualityOut.getCode(), soeOPTIONAL},
         {sfTicketSequence.getCode(), soeOPTIONAL},
-        {sfFakeArray().getCode(), soeREQUIRED},
+        {sfFakeArray().getCode(), soeOPTIONAL},
+        {sfFakeElement().getCode(), soeOPTIONAL},
     };
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {

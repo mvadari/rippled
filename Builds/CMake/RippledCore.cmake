@@ -1119,20 +1119,23 @@ if (tests)
       src/test/plugin/fixtures/SetRegularKey.cpp
     )
     target_link_libraries(plugin_test_setregularkey PUBLIC Ripple::xrpl_plugin)
-    install(TARGETS plugin_test_setregularkey)
 
     add_library(plugin_test_trustset SHARED)
     target_sources(plugin_test_trustset PRIVATE 
       src/test/plugin/fixtures/TrustSet.cpp
     )
     target_link_libraries(plugin_test_trustset PUBLIC Ripple::xrpl_plugin)
-    install(TARGETS plugin_test_trustset)
+    
 
     add_library(plugin_test_escrowcreate SHARED)
     target_sources(plugin_test_escrowcreate PRIVATE 
       src/test/plugin/fixtures/EscrowCreate.cpp
     )
     target_link_libraries(plugin_test_escrowcreate PUBLIC Ripple::xrpl_plugin)
+    
+    set_target_properties(plugin_test_setregularkey plugin_test_trustset plugin_test_escrowcreate PROPERTIES PREFIX "" SUFFIX ".xrplugin")
+    install(TARGETS plugin_test_setregularkey)
+    install(TARGETS plugin_test_trustset)
     install(TARGETS plugin_test_escrowcreate)
 endif () #tests
 

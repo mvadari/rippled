@@ -51,7 +51,7 @@ class Plugins_test : public beast::unit_test::suite
                 // this should crash
                 Env env{
                     *this,
-                    makeConfig("libplugin_test_faketest.dylib"),
+                    makeConfig("plugin_test_faketest.xrplugin"),
                     FeatureBitset{supported_amendments()}};
                 BEAST_EXPECT(false);
             }
@@ -65,7 +65,7 @@ class Plugins_test : public beast::unit_test::suite
         {
             Env env{
                 *this,
-                makeConfig("libplugin_test_setregularkey.dylib"),
+                makeConfig("plugin_test_setregularkey.xrplugin"),
                 FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
@@ -73,21 +73,22 @@ class Plugins_test : public beast::unit_test::suite
         }
 
         // valid plugin with custom SType/SField
-        {
-            Env env{
-                *this,
-                makeConfig("libplugin_test_trustset.dylib"),
-                FeatureBitset{supported_amendments()}};
-            env.fund(XRP(5000), alice);
-            BEAST_EXPECT(env.balance(alice) == XRP(5000));
-            env.close();
-        }
+        // TODO: fix resetting features
+        // {
+        //     Env env{
+        //         *this,
+        //         makeConfig("plugin_test_trustset.xrplugin"),
+        //         FeatureBitset{supported_amendments()}};
+        //     env.fund(XRP(5000), alice);
+        //     BEAST_EXPECT(env.balance(alice) == XRP(5000));
+        //     env.close();
+        // }
 
         // valid plugin with other features
         {
             Env env{
                 *this,
-                makeConfig("libplugin_test_escrowcreate.dylib"),
+                makeConfig("plugin_test_escrowcreate.xrplugin"),
                 FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
@@ -106,7 +107,7 @@ class Plugins_test : public beast::unit_test::suite
 
         Env env{
             *this,
-            makeConfig("libplugin_test_setregularkey.dylib"),
+            makeConfig("plugin_test_setregularkey.xrplugin"),
             FeatureBitset{supported_amendments()}};
         env.fund(XRP(5000), alice);
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
@@ -114,13 +115,13 @@ class Plugins_test : public beast::unit_test::suite
         // empty (but valid) transaction
         Json::Value jv;
         jv[jss::TransactionType] = "SetRegularKey2";
-        jv[jss::Account] = to_string(alice.id());
+        jv[jss::Account] = alice.human();
         env(jv);
 
         // a transaction that actually sets the regular key of the account
         Json::Value jv2;
         jv2[jss::TransactionType] = "SetRegularKey2";
-        jv2[jss::Account] = to_string(alice.id());
+        jv2[jss::Account] = alice.human();
         jv2[sfRegularKey.jsonName] = to_string(bob.id());
         env(jv2);
         auto const accountRoot = env.le(alice);
@@ -132,11 +133,58 @@ class Plugins_test : public beast::unit_test::suite
     }
 
     void
+    testPluginSTypeSField()
+    {
+        testcase("Plugin STypes and SFields");
+
+        using namespace jtx;
+        Account const alice{"alice"};
+        Account const bob{"bob"};
+
+        Env env{
+            *this,
+            makeConfig("plugin_test_trustset.xrplugin"),
+            FeatureBitset{supported_amendments()}};
+        env.fund(XRP(5000), alice);
+        env.fund(XRP(5000), bob);
+        IOU const USD = bob["USD"];
+        BEAST_EXPECT(env.balance(alice) == XRP(5000));
+        BEAST_EXPECT(env.balance(bob) == XRP(5000));
+
+        // valid transaction without any custom fields
+        Json::Value jv;
+        jv[jss::TransactionType] = "TrustSet2";
+        jv[jss::Account] = alice.human();
+        {
+            auto& ja = jv[jss::LimitAmount] =
+                USD(1000).value().getJson(JsonOptions::none);
+            ja[jss::issuer] = bob.human();
+        }
+        env(jv);
+        auto const trustline = env.le(keylet::line(alice, USD.issue()));
+        BEAST_EXPECT(trustline != nullptr);
+
+        // // a transaction that actually sets the regular key of the account
+        // Json::Value jv2;
+        // jv2[jss::TransactionType] = "TrustSet2";
+        // jv2[jss::Account] = alice.human();
+        // jv2[sfRegularKey.jsonName] = to_string(bob.id());
+        // env(jv2);
+        // auto const trustline = env.le(keylet::line(alice, ));
+        // BEAST_EXPECT(
+        //     accountRoot->isFieldPresent(sfRegularKey) &&
+        //     (accountRoot->getAccountID(sfRegularKey) == bob.id()));
+
+        env.close();
+    }
+
+    void
     run() override
     {
         using namespace test::jtx;
         testTransactorLoading();
         testBasicTransactor();
+        testPluginSTypeSField();
     }
 };
 

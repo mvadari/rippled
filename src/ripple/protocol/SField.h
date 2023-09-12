@@ -303,8 +303,6 @@ operator~(TypedField<T> const& f)
 void
 registerSField(SFieldExport const& sfield);
 
-extern std::map<int, STypeFunctions> pluginSTypes;
-
 void
 registerSType(STypeFunctions type);
 

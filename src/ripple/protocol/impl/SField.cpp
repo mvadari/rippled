@@ -361,7 +361,7 @@ CONSTRUCT_UNTYPED_SFIELD(sfAuthAccounts,        "AuthAccounts",         ARRAY,  
 
 // clang-format on
 
-std::map<int, STypeFunctions> pluginSTypes;
+std::map<int, STypeFunctions> pluginSTypes{};
 
 void
 registerSType(STypeFunctions type)
@@ -375,9 +375,12 @@ registerSType(STypeFunctions type)
     pluginSTypes.insert({type.typeId, type});
 }
 
+std::vector<int> pluginSFieldCodes{};
+
 void
 registerSField(SFieldExport const& sfield)
 {
+    pluginSFieldCodes.push_back(field_code(sfield.typeId, sfield.fieldValue));
     // NOTE: there might be memory leak issues here
     switch (sfield.typeId)
     {
