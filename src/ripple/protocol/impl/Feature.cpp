@@ -166,17 +166,6 @@ public:
         Supported support,
         VoteBehavior vote);
 
-    void
-    removeFeature(std::string const& name)
-    {
-        auto& name_index = features.get<Feature::byName>();
-        auto name_it = name_index.find(name);
-        if (name_it != name_index.end())
-        {
-            name_index.erase(name_it);
-        }
-    }
-
     /** Tell FeatureCollections when registration is complete. */
     bool
     registrationIsDone();
@@ -426,15 +415,6 @@ registerPluginAmendment(AmendmentExport amendment)
     pluginFeatures.push_back(amendment.name);
     Supported supported = amendment.supported ? Supported::yes : Supported::no;
     return registerFeature(amendment.name, supported, amendment.vote);
-}
-
-void
-resetPluginFeatures()
-{
-    for (auto& name : pluginFeatures)
-    {
-        featureCollections.removeFeature(name);
-    }
 }
 
 #pragma push_macro("REGISTER_FEATURE")

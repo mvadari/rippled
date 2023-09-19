@@ -202,6 +202,14 @@ protected:
         return item;
     }
 
+    void
+    clear()
+    {
+        names_.clear();
+        types_.clear();
+        formats_.clear();
+    }
+
 private:
     std::string name_;
 

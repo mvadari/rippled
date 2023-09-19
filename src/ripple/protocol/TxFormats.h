@@ -185,14 +185,28 @@ enum TxType : std::uint16_t
 class TxFormats : public KnownFormats<std::uint16_t, TxFormats>
 {
 private:
+    void
+    initialize();
+
     /** Create the object.
         This will load the object with all the known transaction formats.
     */
-    TxFormats();
+    TxFormats()
+    {
+        initialize();
+    }
+
+    static TxFormats&
+    getInstanceHelper();
 
 public:
     static TxFormats const&
     getInstance();
+
+    static void
+    reset();
+
+    bool cleared = false;
 };
 
 void

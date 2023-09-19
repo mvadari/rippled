@@ -222,14 +222,14 @@ sfQualityIn2()
     return constructCustomSField(STI_UINT32_2, 1, "QualityIn2");
 }
 
-static uint256 pluginAmendment;
+static uint256 trustSet2Amendment{};
 
 const int temINVALID_FLAG2 = -256;
 
 NotTEC
 preflight(PreflightContext const& ctx)
 {
-    if (!ctx.rules.enabled(pluginAmendment))
+    if (!ctx.rules.enabled(trustSet2Amendment))
         return temDISABLED;
 
     if (auto const ret = preflight1(ctx); !isTesSuccess(ret))
@@ -391,10 +391,12 @@ doApply(ApplyContext& ctx, XRPAmount mPriorBalance, XRPAmount mSourceBalance)
         (uOwnerCount < 2) ? XRPAmount(beast::zero)
                           : ctx.view().fees().accountReserve(uOwnerCount + 1));
 
-    const ripple::STPluginType qualityIn =
-        ctx.tx.getFieldPluginType(sfQualityIn2());
+    // equivalent to
+    // std::uint32_t uQualityIn(bQualityIn ? ctx_.tx.getFieldU32(sfQualityIn) :
+    // 0);
     std::uint32_t uQualityIn(
-        bQualityIn ? static_cast<uint32_t>(std::stoul(qualityIn.getText()))
+        bQualityIn ? static_cast<uint32_t>(std::stoul(
+                         ctx.tx.getFieldPluginType(sfQualityIn2()).getText()))
                    : 0);
     std::uint32_t uQualityOut(
         bQualityOut ? ctx.tx.getFieldU32(sfQualityOut) : 0);
@@ -739,7 +741,6 @@ doApply(ApplyContext& ctx, XRPAmount mPriorBalance, XRPAmount mSourceBalance)
 extern "C" Container<TransactorExport>
 getTransactors()
 {
-    resetPlugins();
     static SOElementExport format[] = {
         {sfLimitAmount.getCode(), soeOPTIONAL},
         {sfQualityIn2().getCode(), soeOPTIONAL},
@@ -770,6 +771,8 @@ getTransactors()
 extern "C" Container<STypeExport>
 getSTypes()
 {
+    reinitialize();
+    resetPlugins();
     static STypeExport exports[] = {
         {
             STI_UINT32_2,
@@ -851,7 +854,7 @@ getAmendments()
         true,
         VoteBehavior::DefaultNo,
     };
-    pluginAmendment = registerPluginAmendment(amendment);
+    trustSet2Amendment = registerPluginAmendment(amendment);
     static AmendmentExport list[] = {amendment};
     AmendmentExport* ptr = list;
     return {ptr, 1};

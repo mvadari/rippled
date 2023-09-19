@@ -361,21 +361,21 @@ CONSTRUCT_UNTYPED_SFIELD(sfAuthAccounts,        "AuthAccounts",         ARRAY,  
 
 // clang-format on
 
-std::map<int, STypeFunctions> pluginSTypes{};
+std::map<int, STypeFunctions> SField::pluginSTypes{};
 
 void
 registerSType(STypeFunctions type)
 {
-    if (auto const it = pluginSTypes.find(type.typeId);
-        it != pluginSTypes.end())
+    if (auto const it = SField::pluginSTypes.find(type.typeId);
+        it != SField::pluginSTypes.end())
     {
         throw std::runtime_error(
-            "Code " + std::to_string(type.typeId) + " already exists");
+            "Type code " + std::to_string(type.typeId) + " already exists");
     }
-    pluginSTypes.insert({type.typeId, type});
+    SField::pluginSTypes.insert({type.typeId, type});
 }
 
-std::vector<int> pluginSFieldCodes{};
+std::vector<int> SField::pluginSFieldCodes{};
 
 void
 registerSField(SFieldExport const& sfield)
@@ -390,7 +390,8 @@ registerSField(SFieldExport const& sfield)
         throw std::runtime_error(
             "SField (type " + std::to_string(sfield.typeId) + ", field value " +
             std::to_string(sfield.fieldValue) + ") already exists");
-    pluginSFieldCodes.push_back(field_code(sfield.typeId, sfield.fieldValue));
+    SField::pluginSFieldCodes.push_back(
+        field_code(sfield.typeId, sfield.fieldValue));
     // NOTE: there might be memory leak issues here
     switch (sfield.typeId)
     {
@@ -443,8 +444,8 @@ registerSField(SFieldExport const& sfield)
             new SField(STI_ARRAY, sfield.fieldValue, sfield.txtName);
             break;
         default: {
-            if (auto const it = pluginSTypes.find(sfield.typeId);
-                it != pluginSTypes.end())
+            if (auto const it = SField::pluginSTypes.find(sfield.typeId);
+                it != SField::pluginSTypes.end())
             {
                 new SF_PLUGINTYPE(
                     sfield.typeId, sfield.fieldValue, sfield.txtName);
@@ -528,6 +529,22 @@ SField::getField(std::string const& fieldName)
             return *f;
     }
     return sfInvalid;
+}
+
+void
+SField::reset()
+{
+    for (auto& code : pluginSFieldCodes)
+    {
+        if (auto const it = knownCodeToField.find(code);
+            it != knownCodeToField.end())
+        {
+            knownCodeToField.erase(code);
+        }
+    }
+    num -= pluginSFieldCodes.size();
+    pluginSFieldCodes.clear();
+    pluginSTypes.clear();
 }
 
 }  // namespace ripple

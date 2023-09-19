@@ -1135,12 +1135,22 @@ addPlugin(std::string libPath)
         Throw<std::runtime_error>("Plugin at " + libPath + " doesn't exist.");
     }
 #if __APPLE__
-    void* handle = dlopen(libPath.c_str(), RTLD_LOCAL);
+    void* handle = dlopen(libPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
 #else
     void* handle =
         dlopen(libPath.c_str(), RTLD_NOW | RTLD_DEEPBIND | RTLD_GLOBAL);
 #endif
 
+    if (dlsym(handle, "getAmendments") != NULL)
+    {
+        auto const amendments =
+            ((getAmendmentsPtr)dlsym(handle, "getAmendments"))();
+        for (int i = 0; i < amendments.size; i++)
+        {
+            auto const amendment = *(amendments.data + i);
+            registerPluginAmendment(amendment);
+        }
+    }
     if (dlsym(handle, "getSTypes") != NULL)
     {
         auto const sTypes = ((getSTypesPtr)dlsym(handle, "getSTypes"))();
@@ -1224,16 +1234,6 @@ addPlugin(std::string libPath)
         {
             auto const invariantCheck = *(invariantChecks.data + i);
             registerPluginInvariantCheck(invariantCheck);
-        }
-    }
-    if (dlsym(handle, "getAmendments") != NULL)
-    {
-        auto const amendments =
-            ((getAmendmentsPtr)dlsym(handle, "getAmendments"))();
-        for (int i = 0; i < amendments.size; i++)
-        {
-            auto const amendment = *(amendments.data + i);
-            registerPluginAmendment(amendment);
         }
     }
     if (dlsym(handle, "getInnerObjectFormats") != NULL)

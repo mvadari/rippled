@@ -169,7 +169,8 @@ public:
         std::unique_ptr<Config> config,
         FeatureBitset features,
         std::unique_ptr<Logs> logs = nullptr,
-        beast::severities::Severity thresh = beast::severities::kError)
+        beast::severities::Severity thresh = beast::severities::kError,
+        uint256 additionalFeature = uint256{})
         : test(suite_)
         , bundle_(suite_, std::move(config), std::move(logs), thresh)
         , journal{bundle_.app->journal("Env")}
@@ -180,6 +181,8 @@ public:
             features, [&appFeats = app().config().features](uint256 const& f) {
                 appFeats.insert(f);
             });
+        if (additionalFeature != uint256{})
+            app().config().features.insert(additionalFeature);
     }
 
     /**

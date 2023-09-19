@@ -96,6 +96,7 @@ Env::AppBundle::AppBundle(
 Env::AppBundle::~AppBundle()
 {
     client.reset();
+    resetPlugins();
     // Make sure all jobs finish, otherwise tests
     // might not get the coverage they expect.
     if (app)
@@ -128,7 +129,6 @@ Env::close(
     bool res = true;
     closeTime += closed()->info().closeTimeResolution - 1s;
     timeKeeper().set(closeTime);
-    resetPlugins();
     // Go through the rpc interface unless we need to simulate
     // a specific consensus delay.
     if (consensusDelay)

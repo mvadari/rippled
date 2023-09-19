@@ -49,9 +49,6 @@ struct STypeFunctions
     fromSerialIterPtr fromSerialIter;
 };
 
-extern std::map<int, STypeFunctions> pluginSTypes;
-extern std::vector<int> pluginSFieldCodes;
-
 }  // namespace ripple
 
 #endif

@@ -28,16 +28,8 @@ namespace ripple {
 void
 resetPlugins()
 {
-    pluginSTypes.clear();
-    for (auto& code : pluginSFieldCodes)
-    {
-        if (auto const it = SField::knownCodeToField.find(code);
-            it != SField::knownCodeToField.end())
-        {
-            SField::knownCodeToField.erase(code);
-        }
-    }
-    // resetPluginFeatures();
+    SField::reset();
+    TxFormats::reset();
 }
 
 }  // namespace ripple

@@ -120,9 +120,6 @@ reinitialize();
 uint256
 registerPluginAmendment(AmendmentExport amendment);
 
-void
-resetPluginFeatures();
-
 class FeatureBitset : private std::bitset<detail::numFeatures>
 {
     using base = std::bitset<detail::numFeatures>;

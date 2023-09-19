@@ -152,8 +152,8 @@ STVar::STVar(SerialIter& sit, SField const& name, int depth)
             construct<STIssue>(sit, name);
             return;
         default:
-            if (auto it = pluginSTypes.find(name.fieldType);
-                it != pluginSTypes.end())
+            if (auto it = SField::pluginSTypes.find(name.fieldType);
+                it != SField::pluginSTypes.end())
             {
                 // TODO: figure out how to handle more complex types that have
                 // depth
@@ -221,8 +221,8 @@ STVar::STVar(int id, SField const& name)
             construct<STIssue>(name);
             return;
         default:
-            if (auto it = pluginSTypes.find(name.fieldType);
-                it != pluginSTypes.end())
+            if (auto it = SField::pluginSTypes.find(name.fieldType);
+                it != SField::pluginSTypes.end())
             {
                 construct<STPluginType>(name);
                 return;

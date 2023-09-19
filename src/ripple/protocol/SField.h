@@ -263,6 +263,11 @@ public:
     compare(const SField& f1, const SField& f2);
 
     static std::map<int, SField const*> knownCodeToField;
+    static std::map<int, STypeFunctions> pluginSTypes;
+    static std::vector<int> pluginSFieldCodes;
+
+    static void
+    reset();
 
 private:
     static int num;

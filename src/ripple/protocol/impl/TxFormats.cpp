@@ -40,8 +40,6 @@ registerTxFormat(
     auto const strName = std::string(txName);
     if (auto it = pluginTxFormats.find(txType); it != pluginTxFormats.end())
     {
-        if (it->second.txName == strName)
-            return;
         LogicError(
             std::string("Duplicate key for plugin transactor '") + strName +
             "': already exists");
@@ -50,7 +48,8 @@ registerTxFormat(
         {txType, {strName, convertToUniqueFields(txFormat)}});
 }
 
-TxFormats::TxFormats()
+void
+TxFormats::initialize()
 {
     // Fields shared by all txFormats:
     static const std::initializer_list<SOElement> commonFields{
@@ -442,11 +441,31 @@ TxFormats::TxFormats()
     }
 }
 
+TxFormats&
+TxFormats::getInstanceHelper()
+{
+    static TxFormats instance;
+    if (instance.cleared)
+    {
+        instance.initialize();
+        instance.cleared = false;
+    }
+    return instance;
+}
+
+void
+TxFormats::reset()
+{
+    auto& instance = getInstanceHelper();
+    instance.clear();
+    instance.cleared = true;
+    pluginTxFormats.clear();
+}
+
 TxFormats const&
 TxFormats::getInstance()
 {
-    static TxFormats const instance;
-    return instance;
+    return getInstanceHelper();
 }
 
 }  // namespace ripple

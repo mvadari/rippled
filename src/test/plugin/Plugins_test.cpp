@@ -18,6 +18,7 @@
 //==============================================================================
 
 #include <ripple/protocol/Feature.h>
+#include <ripple/protocol/digest.h>
 #include <ripple/protocol/jss.h>
 #include <test/jtx.h>
 #include <test/jtx/TestHelpers.h>
@@ -71,18 +72,6 @@ class Plugins_test : public beast::unit_test::suite
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
         }
-
-        // valid plugin with custom SType/SField
-        // TODO: fix resetting features
-        // {
-        //     Env env{
-        //         *this,
-        //         makeConfig("plugin_test_trustset.xrplugin"),
-        //         FeatureBitset{supported_amendments()}};
-        //     env.fund(XRP(5000), alice);
-        //     BEAST_EXPECT(env.balance(alice) == XRP(5000));
-        //     env.close();
-        // }
 
         // valid plugin with other features
         {
@@ -141,10 +130,18 @@ class Plugins_test : public beast::unit_test::suite
         Account const alice{"alice"};
         Account const bob{"bob"};
 
+        std::string const amendmentName = "featurePluginTest";
+        auto const trustSet2Amendment =
+            sha512Half(Slice(amendmentName.data(), amendmentName.size()));
+
         Env env{
             *this,
             makeConfig("plugin_test_trustset.xrplugin"),
-            FeatureBitset{supported_amendments()}};
+            FeatureBitset{supported_amendments()},
+            nullptr,
+            beast::severities::kError,
+            trustSet2Amendment};
+
         env.fund(XRP(5000), alice);
         env.fund(XRP(5000), bob);
         IOU const USD = bob["USD"];

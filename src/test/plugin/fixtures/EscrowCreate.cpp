@@ -68,7 +68,7 @@ new_escrow(AccountID const& src, std::uint32_t seq) noexcept
     return {ltNEW_ESCROW, indexHash(NEW_ESCROW_NAMESPACE, src, seq)};
 }
 
-static uint256 pluginAmendment;
+static uint256 newEscrowCreateAmendment;
 
 /** Has the specified time passed?
 
@@ -103,7 +103,7 @@ calculateBaseFee(ReadView const& view, STTx const& tx)
 NotTEC
 preflight(PreflightContext const& ctx)
 {
-    if (!ctx.rules.enabled(pluginAmendment))
+    if (!ctx.rules.enabled(newEscrowCreateAmendment))
         return temDISABLED;
 
     if (ctx.rules.enabled(fix1543) && ctx.tx.getFlags() & tfUniversalMask)
@@ -467,7 +467,7 @@ getAmendments()
         true,
         VoteBehavior::DefaultNo,
     };
-    pluginAmendment = registerPluginAmendment(amendment);
+    newEscrowCreateAmendment = registerPluginAmendment(amendment);
     static AmendmentExport list[] = {amendment};
     AmendmentExport* ptr = list;
     return {ptr, 1};
