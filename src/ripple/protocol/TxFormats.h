@@ -199,14 +199,14 @@ private:
     static TxFormats&
     getInstanceHelper();
 
+    bool cleared = false;
+
 public:
     static TxFormats const&
     getInstance();
 
     static void
     reset();
-
-    bool cleared = false;
 };
 
 void

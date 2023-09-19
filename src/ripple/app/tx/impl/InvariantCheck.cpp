@@ -826,6 +826,12 @@ registerPluginInvariantCheck(InvariantCheckExport invariantCheck)
 }
 
 void
+resetPluginInvariantChecks()
+{
+    pluginInvariantChecks.clear();
+}
+
+void
 PluginInvariantChecks::visitEntry(
     bool isDelete,
     std::shared_ptr<SLE const> const& before,

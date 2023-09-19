@@ -20,6 +20,7 @@
 #ifndef RIPPLE_PLUGIN_RESET_H_INCLUDED
 #define RIPPLE_PLUGIN_RESET_H_INCLUDED
 
+#include <ripple/app/tx/impl/InvariantCheck.h>
 #include <ripple/plugin/SField.h>
 #include <ripple/protocol/Feature.h>
 
@@ -30,6 +31,8 @@ resetPlugins()
 {
     SField::reset();
     TxFormats::reset();
+    LedgerFormats::reset();
+    resetPluginInvariantChecks();
 }
 
 }  // namespace ripple

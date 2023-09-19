@@ -460,6 +460,9 @@ registerPluginXRPChangeFn(std::uint16_t type, visitEntryXRPChangePtr ptr);
 void
 registerPluginInvariantCheck(InvariantCheckExport invariantCheck);
 
+void
+resetPluginInvariantChecks();
+
 /**
  * @brief get a tuple of all invariant checks
  *

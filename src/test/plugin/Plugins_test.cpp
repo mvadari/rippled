@@ -27,6 +27,23 @@ namespace ripple {
 
 namespace test {
 
+template <class... Args>
+static uint256
+indexHash(std::uint16_t space, Args const&... args)
+{
+    return sha512Half(space, args...);
+}
+
+// Helper function that returns the owner count of an account root.
+std::uint32_t
+ownerCount(test::jtx::Env const& env, test::jtx::Account const& acct)
+{
+    std::uint32_t ret{0};
+    if (auto const sleAcct = env.le(acct))
+        ret = sleAcct->at(sfOwnerCount);
+    return ret;
+}
+
 class Plugins_test : public beast::unit_test::suite
 {
     std::unique_ptr<Config>
@@ -67,6 +84,17 @@ class Plugins_test : public beast::unit_test::suite
             Env env{
                 *this,
                 makeConfig("plugin_test_setregularkey.xrplugin"),
+                FeatureBitset{supported_amendments()}};
+            env.fund(XRP(5000), alice);
+            BEAST_EXPECT(env.balance(alice) == XRP(5000));
+            env.close();
+        }
+
+        // valid plugin with custom SType/SField
+        {
+            Env env{
+                *this,
+                makeConfig("plugin_test_trustset.xrplugin"),
                 FeatureBitset{supported_amendments()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
@@ -145,32 +173,136 @@ class Plugins_test : public beast::unit_test::suite
         env.fund(XRP(5000), alice);
         env.fund(XRP(5000), bob);
         IOU const USD = bob["USD"];
+        // sanity checks
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
         BEAST_EXPECT(env.balance(bob) == XRP(5000));
 
         // valid transaction without any custom fields
-        Json::Value jv;
-        jv[jss::TransactionType] = "TrustSet2";
-        jv[jss::Account] = alice.human();
         {
-            auto& ja = jv[jss::LimitAmount] =
-                USD(1000).value().getJson(JsonOptions::none);
-            ja[jss::issuer] = bob.human();
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet2";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            env(jv);
+            env.close();
+            auto const trustline = env.le(keylet::line(alice, USD.issue()));
+            BEAST_EXPECT(trustline != nullptr);
         }
-        env(jv);
-        auto const trustline = env.le(keylet::line(alice, USD.issue()));
-        BEAST_EXPECT(trustline != nullptr);
 
-        // // a transaction that actually sets the regular key of the account
-        // Json::Value jv2;
-        // jv2[jss::TransactionType] = "TrustSet2";
-        // jv2[jss::Account] = alice.human();
-        // jv2[sfRegularKey.jsonName] = to_string(bob.id());
-        // env(jv2);
-        // auto const trustline = env.le(keylet::line(alice, ));
-        // BEAST_EXPECT(
-        //     accountRoot->isFieldPresent(sfRegularKey) &&
-        //     (accountRoot->getAccountID(sfRegularKey) == bob.id()));
+        // valid transaction that uses QualityIn2
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet2";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            jv["QualityIn2"] = "101";
+            env(jv);
+            env.close();
+            auto const trustline = env.le(keylet::line(alice, USD.issue()));
+            BEAST_EXPECT(trustline != nullptr);
+        }
+
+        // valid transaction that uses FakeElement
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet2";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            jv["QualityIn2"] = "101";
+            {
+                Json::Value array(Json::arrayValue);
+                Json::Value obj;
+                Json::Value innerObj;
+                innerObj[jss::Account] = bob.human();
+                obj["FakeElement"] = innerObj;
+                array.append(obj);
+                jv["FakeArray"] = array;
+            }
+            env(jv);
+            env.close();
+            auto const trustline = env.le(keylet::line(alice, USD.issue()));
+            BEAST_EXPECT(trustline != nullptr);
+        }
+
+        env.close();
+    }
+
+    void
+    testPluginLedgerObjectInvariantCheck()
+    {
+        testcase("Plugin Ledger Objects and Invariant Checks");
+
+        using namespace jtx;
+        Account const alice{"alice"};
+        Account const bob{"bob"};
+
+        std::string const amendmentName = "featurePluginTest2";
+        auto const newEscrowCreateAmendment =
+            sha512Half(Slice(amendmentName.data(), amendmentName.size()));
+
+        Env env{
+            *this,
+            makeConfig("plugin_test_escrowcreate.xrplugin"),
+            FeatureBitset{supported_amendments()},
+            nullptr,
+            beast::severities::kError,
+            newEscrowCreateAmendment};
+
+        env.fund(XRP(5000), alice);
+        env.fund(XRP(5000), bob);
+        // sanity checks
+        BEAST_EXPECT(env.balance(alice) == XRP(5000));
+        BEAST_EXPECT(env.balance(bob) == XRP(5000));
+
+        static const std::uint16_t ltNEW_ESCROW = 0x0074;
+        static const std::uint16_t NEW_ESCROW_NAMESPACE = 't';
+        auto new_escrow_keylet = [](const AccountID& src,
+                                    std::uint32_t seq) noexcept -> Keylet {
+            return {ltNEW_ESCROW, indexHash(NEW_ESCROW_NAMESPACE, src, seq)};
+        };
+
+        // valid transaction
+        {
+            auto const seq = env.seq(alice);
+            Json::Value jv;
+            jv[jss::TransactionType] = "NewEscrowCreate";
+            jv[jss::Account] = alice.human();
+            jv[jss::Amount] = "10000";
+            jv[jss::Destination] = alice.human();
+            jv[sfFinishAfter.jsonName] =
+                env.now().time_since_epoch().count() + 10;
+
+            env(jv);
+            auto const escrow = env.le(new_escrow_keylet(alice, seq));
+            BEAST_EXPECT(escrow != nullptr);
+        }
+
+        // invalid transaction that triggers the invariant check
+        {
+            BEAST_EXPECT(ownerCount(env, bob) == 0);
+            Json::Value jv;
+            jv[jss::TransactionType] = "NewEscrowCreate";
+            jv[jss::Account] = bob.human();
+            jv[jss::Amount] = "0";
+            jv[jss::Destination] = bob.human();
+            jv[sfFinishAfter.jsonName] =
+                env.now().time_since_epoch().count() + 10;
+
+            env(jv, ter(tecINVARIANT_FAILED));
+            BEAST_EXPECT(ownerCount(env, bob) == 0);
+        }
 
         env.close();
     }
@@ -182,6 +314,7 @@ class Plugins_test : public beast::unit_test::suite
         testTransactorLoading();
         testBasicTransactor();
         testPluginSTypeSField();
+        testPluginLedgerObjectInvariantCheck();
     }
 };
 

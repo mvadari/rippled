@@ -288,14 +288,28 @@ enum LedgerSpecificFlags {
 class LedgerFormats : public KnownFormats<std::uint16_t, LedgerFormats>
 {
 private:
+    void
+    initialize();
+
     /** Create the object.
         This will load the object with all the known ledger formats.
     */
-    LedgerFormats();
+    LedgerFormats()
+    {
+        initialize();
+    }
+
+    static LedgerFormats&
+    getInstanceHelper();
+
+    bool cleared = false;
 
 public:
     static LedgerFormats const&
     getInstance();
+
+    static void
+    reset();
 };
 
 struct PluginLedgerFormat

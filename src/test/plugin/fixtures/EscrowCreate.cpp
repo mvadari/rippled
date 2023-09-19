@@ -23,6 +23,7 @@
 #include <ripple/conditions/Fulfillment.h>
 #include <ripple/ledger/View.h>
 #include <ripple/plugin/exports.h>
+#include <ripple/plugin/reset.h>
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Indexes.h>
@@ -33,24 +34,6 @@
 #include <map>
 
 using namespace ripple;
-
-typedef ripple::SField const& (
-    *createNewSFieldPtr)(int tid, int fv, const char* fn);
-typedef ripple::STBase* (
-    *constructSTypePtr)(ripple::SerialIter& sit, ripple::SField const& name);
-typedef ripple::STBase* (*constructSTypePtr2)(ripple::SField const& name);
-typedef std::optional<ripple::detail::STVar> (*parseLeafTypePtr)(
-    ripple::SField const&,
-    std::string const&,
-    std::string const&,
-    ripple::SField const*,
-    Json::Value const&,
-    Json::Value&);
-
-typedef std::int64_t (*visitEntryXRPChangePtr)(
-    bool isDelete,
-    std::shared_ptr<ripple::SLE const> const& entry,
-    bool isBefore);
 
 static const std::uint16_t ltNEW_ESCROW = 0x0074;
 static const std::uint16_t NEW_ESCROW_NAMESPACE = 't';
@@ -115,8 +98,9 @@ preflight(PreflightContext const& ctx)
     if (!isXRP(ctx.tx[sfAmount]))
         return temBAD_AMOUNT;
 
-    if (ctx.tx[sfAmount] < beast::zero)
-        return temBAD_AMOUNT;
+    // This uncommented allows us to trigger the invariant check
+    // if (ctx.tx[sfAmount] < beast::zero)
+    //     return temBAD_AMOUNT;
 
     // We must specify at least one timeout value
     if (!ctx.tx[~sfCancelAfter] && !ctx.tx[~sfFinishAfter])
@@ -141,7 +125,7 @@ preflight(PreflightContext const& ctx)
     // TODO: get conditions working
     // if (auto const cb = ctx.tx[~sfCondition])
     // {
-    //     using namespace ripple::cryptoconditions;
+    //     using namespace cryptoconditions;
 
     //     std::error_code ec;
 
@@ -299,7 +283,7 @@ getTransactors()
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"NewEscrowCreate",
-         49,
+         51,
          {formatPtr, 7},
          ConsequencesFactoryType::Normal,
          NULL,
@@ -318,22 +302,22 @@ getTransactors()
 std::int64_t
 visitEntryXRPChange(
     bool isDelete,
-    std::shared_ptr<ripple::SLE const> const& entry,
+    std::shared_ptr<SLE const> const& entry,
     bool isBefore)
 {
     if (isBefore)
     {
-        return -1 * (*entry)[ripple::sfAmount].xrp().drops();
+        return -1 * (*entry)[sfAmount].xrp().drops();
     }
     if (isDelete)
         return 0;
-    return (*entry)[ripple::sfAmount].xrp().drops();
+    return (*entry)[sfAmount].xrp().drops();
 }
 
-class NoZeroEscrow
+class NoZeroNewEscrow
 {
 public:
-    static std::map<void*, NoZeroEscrow&> checks;
+    static std::map<void*, NoZeroNewEscrow&> checks;
     static void
     visitEntryExport(
         void* id,
@@ -345,7 +329,7 @@ public:
         {
             return it->second.visitEntry(isDelete, before, after);
         }
-        NoZeroEscrow* check = new NoZeroEscrow();
+        NoZeroNewEscrow* check = new NoZeroNewEscrow();
         check->visitEntry(isDelete, before, after);
         checks.insert({id, *check});
     }
@@ -417,24 +401,24 @@ private:
         return true;
     }
 };
-std::map<void*, NoZeroEscrow&> NoZeroEscrow::checks{};
+std::map<void*, NoZeroNewEscrow&> NoZeroNewEscrow::checks{};
 
 extern "C" Container<LedgerObjectExport>
 getLedgerObjects()
 {
     static SOElementExport format[] = {
-        {ripple::sfAccount.getCode(), ripple::soeREQUIRED},
-        {ripple::sfDestination.getCode(), ripple::soeREQUIRED},
-        {ripple::sfAmount.getCode(), ripple::soeREQUIRED},
-        {ripple::sfCondition.getCode(), ripple::soeOPTIONAL},
-        {ripple::sfCancelAfter.getCode(), ripple::soeOPTIONAL},
-        {ripple::sfFinishAfter.getCode(), ripple::soeOPTIONAL},
-        {ripple::sfSourceTag.getCode(), ripple::soeOPTIONAL},
-        {ripple::sfDestinationTag.getCode(), ripple::soeOPTIONAL},
-        {ripple::sfOwnerNode.getCode(), ripple::soeREQUIRED},
-        {ripple::sfPreviousTxnID.getCode(), ripple::soeREQUIRED},
-        {ripple::sfPreviousTxnLgrSeq.getCode(), ripple::soeREQUIRED},
-        {ripple::sfDestinationNode.getCode(), ripple::soeOPTIONAL},
+        {sfAccount.getCode(), soeREQUIRED},
+        {sfDestination.getCode(), soeREQUIRED},
+        {sfAmount.getCode(), soeREQUIRED},
+        {sfCondition.getCode(), soeOPTIONAL},
+        {sfCancelAfter.getCode(), soeOPTIONAL},
+        {sfFinishAfter.getCode(), soeOPTIONAL},
+        {sfSourceTag.getCode(), soeOPTIONAL},
+        {sfDestinationTag.getCode(), soeOPTIONAL},
+        {sfOwnerNode.getCode(), soeREQUIRED},
+        {sfPreviousTxnID.getCode(), soeREQUIRED},
+        {sfPreviousTxnLgrSeq.getCode(), soeREQUIRED},
+        {sfDestinationNode.getCode(), soeOPTIONAL},
     };
     static LedgerObjectExport list[] = {
         {ltNEW_ESCROW,
@@ -452,8 +436,8 @@ extern "C" Container<InvariantCheckExport>
 getInvariantChecks()
 {
     static InvariantCheckExport list[] = {{
-        NoZeroEscrow::visitEntryExport,
-        NoZeroEscrow::finalizeExport,
+        NoZeroNewEscrow::visitEntryExport,
+        NoZeroNewEscrow::finalizeExport,
     }};
     InvariantCheckExport* ptr = list;
     return {ptr, 1};
@@ -462,6 +446,9 @@ getInvariantChecks()
 extern "C" Container<AmendmentExport>
 getAmendments()
 {
+    reinitialize();
+    resetPlugins();
+    NoZeroNewEscrow::checks.clear();
     AmendmentExport const amendment = {
         "featurePluginTest2",
         true,

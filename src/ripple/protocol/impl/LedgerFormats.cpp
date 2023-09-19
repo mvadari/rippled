@@ -43,7 +43,8 @@ registerLedgerObject(
     pluginObjectsMap.insert({type, {strName, convertToUniqueFields(format)}});
 }
 
-LedgerFormats::LedgerFormats()
+void
+LedgerFormats::initialize()
 {
     // clang-format off
     // Fields shared by all ledger formats:
@@ -312,11 +313,31 @@ LedgerFormats::LedgerFormats()
     }
 }
 
+LedgerFormats&
+LedgerFormats::getInstanceHelper()
+{
+    static LedgerFormats instance;
+    if (instance.cleared)
+    {
+        instance.initialize();
+        instance.cleared = false;
+    }
+    return instance;
+}
+
+void
+LedgerFormats::reset()
+{
+    auto& instance = getInstanceHelper();
+    instance.clear();
+    instance.cleared = true;
+    pluginObjectsMap.clear();
+}
+
 LedgerFormats const&
 LedgerFormats::getInstance()
 {
-    static LedgerFormats instance;
-    return instance;
+    return getInstanceHelper();
 }
 
 }  // namespace ripple
