@@ -68,9 +68,10 @@ noripple(Account const& account, Args const&... args)
 }
 
 inline FeatureBitset
-supported_amendments()
+supported_amendments(bool isPlugin = false)
 {
-    reinitialize();
+    if (!isPlugin)
+        registrationIsDone();
     static const FeatureBitset ids = [] {
         auto const& sa = ripple::detail::supportedAmendments();
         std::vector<uint256> feats;
