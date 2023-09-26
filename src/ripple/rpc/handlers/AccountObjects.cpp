@@ -209,15 +209,21 @@ doAccountObjects(RPC::JsonContext& context)
             {jss::payment_channel, ltPAYCHAN},
             {jss::state, ltRIPPLE_STATE}};
 
-        static std::vector<DeletionBlocker> deletionBlockers;
-        std::copy(
-            originalDeletionBlockers,
-            originalDeletionBlockers + sizeof(originalDeletionBlockers),
-            std::back_inserter(deletionBlockers));
-        std::copy(
-            pluginDeletionBlockers.begin(),
-            pluginDeletionBlockers.end(),
-            std::back_inserter(deletionBlockers));
+        static std::vector<DeletionBlocker> deletionBlockers = [&] {
+            std::vector<DeletionBlocker> temp{};
+            std::copy(
+                std::begin(originalDeletionBlockers),
+                std::end(originalDeletionBlockers),
+                std::back_inserter(temp));
+            if (!pluginDeletionBlockers.empty())
+            {
+                std::copy(
+                    pluginDeletionBlockers.begin(),
+                    pluginDeletionBlockers.end(),
+                    std::back_inserter(temp));
+            }
+            return temp;
+        }();
 
         typeFilter.emplace();
         typeFilter->reserve(std::size(deletionBlockers));

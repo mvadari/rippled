@@ -21,11 +21,33 @@
 #include <ripple/protocol/digest.h>
 #include <ripple/protocol/jss.h>
 #include <test/jtx.h>
+#include <test/jtx/PluginEnv.h>
 #include <test/jtx/TestHelpers.h>
 
 namespace ripple {
 
 namespace test {
+
+inline FeatureBitset
+supported_amendments_plugins()
+{
+    static const FeatureBitset ids = [] {
+        auto const& sa = ripple::detail::supportedAmendments();
+        std::vector<uint256> feats;
+        feats.reserve(sa.size());
+        // for (auto const& [s, vote] : sa)
+        // {
+        //     (void)vote;
+        //     if (auto const f = getRegisteredFeature(s))
+        //         feats.push_back(*f);
+        //     else
+        //         Throw<std::runtime_error>(
+        //             "Unknown feature: " + s + "  in supportedAmendments.");
+        // }
+        return FeatureBitset(feats);
+    }();
+    return ids;
+}
 
 template <class... Args>
 static uint256
@@ -68,10 +90,10 @@ class Plugins_test : public beast::unit_test::suite
             {
                 reinitialize();
                 // this should crash
-                Env env{
+                PluginEnv env{
                     *this,
                     makeConfig("plugin_test_faketest.xrplugin"),
-                    FeatureBitset{supported_amendments(true)}};
+                    FeatureBitset{supported_amendments_plugins()}};
                 BEAST_EXPECT(false);
             }
             catch (std::runtime_error)
@@ -83,10 +105,10 @@ class Plugins_test : public beast::unit_test::suite
         // valid plugin that exists
         {
             reinitialize();
-            Env env{
+            PluginEnv env{
                 *this,
                 makeConfig("plugin_test_setregularkey.xrplugin"),
-                FeatureBitset{supported_amendments(true)}};
+                FeatureBitset{supported_amendments_plugins()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -95,10 +117,10 @@ class Plugins_test : public beast::unit_test::suite
         // valid plugin with custom SType/SField
         {
             reinitialize();
-            Env env{
+            PluginEnv env{
                 *this,
                 makeConfig("plugin_test_trustset.xrplugin"),
-                FeatureBitset{supported_amendments(true)}};
+                FeatureBitset{supported_amendments_plugins()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -107,10 +129,10 @@ class Plugins_test : public beast::unit_test::suite
         // valid plugin with other features
         {
             reinitialize();
-            Env env{
+            PluginEnv env{
                 *this,
                 makeConfig("plugin_test_escrowcreate.xrplugin"),
-                FeatureBitset{supported_amendments(true)}};
+                FeatureBitset{supported_amendments_plugins()}};
             env.fund(XRP(5000), alice);
             BEAST_EXPECT(env.balance(alice) == XRP(5000));
             env.close();
@@ -127,10 +149,10 @@ class Plugins_test : public beast::unit_test::suite
         Account const bob{"bob"};
 
         reinitialize();
-        Env env{
+        PluginEnv env{
             *this,
             makeConfig("plugin_test_setregularkey.xrplugin"),
-            FeatureBitset{supported_amendments(true)}};
+            FeatureBitset{supported_amendments_plugins()}};
         env.fund(XRP(5000), alice);
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
 
@@ -168,10 +190,10 @@ class Plugins_test : public beast::unit_test::suite
             sha512Half(Slice(amendmentName.data(), amendmentName.size()));
 
         reinitialize();
-        Env env{
+        PluginEnv env{
             *this,
             makeConfig("plugin_test_trustset.xrplugin"),
-            FeatureBitset{supported_amendments(true)},
+            FeatureBitset{supported_amendments_plugins()},
             nullptr,
             beast::severities::kError,
             trustSet2Amendment};
@@ -259,10 +281,10 @@ class Plugins_test : public beast::unit_test::suite
             sha512Half(Slice(amendmentName.data(), amendmentName.size()));
 
         reinitialize();
-        Env env{
+        PluginEnv env{
             *this,
             makeConfig("plugin_test_escrowcreate.xrplugin"),
-            FeatureBitset{supported_amendments(true)},
+            FeatureBitset{supported_amendments_plugins()},
             nullptr,
             beast::severities::kError,
             newEscrowCreateAmendment};

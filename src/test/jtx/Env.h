@@ -68,10 +68,9 @@ noripple(Account const& account, Args const&... args)
 }
 
 inline FeatureBitset
-supported_amendments(bool isPlugin = false)
+supported_amendments()
 {
-    if (!isPlugin)
-        registrationIsDone();
+    registrationIsDone();
     static const FeatureBitset ids = [] {
         auto const& sa = ripple::detail::supportedAmendments();
         std::vector<uint256> feats;
@@ -170,8 +169,7 @@ public:
         std::unique_ptr<Config> config,
         FeatureBitset features,
         std::unique_ptr<Logs> logs = nullptr,
-        beast::severities::Severity thresh = beast::severities::kError,
-        uint256 additionalFeature = uint256{})
+        beast::severities::Severity thresh = beast::severities::kError)
         : test(suite_)
         , bundle_(suite_, std::move(config), std::move(logs), thresh)
         , journal{bundle_.app->journal("Env")}
@@ -182,8 +180,6 @@ public:
             features, [&appFeats = app().config().features](uint256 const& f) {
                 appFeats.insert(f);
             });
-        if (additionalFeature != uint256{})
-            app().config().features.insert(additionalFeature);
     }
 
     /**

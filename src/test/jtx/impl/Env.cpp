@@ -26,7 +26,6 @@
 #include <ripple/json/to_string.h>
 #include <ripple/net/HTTPClient.h>
 #include <ripple/net/RPCCall.h>
-#include <ripple/plugin/reset.h>
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/HashPrefix.h>
@@ -96,7 +95,6 @@ Env::AppBundle::AppBundle(
 Env::AppBundle::~AppBundle()
 {
     client.reset();
-    resetPlugins();
     // Make sure all jobs finish, otherwise tests
     // might not get the coverage they expect.
     if (app)
