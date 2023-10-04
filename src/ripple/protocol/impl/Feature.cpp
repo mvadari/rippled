@@ -120,6 +120,7 @@ class FeatureCollections
     std::size_t upVotes = 0;
     std::size_t downVotes = 0;
     mutable std::atomic<bool> readOnly = false;
+    mutable std::atomic<bool> isPluginTest = false;
     struct SavedAmendment
     {
         std::string name;
@@ -225,7 +226,7 @@ FeatureCollections::FeatureCollections()
 std::optional<uint256>
 FeatureCollections::getRegisteredFeature(std::string const& name) const
 {
-    assert(readOnly);
+    assert(readOnly || isPluginTest);
     Feature const* feature = getByName(name);
     if (feature)
         return feature->feature;
@@ -309,6 +310,7 @@ FeatureCollections::reinitialize()
     upVotes = 0;
     downVotes = 0;
     readOnly = false;
+    isPluginTest = true;
     for (auto amendment : originalFeatures)
     {
         registerFeature(
@@ -320,7 +322,7 @@ FeatureCollections::reinitialize()
 size_t
 FeatureCollections::featureToBitsetIndex(uint256 const& f) const
 {
-    assert(readOnly);
+    assert(readOnly || isPluginTest);
 
     Feature const* feature = getByFeature(f);
     if (!feature)

@@ -31,19 +31,20 @@ namespace test {
 inline FeatureBitset
 supported_amendments_plugins()
 {
+    reinitialize();
     static const FeatureBitset ids = [] {
         auto const& sa = ripple::detail::supportedAmendments();
         std::vector<uint256> feats;
         feats.reserve(sa.size());
-        // for (auto const& [s, vote] : sa)
-        // {
-        //     (void)vote;
-        //     if (auto const f = getRegisteredFeature(s))
-        //         feats.push_back(*f);
-        //     else
-        //         Throw<std::runtime_error>(
-        //             "Unknown feature: " + s + "  in supportedAmendments.");
-        // }
+        for (auto const& [s, vote] : sa)
+        {
+            (void)vote;
+            if (auto const f = getRegisteredFeature(s))
+                feats.push_back(*f);
+            else
+                Throw<std::runtime_error>(
+                    "Unknown feature: " + s + "  in supportedAmendments.");
+        }
         return FeatureBitset(feats);
     }();
     return ids;
@@ -68,6 +69,34 @@ ownerCount(test::jtx::Env const& env, test::jtx::Account const& acct)
 
 class Plugins_test : public beast::unit_test::suite
 {
+private:
+    std::uint32_t
+    openLedgerSeq(jtx::Env& env)
+    {
+        return env.current()->seq();
+    }
+
+    // Close the ledger until the ledger sequence is large enough to close
+    // the account.  If margin is specified, close the ledger so `margin`
+    // more closes are needed
+    void
+    incLgrSeqForAccDel(
+        jtx::Env& env,
+        jtx::Account const& acc,
+        std::uint32_t margin = 0)
+    {
+        int const delta = [&]() -> int {
+            if (env.seq(acc) + 255 > openLedgerSeq(env))
+                return env.seq(acc) - openLedgerSeq(env) + 255 - margin;
+            return 0;
+        }();
+        BEAST_EXPECT(margin == 0 || delta >= 0);
+        for (int i = 0; i < delta; ++i)
+            env.close();
+        BEAST_EXPECT(openLedgerSeq(env) == env.seq(acc) + 255 - margin);
+    }
+
+public:
     std::unique_ptr<Config>
     makeConfig(std::string pluginPath)
     {
@@ -314,12 +343,70 @@ class Plugins_test : public beast::unit_test::suite
                 env.now().time_since_epoch().count() + 10;
 
             env(jv);
-            auto const escrow = env.le(new_escrow_keylet(alice, seq));
-            BEAST_EXPECT(escrow != nullptr);
+            auto const newEscrow = env.le(new_escrow_keylet(alice, seq));
+            BEAST_EXPECT(newEscrow != nullptr);
+            env.close();
         }
 
-        // invalid transaction that triggers the invariant check
         {
+            // Test account_objects type filter
+            Json::Value params;
+            params[jss::account] = alice.human();
+            params[jss::type] = "new_escrow";
+            auto resp = env.rpc("json", "account_objects", to_string(params));
+
+            if (BEAST_EXPECT(
+                    resp[jss::result][jss::account_objects].isArray() &&
+                    (resp[jss::result][jss::account_objects].size() == 1)))
+            {
+                auto const& objs = resp[jss::result][jss::account_objects];
+                BEAST_EXPECT(objs[0u]["LedgerEntryType"] == "NewEscrow");
+            }
+        }
+
+        {
+            // Test account_objects deletion_blockers_only filter
+            Json::Value params;
+            params[jss::account] = alice.human();
+            params[jss::deletion_blockers_only] = true;
+            auto resp = env.rpc("json", "account_objects", to_string(params));
+
+            if (BEAST_EXPECT(
+                    resp[jss::result][jss::account_objects].isArray() &&
+                    (resp[jss::result][jss::account_objects].size() == 1)))
+            {
+                auto const& objs = resp[jss::result][jss::account_objects];
+                BEAST_EXPECT(objs[0u]["LedgerEntryType"] == "NewEscrow");
+            }
+        }
+
+        {
+            // Test ledger_data filter
+            Json::Value params;
+            params[jss::account] = alice.human();
+            params[jss::type] = "new_escrow";
+            auto resp = env.rpc("json", "ledger_data", to_string(params));
+
+            auto const& objs = resp[jss::result][jss::state];
+
+            if (BEAST_EXPECT(objs.isArray() && (objs.size() == 1)))
+            {
+                BEAST_EXPECT(objs[0u]["LedgerEntryType"] == "NewEscrow");
+            }
+        }
+
+        {
+            // Test deletion blocker
+            incLgrSeqForAccDel(env, alice);
+
+            auto const acctDelFee{drops(env.current()->fees().increment)};
+            env(acctdelete(alice, bob),
+                fee(acctDelFee),
+                ter(tecHAS_OBLIGATIONS));
+        }
+
+        {
+            // invalid transaction that triggers the invariant check
             BEAST_EXPECT(ownerCount(env, bob) == 0);
             Json::Value jv;
             jv[jss::TransactionType] = "NewEscrowCreate";
@@ -332,8 +419,6 @@ class Plugins_test : public beast::unit_test::suite
             env(jv, ter(tecINVARIANT_FAILED));
             BEAST_EXPECT(ownerCount(env, bob) == 0);
         }
-
-        env.close();
     }
 
     void
