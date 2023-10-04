@@ -267,6 +267,15 @@ public:
             BEAST_EXPECT(trustline != nullptr);
         }
 
+        // test that the custom SType is outputted correctly
+        {
+            Json::Value params;
+            params[jss::transaction] = to_string(env.tx()->getTransactionID());
+            auto resp = env.rpc("json", "tx", to_string(params));
+
+            BEAST_EXPECT(resp[jss::result]["QualityIn2"] == "101");
+        }
+
         // valid transaction that uses FakeElement
         {
             Json::Value jv;
@@ -354,12 +363,10 @@ public:
             params[jss::account] = alice.human();
             params[jss::type] = "new_escrow";
             auto resp = env.rpc("json", "account_objects", to_string(params));
+            auto const& objs = resp[jss::result][jss::account_objects];
 
-            if (BEAST_EXPECT(
-                    resp[jss::result][jss::account_objects].isArray() &&
-                    (resp[jss::result][jss::account_objects].size() == 1)))
+            if (BEAST_EXPECT(objs.isArray() && (objs.size() == 1)))
             {
-                auto const& objs = resp[jss::result][jss::account_objects];
                 BEAST_EXPECT(objs[0u]["LedgerEntryType"] == "NewEscrow");
             }
         }
