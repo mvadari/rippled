@@ -839,10 +839,10 @@ getInnerObjectFormats()
 extern "C" Container<TERExport>
 getTERcodes()
 {
-    static TERExport sfields[] = {
+    static TERExport terCodes[] = {
         {temINVALID_FLAG2, "temINVALID_FLAG2", "Test code"},
     };
-    TERExport* ptr = sfields;
+    TERExport* ptr = terCodes;
     return {ptr, 1};
 }
 

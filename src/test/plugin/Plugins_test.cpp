@@ -213,6 +213,9 @@ public:
         using namespace jtx;
         Account const alice{"alice"};
         Account const bob{"bob"};
+        Account const carol{"carol"};
+        Account const danny{"danny"};
+        Account const edwina{"edwina"};
 
         std::string const amendmentName = "featurePluginTest";
         auto const trustSet2Amendment =
@@ -227,8 +230,7 @@ public:
             beast::severities::kError,
             trustSet2Amendment};
 
-        env.fund(XRP(5000), alice);
-        env.fund(XRP(5000), bob);
+        env.fund(XRP(5000), alice, bob, carol, danny);
         IOU const USD = bob["USD"];
         // sanity checks
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
@@ -254,7 +256,7 @@ public:
         {
             Json::Value jv;
             jv[jss::TransactionType] = "TrustSet2";
-            jv[jss::Account] = alice.human();
+            jv[jss::Account] = carol.human();
             {
                 auto& ja = jv[jss::LimitAmount] =
                     USD(1000).value().getJson(JsonOptions::none);
@@ -263,7 +265,7 @@ public:
             jv["QualityIn2"] = "101";
             env(jv);
             env.close();
-            auto const trustline = env.le(keylet::line(alice, USD.issue()));
+            auto const trustline = env.le(keylet::line(carol, USD.issue()));
             BEAST_EXPECT(trustline != nullptr);
         }
 
@@ -280,7 +282,7 @@ public:
         {
             Json::Value jv;
             jv[jss::TransactionType] = "TrustSet2";
-            jv[jss::Account] = alice.human();
+            jv[jss::Account] = danny.human();
             {
                 auto& ja = jv[jss::LimitAmount] =
                     USD(1000).value().getJson(JsonOptions::none);
@@ -298,8 +300,41 @@ public:
             }
             env(jv);
             env.close();
-            auto const trustline = env.le(keylet::line(alice, USD.issue()));
+            auto const trustline = env.le(keylet::line(danny, USD.issue()));
             BEAST_EXPECT(trustline != nullptr);
+        }
+
+        // invalid transaction with custom TER
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet2";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const& tx = env.jt(jv, txflags(0x00000001));  // invalid flag
+
+            // submit tx without expecting a TER object
+            Serializer s;
+            tx.stx->add(s);
+            auto const& jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                auto const& ter =
+                    jr[jss::result][jss::engine_result_code].asInt();
+                BEAST_EXPECT(ter == -256);
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() == -256);
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_message] == "Test code");
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result] == "temINVALID_FLAG2");
+            }
         }
 
         env.close();

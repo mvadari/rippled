@@ -633,6 +633,9 @@ transCode(std::string const& token);
 void
 registerPluginTER(TERExport ter);
 
+void
+resetPluginTERcodes();
+
 }  // namespace ripple
 
 #endif

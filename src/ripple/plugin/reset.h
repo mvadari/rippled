@@ -33,6 +33,7 @@ resetPlugins()
     TxFormats::reset();
     LedgerFormats::reset();
     resetPluginInvariantChecks();
+    resetPluginTERcodes();
 }
 
 }  // namespace ripple

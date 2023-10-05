@@ -27,18 +27,32 @@ namespace ripple {
 
 static std::vector<TERExport> pluginTERcodes{};
 
+static std::unordered_map<
+    TERUnderlyingType,
+    std::pair<char const* const, char const* const>>
+    results;
+
 void
 registerPluginTER(TERExport ter)
 {
+    for (auto terExport : pluginTERcodes)
+    {
+        if (terExport.code == ter.code)
+        {
+            LogicError(
+                std::string("Duplicate key for plugin TER code '") +
+                std::to_string(ter.code) + "': already exists");
+        }
+    }
     pluginTERcodes.emplace_back(ter);
 }
 
 namespace detail {
 
-static std::unordered_map<
+std::unordered_map<
     TERUnderlyingType,
-    std::pair<char const* const, char const* const>> const&
-transResults()
+    std::pair<char const* const, char const* const>>
+initializeTransResults()
 {
     // clang-format off
 
@@ -46,10 +60,7 @@ transResults()
     // humans without affecting the compiler.
 #define MAKE_ERROR(code, desc) { code, { #code, desc } }
 
-    static
-    std::unordered_map<
-            TERUnderlyingType,
-            std::pair<char const* const, char const* const>> results
+    results.insert(
     {
         MAKE_ERROR(tecAMM_BALANCE,                   "AMM has invalid balance."),
         MAKE_ERROR(tecAMM_INVALID_TOKENS,            "AMM invalid LP tokens."),
@@ -201,7 +212,7 @@ transResults()
         MAKE_ERROR(terSUBMITTED,              "Transaction has been submitted."),
 
         MAKE_ERROR(tesSUCCESS,                "The transaction was applied. Only final in a validated ledger."),
-    };
+    });
     // clang-format on
 
 #undef MAKE_ERROR
@@ -211,11 +222,19 @@ transResults()
         results.insert({ter.code, {ter.codeStr, ter.description}});
     }
 
-    static std::unordered_map<
-        TERUnderlyingType,
-        std::pair<char const* const, char const* const>> const finalResults =
-        results;
-    return finalResults;
+    return results;
+}
+
+std::unordered_map<
+    TERUnderlyingType,
+    std::pair<char const* const, char const* const>> const&
+transResults()
+{
+    if (results.size() == 0)
+    {
+        initializeTransResults();
+    }
+    return results;
 }
 
 }  // namespace detail
@@ -273,6 +292,13 @@ transCode(std::string const& token)
         return std::nullopt;
 
     return TER::fromInt(r->second);
+}
+
+void
+resetPluginTERcodes()
+{
+    pluginTERcodes.clear();
+    results.clear();
 }
 
 }  // namespace ripple
