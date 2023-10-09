@@ -122,16 +122,9 @@ private:
             type_map[type_value] = type_name;
         }
 
-        ret[jss::LEDGER_ENTRY_TYPES] = Json::objectValue;
+        ret[jss::LEDGER_ENTRY_TYPES] =
+            LedgerFormats::getInstance().getNamesTypes();
         ret[jss::LEDGER_ENTRY_TYPES][jss::Invalid] = -1;
-
-        for (auto it = LedgerFormats::getInstance().begin();
-             it != LedgerFormats::getInstance().end();
-             ++it)
-        {
-            ret[jss::LEDGER_ENTRY_TYPES][it->getName()] = it->getType();
-        }
-
         ret[jss::FIELDS] = Json::arrayValue;
 
         uint32_t i = 0;
@@ -252,14 +245,8 @@ private:
             ret[jss::TRANSACTION_RESULTS][pair.second.first] = pair.first;
         }
 
-        ret[jss::TRANSACTION_TYPES] = Json::objectValue;
+        ret[jss::TRANSACTION_TYPES] = TxFormats::getInstance().getNamesTypes();
         ret[jss::TRANSACTION_TYPES][jss::Invalid] = -1;
-        for (auto it = TxFormats::getInstance().begin();
-             it != TxFormats::getInstance().end();
-             ++it)
-        {
-            ret[jss::TRANSACTION_TYPES][it->getName()] = it->getType();
-        }
 
         // generate hash
         {

@@ -145,6 +145,17 @@ public:
         return formats_.end();
     }
 
+    Json::Value
+    getNamesTypes() const
+    {
+        Json::Value ret = Json::objectValue;
+
+        for (auto it = begin(); it != end(); ++it)
+            ret[it->getName()] = it->getType();
+
+        return ret;
+    }
+
 protected:
     /** Retrieve a format based on its name.
      */
