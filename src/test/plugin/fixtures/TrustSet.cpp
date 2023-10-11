@@ -20,6 +20,7 @@
 #include <ripple/basics/Log.h>
 #include <ripple/beast/core/LexicalCast.h>
 #include <ripple/ledger/View.h>
+#include <ripple/plugin/createSFields.h>
 #include <ripple/plugin/exports.h>
 #include <ripple/plugin/reset.h>
 #include <ripple/protocol/ErrorCodes.h>
@@ -113,96 +114,6 @@ fromSerialIter(int typeId, SerialIter& st)
     uint32_t val = st.get32();
     return Buffer(&val, sizeof val);
 }
-
-// helper stuff that needs to be moved to rippled
-
-template <typename T>
-int
-getSTId()
-{
-    return STI_UNKNOWN;
-}
-
-template <>
-int
-getSTId<SF_AMOUNT>()
-{
-    return STI_AMOUNT;
-}
-
-template <>
-int
-getSTId<SF_ACCOUNT>()
-{
-    return STI_ACCOUNT;
-}
-
-template <>
-int
-getSTId<SF_UINT32>()
-{
-    return STI_UINT32;
-}
-
-template <>
-int
-getSTId<STArray>()
-{
-    return STI_ARRAY;
-}
-
-template <>
-int
-getSTId<STObject>()
-{
-    return STI_OBJECT;
-}
-
-template <class T>
-T const&
-newSField(const int fieldValue, char const* fieldName)
-{
-    int const typeId = getSTId<T>();
-    if (typeId == STI_ARRAY || typeId == STI_OBJECT)
-    {
-        // TODO: merge `newSField` and `newUntypedSField` for a seamless
-        // experience
-        throw std::runtime_error(
-            "Must use `newUntypedSField` for arrays and objects");
-    }
-    if (SField const& field = SField::getField(fieldName); field != sfInvalid)
-        return static_cast<T const&>(field);
-    T const* newSField = new T(typeId, fieldValue, fieldName);
-    return *newSField;
-}
-
-template <class T>
-T const&
-newSField(const int fieldValue, std::string const fieldName)
-{
-    return newSField<T>(fieldValue, fieldName.c_str());
-}
-
-template <class T>
-SField const&
-newUntypedSField(const int fieldValue, char const* fieldName)
-{
-    if (SField const& field = SField::getField(fieldName); field != sfInvalid)
-        return field;
-    SField const* newSField = new SField(getSTId<T>(), fieldValue, fieldName);
-    return *newSField;
-}
-
-SF_PLUGINTYPE const&
-constructCustomSField(int tid, int fv, const char* fn)
-{
-    if (SField const& field = SField::getField(field_code(tid, fv));
-        field != sfInvalid)
-        return reinterpret_cast<SF_PLUGINTYPE const&>(field);
-    return *(new SF_PLUGINTYPE(tid, fv, fn));
-}
-
-// end of helper stuff
 
 SField const&
 sfFakeArray()
@@ -753,7 +664,7 @@ getTransactors()
     static TransactorExport list[] = {
         {"TrustSet2",
          50,
-         {formatPtr, 5},
+         {formatPtr, 6},
          ConsequencesFactoryType::Normal,
          NULL,
          NULL,

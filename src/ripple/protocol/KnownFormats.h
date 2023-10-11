@@ -188,7 +188,7 @@ protected:
     {
         if (auto const item = findByType(type))
         {
-            LogicError(
+            Throw<std::runtime_error>(
                 std::string("Duplicate key for item '") + name +
                 "': already maps to " + item->getName());
         }

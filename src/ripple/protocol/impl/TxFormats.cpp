@@ -447,7 +447,16 @@ TxFormats::getInstanceHelper()
     static TxFormats instance;
     if (instance.cleared)
     {
-        instance.initialize();
+        try
+        {
+            instance.initialize();
+        }
+        catch (...)
+        {
+            // If initialization errors, it shouldn't reset
+            instance.cleared = false;
+            throw;
+        }
         instance.cleared = false;
     }
     return instance;

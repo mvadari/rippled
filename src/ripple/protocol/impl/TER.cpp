@@ -219,6 +219,12 @@ initializeTransResults()
 
     for (TERExport ter : pluginTERcodes)
     {
+        if (auto const it = results.find(ter.code); it != results.end())
+        {
+            throw std::runtime_error(
+                "Code " + std::to_string(ter.code) + " already exists for " +
+                it->second.first);
+        }
         results.insert({ter.code, {ter.codeStr, ter.description}});
     }
 

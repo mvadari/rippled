@@ -106,7 +106,7 @@ public:
     }
 
     void
-    testTransactorLoading()
+    testPluginLoading()
     {
         testcase("Load Plugin Transactors");
 
@@ -464,13 +464,157 @@ public:
     }
 
     void
+    testPluginFailure()
+    {
+        testcase("Plugin Failure cases");
+
+        using namespace jtx;
+        Account const alice{"alice"};
+
+        // invalid plugin with bad transactor type
+        {
+            bool errored = false;
+            reinitialize();
+            PluginEnv env{
+                *this,
+                makeConfig("plugin_test_badtransactor.xrplugin"),
+                FeatureBitset{supported_amendments_plugins()}};
+
+            try
+            {
+                // this should crash
+                env.fund(XRP(5000), alice);
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+
+        // invalid plugin with bad ledger entry type
+        {
+            bool errored = false;
+            reinitialize();
+            try
+            {
+                // this should crash
+                PluginEnv env{
+                    *this,
+                    makeConfig("plugin_test_badledgerentry.xrplugin"),
+                    FeatureBitset{supported_amendments_plugins()}};
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+
+        // invalid plugin with bad SType ID
+        {
+            bool errored = false;
+            reinitialize();
+            try
+            {
+                // this should crash
+                PluginEnv env{
+                    *this,
+                    makeConfig("plugin_test_badstypeid.xrplugin"),
+                    FeatureBitset{supported_amendments_plugins()}};
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+
+        // invalid plugin with bad SType ID for a custom SField
+        {
+            bool errored = false;
+            reinitialize();
+            try
+            {
+                // this should crash
+                PluginEnv env{
+                    *this,
+                    makeConfig("plugin_test_badsfieldtypeid.xrplugin"),
+                    FeatureBitset{supported_amendments_plugins()}};
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+
+        // invalid plugin with bad (SType ID, Field Value) pair for a custom
+        // SField
+        {
+            bool errored = false;
+            reinitialize();
+            try
+            {
+                // this should crash
+                PluginEnv env{
+                    *this,
+                    makeConfig("plugin_test_badsfieldtypepair.xrplugin"),
+                    FeatureBitset{supported_amendments_plugins()}};
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+
+        // invalid plugin with bad TER code
+        {
+            reinitialize();
+            PluginEnv env{
+                *this,
+                makeConfig("plugin_test_badtercode.xrplugin"),
+                FeatureBitset{supported_amendments_plugins()}};
+
+            env(pay(env.master, alice, XRP(5000)), ter(tefEXCEPTION));
+        }
+
+        // invalid plugin with bad inner object format
+        {
+            bool errored = false;
+            reinitialize();
+            try
+            {
+                // this should crash
+                PluginEnv env{
+                    *this,
+                    makeConfig("plugin_test_badinnerobject.xrplugin"),
+                    FeatureBitset{supported_amendments_plugins()}};
+                BEAST_EXPECT(false);
+            }
+            catch (...)
+            {
+                errored = true;
+            }
+            BEAST_EXPECT(errored);
+        }
+    }
+
+    void
     run() override
     {
         using namespace test::jtx;
-        testTransactorLoading();
+        testPluginLoading();
         testBasicTransactor();
         testPluginSTypeSField();
         testPluginLedgerObjectInvariantCheck();
+        testPluginFailure();
     }
 };
 

@@ -32,6 +32,19 @@ std::map<std::uint16_t, PluginInnerObjectFormat> pluginInnerObjectFormats{};
 void
 registerPluginInnerObjectFormat(InnerObjectExport innerObject)
 {
+    SField const& field = SField::getField(innerObject.name);
+    if (field == sfInvalid)
+    {
+        throw std::runtime_error(
+            "Inner object SField " + std::string(innerObject.name) +
+            " does not exist");
+    }
+    if (field.fieldType != STI_OBJECT)
+    {
+        throw std::runtime_error(
+            "Inner object SField " + std::string(innerObject.name) +
+            " is not an STObject");
+    }
     auto const strName = std::string(innerObject.name);
     if (auto it = pluginInnerObjectFormats.find(innerObject.code);
         it != pluginInnerObjectFormats.end())

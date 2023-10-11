@@ -372,6 +372,14 @@ registerSType(STypeFunctions type)
         throw std::runtime_error(
             "Type code " + std::to_string(type.typeId) + " already exists");
     }
+    for (auto& it : sTypeMap)
+    {
+        if (it.second == type.typeId)
+        {
+            throw std::runtime_error(
+                "Type code " + std::to_string(type.typeId) + " already exists");
+        }
+    }
     SField::pluginSTypes.insert({type.typeId, type});
 }
 
@@ -382,14 +390,18 @@ registerSField(SFieldExport const& sfield)
 {
     if (SField const& field = SField::getField(sfield.txtName);
         field != sfInvalid)
+    {
         throw std::runtime_error(
             "SField " + std::string(sfield.txtName) + " already exists");
+    }
     if (SField const& field =
             SField::getField(field_code(sfield.typeId, sfield.fieldValue));
         field != sfInvalid)
+    {
         throw std::runtime_error(
             "SField (type " + std::to_string(sfield.typeId) + ", field value " +
             std::to_string(sfield.fieldValue) + ") already exists");
+    }
     SField::pluginSFieldCodes.push_back(
         field_code(sfield.typeId, sfield.fieldValue));
     // NOTE: there might be memory leak issues here

@@ -1128,7 +1128,6 @@ if (tests)
     target_link_libraries(plugin_test_trustset PUBLIC Ripple::xrpl_plugin)
     target_compile_options (plugin_test_trustset PUBLIC -Wno-return-type-c-linkage)
     
-
     add_library(plugin_test_escrowcreate SHARED)
     target_sources(plugin_test_escrowcreate PRIVATE 
       src/test/plugin/fixtures/EscrowCreate.cpp
@@ -1136,10 +1135,77 @@ if (tests)
     target_link_libraries(plugin_test_escrowcreate PUBLIC Ripple::xrpl_plugin)
     target_compile_options (plugin_test_escrowcreate PUBLIC -Wno-return-type-c-linkage)
 
-    set_target_properties(plugin_test_setregularkey plugin_test_trustset plugin_test_escrowcreate PROPERTIES PREFIX "" SUFFIX ".xrplugin")
+    add_library(plugin_test_badtransactor SHARED)
+    target_sources(plugin_test_badtransactor PRIVATE 
+      src/test/plugin/fixtures/SetRegularKeyBadTransactor.cpp
+    )
+    target_link_libraries(plugin_test_badtransactor PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badtransactor PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badledgerentry SHARED)
+    target_sources(plugin_test_badledgerentry PRIVATE 
+      src/test/plugin/fixtures/EscrowCreateBadLedgerEntryType.cpp
+    )
+    target_link_libraries(plugin_test_badledgerentry PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badledgerentry PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badstypeid SHARED)
+    target_sources(plugin_test_badstypeid PRIVATE 
+      src/test/plugin/fixtures/TrustSetBadSTypeID.cpp
+    )
+    target_link_libraries(plugin_test_badstypeid PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badstypeid PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badsfieldtypeid SHARED)
+    target_sources(plugin_test_badsfieldtypeid PRIVATE 
+      src/test/plugin/fixtures/TrustSetBadSFieldTypeID.cpp
+    )
+    target_link_libraries(plugin_test_badsfieldtypeid PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badsfieldtypeid PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badsfieldtypepair SHARED)
+    target_sources(plugin_test_badsfieldtypepair PRIVATE 
+      src/test/plugin/fixtures/TrustSetBadSFieldTypePair.cpp
+    )
+    target_link_libraries(plugin_test_badsfieldtypepair PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badsfieldtypepair PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badtercode SHARED)
+    target_sources(plugin_test_badtercode PRIVATE 
+      src/test/plugin/fixtures/TrustSetBadTERcode.cpp
+    )
+    target_link_libraries(plugin_test_badtercode PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badtercode PUBLIC -Wno-return-type-c-linkage)
+
+    add_library(plugin_test_badinnerobject SHARED)
+    target_sources(plugin_test_badinnerobject PRIVATE 
+      src/test/plugin/fixtures/TrustSetBadInnerObject.cpp
+    )
+    target_link_libraries(plugin_test_badinnerobject PUBLIC Ripple::xrpl_plugin)
+    target_compile_options (plugin_test_badinnerobject PUBLIC -Wno-return-type-c-linkage)
+
+    set_target_properties(
+      plugin_test_setregularkey
+      plugin_test_trustset
+      plugin_test_escrowcreate
+      plugin_test_badtransactor
+      plugin_test_badledgerentry
+      plugin_test_badstypeid
+      plugin_test_badsfieldtypeid
+      plugin_test_badsfieldtypepair
+      plugin_test_badtercode
+      plugin_test_badinnerobject
+      PROPERTIES PREFIX "" SUFFIX ".xrplugin")
     install(TARGETS plugin_test_setregularkey)
     install(TARGETS plugin_test_trustset)
     install(TARGETS plugin_test_escrowcreate)
+    install(TARGETS plugin_test_badtransactor)
+    install(TARGETS plugin_test_badledgerentry)
+    install(TARGETS plugin_test_badstypeid)
+    install(TARGETS plugin_test_badsfieldtypeid)
+    install(TARGETS plugin_test_badsfieldtypepair)
+    install(TARGETS plugin_test_badtercode)
+    install(TARGETS plugin_test_badinnerobject)
 endif () #tests
 
 target_link_libraries (rippled
