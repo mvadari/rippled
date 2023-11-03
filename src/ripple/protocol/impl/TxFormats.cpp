@@ -483,6 +483,13 @@ TxFormats::TxFormats()
         commonFields);
 
     add(jss::DIDDelete, ttDID_DELETE, {}, commonFields);
+
+    add(jss::MultisigCreate,
+        ttMULTISIG_CREATE,
+        {
+            {sfSignature, soeREQUIRED},
+        },
+        commonFields);
 }
 
 TxFormats const&

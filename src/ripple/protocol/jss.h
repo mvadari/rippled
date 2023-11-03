@@ -62,6 +62,8 @@ JSS(Asset);                // in: AMM Asset1
 JSS(Asset2);               // in: AMM Asset2
 JSS(AuthAccount);          // in: AMM Auction Slot
 JSS(AuthAccounts);         // in: AMM Auction Slot
+JSS(BidMax);               // in: AMM Bid
+JSS(BidMin);               // in: AMM Bid
 JSS(Bridge);               // ledger type.
 JSS(Check);                // ledger type.
 JSS(CheckCancel);          // transaction type.
@@ -91,8 +93,7 @@ JSS(Invalid);              //
 JSS(LastLedgerSequence);   // in: TransactionSign; field
 JSS(LedgerHashes);         // ledger type.
 JSS(LimitAmount);          // field.
-JSS(BidMax);               // in: AMM Bid
-JSS(BidMin);               // in: AMM Bid
+JSS(MultisigCreate);       // transaction type.
 JSS(NetworkID);            // field.
 JSS(NFTokenBurn);          // transaction type.
 JSS(NFTokenMint);          // transaction type.

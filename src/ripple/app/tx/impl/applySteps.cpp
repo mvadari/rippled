@@ -37,6 +37,7 @@
 #include <ripple/app/tx/impl/DeleteAccount.h>
 #include <ripple/app/tx/impl/DepositPreauth.h>
 #include <ripple/app/tx/impl/Escrow.h>
+#include <ripple/app/tx/impl/Multisig.h>
 #include <ripple/app/tx/impl/NFTokenAcceptOffer.h>
 #include <ripple/app/tx/impl/NFTokenBurn.h>
 #include <ripple/app/tx/impl/NFTokenCancelOffer.h>
@@ -95,6 +96,8 @@ with_txn_type(TxType txnType, F&& f)
             return f.template operator()<EscrowFinish>();
         case ttESCROW_CANCEL:
             return f.template operator()<EscrowCancel>();
+        case ttMULTISIG_CREATE:
+            return f.template operator()<MultisigCreate>();
         case ttPAYCHAN_CLAIM:
             return f.template operator()<PayChanClaim>();
         case ttPAYCHAN_CREATE:

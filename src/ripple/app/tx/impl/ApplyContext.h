@@ -69,6 +69,19 @@ public:
         return *view_;
     }
 
+    // MVADARI Unfortunately this is necessary
+    OpenView&
+    openView()
+    {
+        return base_;
+    }
+
+    ApplyFlags
+    flags() const
+    {
+        return flags_;
+    }
+
     /** Sets the DeliveredAmount field in the metadata */
     void
     deliver(STAmount const& amount)

@@ -190,6 +190,8 @@ enum TxType : std::uint16_t
     /** This transaction type deletes a DID */
     ttDID_DELETE = 50,
 
+    ttMULTISIG_CREATE = 51,
+
 
     /** This system-generated transaction type is used to update the status of the various amendments.
 
