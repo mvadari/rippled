@@ -83,17 +83,13 @@ MultisigCreate::doApply()
         return temINVALID;
     }
 
-    auto const preflightResult = ripple::preflight(
-        ctx_.app, ctx_.view().rules(), *stpTrans.get(), ctx_.flags(), j_);
-    if (!isTesSuccess(preflightResult.ter))
-        return preflightResult.ter;
+    auto s = std::make_shared<Serializer>();
+    stpTrans->add(*s);
 
-    auto const preclaimResult =
-        ripple::preclaim(preflightResult, ctx_.app, ctx_.openView());
-    if (!isTesSuccess(preclaimResult.ter))
-        return preclaimResult.ter;
+    ctx_.openView().rawTxInsert(
+        stpTrans->getTransactionID(), std::move(s), nullptr);
 
-    return ripple::doApply(preclaimResult, ctx_.app, ctx_.openView()).first;
+    return tesSUCCESS;
 }
 
 }  // namespace ripple
