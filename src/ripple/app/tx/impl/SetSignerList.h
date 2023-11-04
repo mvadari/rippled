@@ -46,6 +46,7 @@ private:
     enum Operation { unknown, set, destroy };
     Operation do_{unknown};
     std::uint32_t quorum_{0};
+    std::uint32_t id_{0};
     std::vector<SignerEntries::SignerEntry> signers_;
 
 public:

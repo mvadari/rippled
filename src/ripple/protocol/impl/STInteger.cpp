@@ -114,6 +114,15 @@ STUInt16::getText() const
             return item->getName();
     }
 
+    if (getFName() == sfListTransactionType)
+    {
+        auto item =
+            TxFormats::getInstance().findByType(safe_cast<TxType>(value_));
+
+        if (item != nullptr)
+            return item->getName();
+    }
+
     return std::to_string(value_);
 }
 

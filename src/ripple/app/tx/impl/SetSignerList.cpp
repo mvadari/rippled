@@ -56,6 +56,7 @@ SetSignerList::determineOperation(
     bool const hasSignerEntries(tx.isFieldPresent(sfSignerEntries));
     if (quorum && hasSignerEntries)
     {
+        op = set;
         auto signers = SignerEntries::deserialize(tx, j, "transaction");
 
         if (!signers)
@@ -65,7 +66,6 @@ SetSignerList::determineOperation(
 
         // Save deserialized list for later.
         sign = std::move(*signers);
-        op = set;
     }
     else if ((quorum == 0) && !hasSignerEntries)
     {
@@ -80,6 +80,10 @@ SetSignerList::preflight(PreflightContext const& ctx)
 {
     if (auto const ret = preflight1(ctx); !isTesSuccess(ret))
         return ret;
+
+    if (!ctx.rules.enabled(featureMultipleSignerLists) &&
+        ctx.tx.isFieldPresent(sfListTransactionType))
+        return temDISABLED;
 
     auto const result = determineOperation(ctx.tx, ctx.flags, ctx.j);
 
@@ -143,6 +147,10 @@ SetSignerList::preCompute()
     quorum_ = std::get<1>(result);
     signers_ = std::get<2>(result);
     do_ = std::get<3>(result);
+    if (ctx_.tx.isFieldPresent(sfListTransactionType))
+        id_ = ctx_.tx[sfListTransactionType] + 1;
+    else
+        id_ = 0;
 
     return Transactor::preCompute();
 }
@@ -234,6 +242,7 @@ SetSignerList::removeFromLedger(
 {
     auto const accountKeylet = keylet::account(account);
     auto const ownerDirKeylet = keylet::ownerDir(account);
+    // TODO: figure out how to include other signer lists
     auto const signerListKeylet = keylet::signers(account);
 
     return removeSignersFromLedger(
@@ -314,7 +323,7 @@ SetSignerList::replaceSignerList()
 {
     auto const accountKeylet = keylet::account(account_);
     auto const ownerDirKeylet = keylet::ownerDir(account_);
-    auto const signerListKeylet = keylet::signers(account_);
+    Keylet const signerListKeylet = keylet::signers(account_, id_);
 
     // This may be either a create or a replace.  Preemptively remove any
     // old signer list.  May reduce the reserve, so this is done before
@@ -393,7 +402,7 @@ SetSignerList::destroySignerList()
         return tecNO_ALTERNATIVE_KEY;
 
     auto const ownerDirKeylet = keylet::ownerDir(account_);
-    auto const signerListKeylet = keylet::signers(account_);
+    Keylet const signerListKeylet = keylet::signers(account_, id_);
     return removeSignersFromLedger(
         ctx_.app, view(), accountKeylet, ownerDirKeylet, signerListKeylet, j_);
 }
@@ -405,7 +414,7 @@ SetSignerList::writeSignersToSLE(
 {
     // Assign the quorum, default SignerListID, and flags.
     ledgerEntry->setFieldU32(sfSignerQuorum, quorum_);
-    ledgerEntry->setFieldU32(sfSignerListID, defaultSignerListID_);
+    ledgerEntry->setFieldU32(sfSignerListID, id_);
     if (flags)  // Only set flags if they are non-default (default is zero).
         ledgerEntry->setFieldU32(sfFlags, flags);
 

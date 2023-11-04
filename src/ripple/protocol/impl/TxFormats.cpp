@@ -248,6 +248,7 @@ TxFormats::TxFormats()
         {
             {sfSignerQuorum, soeREQUIRED},
             {sfSignerEntries, soeOPTIONAL},
+            {sfListTransactionType, soeOPTIONAL},
         },
         commonFields);
 

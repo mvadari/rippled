@@ -171,6 +171,9 @@ static ticket_t const ticket{};
 Keylet
 signers(AccountID const& account) noexcept;
 
+Keylet
+signers(AccountID const& account, std::uint32_t id) noexcept;
+
 /** A Check */
 /** @{ */
 Keylet

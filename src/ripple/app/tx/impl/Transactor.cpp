@@ -561,28 +561,13 @@ Transactor::checkSingleSign(PreclaimContext const& ctx)
     return tesSUCCESS;
 }
 
-NotTEC
-Transactor::checkMultiSign(PreclaimContext const& ctx)
+static NotTEC
+checkSignerList(
+    PreclaimContext const& ctx,
+    std::shared_ptr<STLedgerEntry const> sleSigner)
 {
-    auto const id = ctx.tx.getAccountID(sfAccount);
-    // Get mTxnAccountID's SignerList and Quorum.
-    std::shared_ptr<STLedgerEntry const> sleAccountSigners =
-        ctx.view.read(keylet::signers(id));
-    // If the signer list doesn't exist the account is not multi-signing.
-    if (!sleAccountSigners)
-    {
-        JLOG(ctx.j.trace())
-            << "applyTransaction: Invalid: Not a multi-signing account.";
-        return tefNOT_MULTI_SIGNING;
-    }
-
-    // We have plans to support multiple SignerLists in the future.  The
-    // presence and defaulted value of the SignerListID field will enable that.
-    assert(sleAccountSigners->isFieldPresent(sfSignerListID));
-    assert(sleAccountSigners->getFieldU32(sfSignerListID) == 0);
-
     auto accountSigners =
-        SignerEntries::deserialize(*sleAccountSigners, ctx.j, "ledger");
+        SignerEntries::deserialize(*sleSigner, ctx.j, "ledger");
     if (!accountSigners)
         return accountSigners.error();
 
@@ -708,7 +693,7 @@ Transactor::checkMultiSign(PreclaimContext const& ctx)
     }
 
     // Cannot perform transaction if quorum is not met.
-    if (weightSum < sleAccountSigners->getFieldU32(sfSignerQuorum))
+    if (weightSum < sleSigner->getFieldU32(sfSignerQuorum))
     {
         JLOG(ctx.j.trace())
             << "applyTransaction: Signers failed to meet quorum.";
@@ -717,6 +702,41 @@ Transactor::checkMultiSign(PreclaimContext const& ctx)
 
     // Met the quorum.  Continue.
     return tesSUCCESS;
+}
+
+NotTEC
+Transactor::checkMultiSign(PreclaimContext const& ctx)
+{
+    auto const id = ctx.tx.getAccountID(sfAccount);
+    // Get mTxnAccountID's SignerList and Quorum.
+    std::shared_ptr<STLedgerEntry const> sleAccountSigners =
+        ctx.view.read(keylet::signers(id));
+    std::shared_ptr<STLedgerEntry const> sleAccountSignersTxSpecific =
+        ctx.view.read(keylet::signers(id, ctx.tx.getTxnType() + 1));
+    // If neither signer list exists the account is not multi-signing.
+    if (!sleAccountSigners && !sleAccountSignersTxSpecific)
+    {
+        JLOG(ctx.j.trace())
+            << "applyTransaction: Invalid: Not a multi-signing account.";
+        return tefNOT_MULTI_SIGNING;
+    }
+
+    NotTEC ret;
+    // TODO: figure out how to handle different errors from the two signer lists
+    for (auto const& signers : {sleAccountSigners, sleAccountSignersTxSpecific})
+    {
+        if (signers)
+        {
+            auto signerRet = checkSignerList(ctx, signers);
+            if (isTesSuccess(signerRet))
+            {
+                return signerRet;
+            }
+            ret = signerRet;
+        }
+    }
+
+    return ret;
 }
 
 //------------------------------------------------------------------------------

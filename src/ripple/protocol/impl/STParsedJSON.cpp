@@ -296,7 +296,8 @@ parseLeaf(
                     if (!strValue.empty() &&
                         ((strValue[0] < '0') || (strValue[0] > '9')))
                     {
-                        if (field == sfTransactionType)
+                        if (field == sfTransactionType ||
+                            field == sfListTransactionType)
                         {
                             ret = detail::make_stvar<STUInt16>(
                                 field,
