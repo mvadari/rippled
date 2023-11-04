@@ -72,16 +72,7 @@ MultisigCreate::doApply()
     SerialIter sitTrans(blob);
 
     std::shared_ptr<STTx const> stpTrans;
-
-    try
-    {
-        stpTrans = std::make_shared<STTx const>(std::ref(sitTrans));
-    }
-    catch (std::exception& e)
-    {
-        JLOG(j_.trace()) << e.what();
-        return temINVALID;
-    }
+    stpTrans = std::make_shared<STTx const>(std::ref(sitTrans));
 
     auto s = std::make_shared<Serializer>();
     stpTrans->add(*s);
