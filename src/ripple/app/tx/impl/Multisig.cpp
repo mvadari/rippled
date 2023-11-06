@@ -74,13 +74,17 @@ MultisigCreate::doApply()
     std::shared_ptr<STTx const> stpTrans;
     stpTrans = std::make_shared<STTx const>(std::ref(sitTrans));
 
-    auto s = std::make_shared<Serializer>();
-    stpTrans->add(*s);
+    auto const preflightResult = ripple::preflight(
+        ctx_.app, ctx_.view().rules(), *stpTrans.get(), ctx_.flags(), j_);
+    if (!isTesSuccess(preflightResult.ter))
+        return preflightResult.ter;
 
-    ctx_.openView().rawTxInsert(
-        stpTrans->getTransactionID(), std::move(s), nullptr);
+    auto const preclaimResult =
+        ripple::preclaim(preflightResult, ctx_.app, ctx_.openView());
+    if (!isTesSuccess(preclaimResult.ter))
+        return preclaimResult.ter;
 
-    return tesSUCCESS;
+    return ripple::doApply(preclaimResult, ctx_.app, ctx_.openView()).first;
 }
 
 }  // namespace ripple
