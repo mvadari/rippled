@@ -34,6 +34,12 @@ ApplyViewImpl::apply(OpenView& to, STTx const& tx, TER ter, beast::Journal j)
     items_.apply(to, tx, ter, deliver_, j);
 }
 
+void
+ApplyViewImpl::apply(RawView& to)
+{
+    items_.apply(to);
+}
+
 std::size_t
 ApplyViewImpl::size()
 {

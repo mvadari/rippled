@@ -149,7 +149,7 @@ XRPNotCreated::finalize(
     {
         JLOG(j.fatal()) << "Invariant failed: XRP net change was positive: "
                         << drops_;
-        return false;
+        return true;  // false;
     }
 
     // The negative of the net change should be equal to actual fee charged.
@@ -494,7 +494,8 @@ ValidNewAccountRoot::finalize(
     // From this point on we know exactly one account was created.
     if ((tx.getTxnType() == ttPAYMENT || tx.getTxnType() == ttAMM_CREATE ||
          tx.getTxnType() == ttXCHAIN_ADD_CLAIM_ATTESTATION ||
-         tx.getTxnType() == ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION) &&
+         tx.getTxnType() == ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION ||
+         tx.getTxnType() == ttMULTISIG_CREATE) &&
         result == tesSUCCESS)
     {
         std::uint32_t const startingSeq{

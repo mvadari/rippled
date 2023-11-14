@@ -19,6 +19,7 @@
 
 #include <ripple/app/tx/impl/Multisig.h>
 
+#include <ripple/app/tx/impl/ApplyContext.h>
 #include <ripple/basics/Log.h>
 #include <ripple/ledger/ApplyView.h>
 #include <ripple/ledger/View.h>
@@ -84,7 +85,33 @@ MultisigCreate::doApply()
     if (!isTesSuccess(preclaimResult.ter))
         return preclaimResult.ter;
 
-    return ripple::doApply(preclaimResult, ctx_.app, ctx_.openView()).first;
+    if (preclaimResult.view.seq() != ctx_.view().seq())
+    {
+        // Logic error from the caller. Don't have enough
+        // info to recover.
+        return tefEXCEPTION;
+    }
+    try
+    {
+        if (!preclaimResult.likelyToClaimFee)
+            return preclaimResult.ter;
+        ApplyContext applyCtx(
+            ctx_.app,
+            ctx_.openView(),
+            preclaimResult.tx,
+            preclaimResult.ter,
+            calculateBaseFee(ctx_.openView(), preclaimResult.tx),
+            preclaimResult.flags,
+            j_);
+        auto const result = invoke_apply(applyCtx);
+        applyCtx.viewImpl().apply(ctx_.rawView());
+        return result.first;
+    }
+    catch (std::exception const& e)
+    {
+        JLOG(j_.fatal()) << "multisig apply: " << e.what();
+        return tefEXCEPTION;
+    }
 }
 
 }  // namespace ripple

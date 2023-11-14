@@ -24,7 +24,6 @@
 #include <ripple/app/tx/impl/AMMDeposit.h>
 #include <ripple/app/tx/impl/AMMVote.h>
 #include <ripple/app/tx/impl/AMMWithdraw.h>
-#include <ripple/app/tx/impl/ApplyContext.h>
 #include <ripple/app/tx/impl/CancelCheck.h>
 #include <ripple/app/tx/impl/CancelOffer.h>
 #include <ripple/app/tx/impl/CashCheck.h>
@@ -334,7 +333,7 @@ TxConsequences::TxConsequences(STTx const& tx, std::uint32_t sequencesConsumed)
     sequencesConsumed_ = sequencesConsumed;
 }
 
-static std::pair<TER, bool>
+std::pair<TER, bool>
 invoke_apply(ApplyContext& ctx)
 {
     try

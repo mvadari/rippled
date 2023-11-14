@@ -55,6 +55,9 @@ public:
     void
     apply(OpenView& to, STTx const& tx, TER ter, beast::Journal j);
 
+    void
+    apply(RawView& to);
+
     /** Set the amount of currency delivered.
 
         This value is used when generating metadata

@@ -76,6 +76,12 @@ public:
         return base_;
     }
 
+    ApplyViewImpl&
+    viewImpl()
+    {
+        return *view_;
+    }
+
     ApplyFlags
     flags() const
     {

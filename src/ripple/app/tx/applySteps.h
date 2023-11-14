@@ -20,6 +20,7 @@
 #ifndef RIPPLE_TX_APPLYSTEPS_H_INCLUDED
 #define RIPPLE_TX_APPLYSTEPS_H_INCLUDED
 
+#include <ripple/app/tx/impl/ApplyContext.h>
 #include <ripple/beast/utility/Journal.h>
 #include <ripple/ledger/ApplyViewImpl.h>
 
@@ -316,6 +317,9 @@ calculateBaseFee(ReadView const& view, STTx const& tx);
 */
 XRPAmount
 calculateDefaultBaseFee(ReadView const& view, STTx const& tx);
+
+std::pair<TER, bool>
+invoke_apply(ApplyContext& ctx);
 
 /** Apply a prechecked transaction to an OpenView.
 
