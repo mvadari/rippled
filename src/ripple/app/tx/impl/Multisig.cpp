@@ -95,12 +95,13 @@ MultisigCreate::doApply()
     {
         if (!preclaimResult.likelyToClaimFee)
             return preclaimResult.ter;
+        OpenView sandbox = OpenView(ctx_.openView());
         ApplyContext applyCtx(
             ctx_.app,
-            ctx_.openView(),
+            sandbox,
             preclaimResult.tx,
             preclaimResult.ter,
-            calculateBaseFee(ctx_.openView(), preclaimResult.tx),
+            calculateBaseFee(sandbox, preclaimResult.tx),
             preclaimResult.flags,
             j_);
         auto const result = invoke_apply(applyCtx);
