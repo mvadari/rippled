@@ -37,7 +37,7 @@ using namespace ripple;
 SField const&
 sfFakeArray()
 {
-    return newUntypedSField<STArray>(13, "FakeArray");
+    return newUntypedSField<STArray>(30, "FakeArray");
 }
 
 SField const&
@@ -71,7 +71,6 @@ getTransactors()
         {sfLimitAmount.getCode(), soeOPTIONAL},
         {sfQualityIn.getCode(), soeOPTIONAL},
         {sfQualityOut.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL},
         {sfFakeArray().getCode(), soeOPTIONAL},
         {sfFakeElement().getCode(), soeOPTIONAL},
     };

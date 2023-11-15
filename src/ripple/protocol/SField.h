@@ -52,6 +52,7 @@ template <class>
 class STInteger;
 class STPluginType;
 class STVector256;
+class STXChainBridge;
 
 #pragma push_macro("XMACRO")
 #undef XMACRO
@@ -86,6 +87,7 @@ class STVector256;
     STYPE(STI_UINT512, 23)                        \
     STYPE(STI_ISSUE, 24)                          \
     STYPE(STI_XCHAIN_BRIDGE, 25)                  \
+    STYPE(STI_PLUGIN_TYPE, 26)                    \
                                                   \
     /* high-level types */                        \
     /* cannot be serialized inside other types */ \
@@ -104,7 +106,7 @@ class STVector256;
 
 enum SerializedTypeID { XMACRO(TO_ENUM) };
 
-static std::map<char const*, int> const sTypeMap = {XMACRO(TO_MAP)};
+static std::map<std::string, int> const sTypeMap = {XMACRO(TO_MAP)};
 
 #undef XMACRO
 #undef TO_ENUM
@@ -291,6 +293,12 @@ public:
     static void
     reset();
 
+    static std::map<int, SField const*> const&
+    getKnownCodeToField()
+    {
+        return knownCodeToField;
+    }
+
 private:
     static int num;
     static std::map<int, SField const*> knownCodeToField;
@@ -354,6 +362,7 @@ using SF_ISSUE = TypedField<STIssue>;
 using SF_VL = TypedField<STBlob>;
 using SF_PLUGINTYPE = TypedField<STPluginType>;
 using SF_VECTOR256 = TypedField<STVector256>;
+using SF_XCHAIN_BRIDGE = TypedField<STXChainBridge>;
 
 //------------------------------------------------------------------------------
 
@@ -368,6 +377,7 @@ extern SField const sfMetadata;
 extern SF_UINT8 const sfCloseResolution;
 extern SF_UINT8 const sfMethod;
 extern SF_UINT8 const sfTransactionResult;
+extern SF_UINT8 const sfWasLockingChainSend;
 
 // 8-bit integers (uncommon)
 extern SF_UINT8 const sfTickSize;
@@ -460,6 +470,9 @@ extern SF_UINT64 const sfHookOn;
 extern SF_UINT64 const sfHookInstructionCount;
 extern SF_UINT64 const sfHookReturnCode;
 extern SF_UINT64 const sfReferenceCount;
+extern SF_UINT64 const sfXChainClaimID;
+extern SF_UINT64 const sfXChainAccountCreateCount;
+extern SF_UINT64 const sfXChainAccountClaimCount;
 
 // 128-bit
 extern SF_UINT128 const sfEmailHash;
@@ -535,6 +548,8 @@ extern SF_AMOUNT const sfLPTokenIn;
 extern SF_AMOUNT const sfBaseFeeDrops;
 extern SF_AMOUNT const sfReserveBaseDrops;
 extern SF_AMOUNT const sfReserveIncrementDrops;
+extern SF_AMOUNT const sfSignatureReward;
+extern SF_AMOUNT const sfMinAccountCreateAmount;
 
 // variable length (common)
 extern SF_VL const sfPublicKey;
@@ -551,6 +566,8 @@ extern SF_VL const sfCreateCode;
 extern SF_VL const sfMemoType;
 extern SF_VL const sfMemoData;
 extern SF_VL const sfMemoFormat;
+extern SF_VL const sfDIDDocument;
+extern SF_VL const sfData;
 
 // variable length (uncommon)
 extern SF_VL const sfFulfillment;
@@ -577,6 +594,12 @@ extern SF_ACCOUNT const sfEmitCallback;
 
 // account (uncommon)
 extern SF_ACCOUNT const sfHookAccount;
+extern SF_ACCOUNT const sfOtherChainSource;
+extern SF_ACCOUNT const sfOtherChainDestination;
+extern SF_ACCOUNT const sfAttestationSignerAccount;
+extern SF_ACCOUNT const sfAttestationRewardAccount;
+extern SF_ACCOUNT const sfLockingChainDoor;
+extern SF_ACCOUNT const sfIssuingChainDoor;
 
 // path set
 extern SField const sfPaths;
@@ -584,6 +607,11 @@ extern SField const sfPaths;
 // issue
 extern SF_ISSUE const sfAsset;
 extern SF_ISSUE const sfAsset2;
+extern SF_ISSUE const sfLockingChainIssue;
+extern SF_ISSUE const sfIssuingChainIssue;
+
+// bridge
+extern SF_XCHAIN_BRIDGE const sfXChainBridge;
 
 // vector of 256-bit
 extern SF_VECTOR256 const sfIndexes;
@@ -618,6 +646,10 @@ extern SField const sfHookExecution;
 extern SField const sfHookDefinition;
 extern SField const sfHookParameter;
 extern SField const sfHookGrant;
+extern SField const sfXChainClaimProofSig;
+extern SField const sfXChainCreateAccountProofSig;
+extern SField const sfXChainClaimAttestationCollectionElement;
+extern SField const sfXChainCreateAccountAttestationCollectionElement;
 
 // array of objects (common)
 // ARRAY/1 is reserved for end of array
@@ -640,6 +672,8 @@ extern SField const sfDisabledValidators;
 extern SField const sfHookExecutions;
 extern SField const sfHookParameters;
 extern SField const sfHookGrants;
+extern SField const sfXChainClaimAttestations;
+extern SField const sfXChainCreateAccountAttestations;
 
 //------------------------------------------------------------------------------
 

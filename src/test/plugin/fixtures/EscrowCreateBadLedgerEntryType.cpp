@@ -53,12 +53,6 @@ new_escrow(AccountID const& src, std::uint32_t seq) noexcept
 
 static uint256 newEscrowCreateAmendment;
 
-XRPAmount
-calculateBaseFee(ReadView const& view, STTx const& tx)
-{
-    return view.fees().base;
-}
-
 NotTEC
 preflight(PreflightContext const& ctx)
 {
@@ -86,16 +80,15 @@ getTransactors()
         {sfCondition.getCode(), soeOPTIONAL},
         {sfCancelAfter.getCode(), soeOPTIONAL},
         {sfFinishAfter.getCode(), soeOPTIONAL},
-        {sfDestinationTag.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL}};
+        {sfDestinationTag.getCode(), soeOPTIONAL}};
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"NewEscrowCreate",
          51,
-         {formatPtr, 7},
+         {formatPtr, 6},
          ConsequencesFactoryType::Normal,
          NULL,
-         calculateBaseFee,
+         NULL,
          preflight,
          preclaim,
          doApply,

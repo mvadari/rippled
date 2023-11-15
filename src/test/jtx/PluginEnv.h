@@ -20,7 +20,7 @@
 #ifndef RIPPLE_TEST_JTX_PLUGINENV_H_INCLUDED
 #define RIPPLE_TEST_JTX_PLUGINENV_H_INCLUDED
 
-#include <ripple/plugin/reset.h>
+#include <ripple/plugin/reset2.h>
 #include <test/jtx/Env.h>
 
 namespace ripple {
@@ -37,9 +37,9 @@ public:
         beast::unit_test::suite& suite_,
         std::unique_ptr<Config> config,
         FeatureBitset features,
+        uint256 additionalFeature = uint256{},
         std::unique_ptr<Logs> logs = nullptr,
-        beast::severities::Severity thresh = beast::severities::kError,
-        uint256 additionalFeature = uint256{})
+        beast::severities::Severity thresh = beast::severities::kError)
         : Env(suite_, std::move(config), features, std::move(logs), thresh)
     {
         if (additionalFeature != uint256{})
@@ -48,7 +48,7 @@ public:
 
     ~PluginEnv()
     {
-        resetPlugins();
+        resetAll();
     }
 };
 

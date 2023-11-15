@@ -22,6 +22,7 @@
 #include <ripple/basics/safe_cast.h>
 #include <ripple/beast/core/LexicalCast.h>
 #include <ripple/protocol/LedgerFormats.h>
+#include <ripple/protocol/SField.h>
 #include <ripple/protocol/STAccount.h>
 #include <ripple/protocol/STAmount.h>
 #include <ripple/protocol/STArray.h>
@@ -32,10 +33,13 @@
 #include <ripple/protocol/STParsedJSON.h>
 #include <ripple/protocol/STPathSet.h>
 #include <ripple/protocol/STVector256.h>
+#include <ripple/protocol/STXChainBridge.h>
 #include <ripple/protocol/TER.h>
 #include <ripple/protocol/TxFormats.h>
 #include <ripple/protocol/UintTypes.h>
+#include <ripple/protocol/XChainAttestations.h>
 #include <ripple/protocol/impl/STVar.h>
+
 #include <cassert>
 #include <charconv>
 #include <memory>
@@ -606,6 +610,19 @@ parseLeaf(
             }
             break;
 
+        case STI_XCHAIN_BRIDGE:
+            try
+            {
+                ret = detail::make_stvar<STXChainBridge>(
+                    STXChainBridge(field, value));
+            }
+            catch (std::exception const&)
+            {
+                error = invalid_data(json_name, fieldName);
+                return ret;
+            }
+            break;
+
         default:
             if (auto it = pluginLeafParserMap.find(field.fieldType);
                 it != pluginLeafParserMap.end())
@@ -828,6 +845,7 @@ parseArray(
 
             if (ret->getFName().fieldType != STI_OBJECT)
             {
+                ss << "Field type: " << ret->getFName().fieldType << " ";
                 error = non_object_in_array(ss.str(), i);
                 return std::nullopt;
             }

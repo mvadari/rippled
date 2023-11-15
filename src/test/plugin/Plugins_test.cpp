@@ -58,7 +58,7 @@ indexHash(std::uint16_t space, Args const&... args)
 }
 
 // Helper function that returns the owner count of an account root.
-std::uint32_t
+static std::uint32_t
 ownerCount(test::jtx::Env const& env, test::jtx::Account const& acct)
 {
     std::uint32_t ret{0};
@@ -190,6 +190,7 @@ public:
         jv[jss::TransactionType] = "SetRegularKey2";
         jv[jss::Account] = alice.human();
         env(jv);
+        env.close();
 
         // a transaction that actually sets the regular key of the account
         Json::Value jv2;
@@ -226,8 +227,6 @@ public:
             *this,
             makeConfig("plugin_test_trustset.xrplugin"),
             FeatureBitset{supported_amendments_plugins()},
-            nullptr,
-            beast::severities::kError,
             trustSet2Amendment};
 
         env.fund(XRP(5000), alice, bob, carol, danny);
@@ -327,9 +326,9 @@ public:
             {
                 auto const& ter =
                     jr[jss::result][jss::engine_result_code].asInt();
-                BEAST_EXPECT(ter == -256);
+                BEAST_EXPECT(ter == -210);
                 BEAST_EXPECT(
-                    jr[jss::result][jss::engine_result_code].asInt() == -256);
+                    jr[jss::result][jss::engine_result_code].asInt() == -210);
                 BEAST_EXPECT(
                     jr[jss::result][jss::engine_result_message] == "Test code");
                 BEAST_EXPECT(
@@ -358,8 +357,6 @@ public:
             *this,
             makeConfig("plugin_test_escrowcreate.xrplugin"),
             FeatureBitset{supported_amendments_plugins()},
-            nullptr,
-            beast::severities::kError,
             newEscrowCreateAmendment};
 
         env.fund(XRP(5000), alice);
@@ -368,7 +365,7 @@ public:
         BEAST_EXPECT(env.balance(alice) == XRP(5000));
         BEAST_EXPECT(env.balance(bob) == XRP(5000));
 
-        static const std::uint16_t ltNEW_ESCROW = 0x0074;
+        static const std::uint16_t ltNEW_ESCROW = 0x0001;
         static const std::uint16_t NEW_ESCROW_NAMESPACE = 't';
         auto new_escrow_keylet = [](const AccountID& src,
                                     std::uint32_t seq) noexcept -> Keylet {

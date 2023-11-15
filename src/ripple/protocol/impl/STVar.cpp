@@ -17,7 +17,10 @@
 */
 //==============================================================================
 
+#include <ripple/protocol/impl/STVar.h>
+
 #include <ripple/basics/contract.h>
+#include <ripple/protocol/XChainAttestations.h>
 #include <ripple/protocol/impl/STVar.h>
 #include <ripple/protocol/st.h>
 
@@ -151,6 +154,9 @@ STVar::STVar(SerialIter& sit, SField const& name, int depth)
         case STI_ISSUE:
             construct<STIssue>(sit, name);
             return;
+        case STI_XCHAIN_BRIDGE:
+            construct<STXChainBridge>(sit, name);
+            return;
         default:
             if (auto it = SField::pluginSTypes.find(name.fieldType);
                 it != SField::pluginSTypes.end())
@@ -219,6 +225,9 @@ STVar::STVar(int id, SField const& name)
             return;
         case STI_ISSUE:
             construct<STIssue>(name);
+            return;
+        case STI_XCHAIN_BRIDGE:
+            construct<STXChainBridge>(name);
             return;
         default:
             if (auto it = SField::pluginSTypes.find(name.fieldType);

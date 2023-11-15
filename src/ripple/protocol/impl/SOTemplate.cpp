@@ -39,12 +39,15 @@ SOTemplate::SOTemplate(
         // Make sure the field's index is in range
         //
         if (sField.getNum() <= 0 || sField.getNum() >= indices_.size())
-            Throw<std::runtime_error>("Invalid field index for SOTemplate.");
+            Throw<std::runtime_error>(
+                "Invalid field index for SOTemplate " + sField.getName() + ".");
 
         // Make sure that this field hasn't already been assigned
         //
         if (getIndex(sField) != -1)
-            Throw<std::runtime_error>("Duplicate field index for SOTemplate.");
+            Throw<std::runtime_error>(
+                "Duplicate field index for SOTemplate " + sField.getName() +
+                ".");
 
         // Add the field to the index mapping table
         //

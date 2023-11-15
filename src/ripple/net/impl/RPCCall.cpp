@@ -121,7 +121,13 @@ private:
     static Json::Value
     jvParseCurrencyIssuer(std::string const& strCurrencyIssuer)
     {
-        static boost::regex reCurIss("\\`([[:alpha:]]{3})(?:/(.+))?\\'");
+        // Matches a sequence of 3 characters from
+        // `ripple::detail::isoCharSet` (the currency),
+        // optionally followed by a forward slash and some other characters
+        // (the issuer).
+        // https://www.boost.org/doc/libs/1_82_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html
+        static boost::regex reCurIss(
+            "\\`([][:alnum:]<>(){}[|?!@#$%^&*]{3})(?:/(.+))?\\'");
 
         boost::smatch smMatch;
 
@@ -1188,6 +1194,20 @@ private:
         return jvRequest;
     }
 
+    // server_definitions [hash]
+    Json::Value
+    parseServerDefinitions(Json::Value const& jvParams)
+    {
+        Json::Value jvRequest{Json::objectValue};
+
+        if (jvParams.size() == 1)
+        {
+            jvRequest[jss::hash] = jvParams[0u].asString();
+        }
+
+        return jvRequest;
+    }
+
     // server_info [counters]
     Json::Value
     parseServerInfo(Json::Value const& jvParams)
@@ -1249,6 +1269,7 @@ public:
             {"channel_verify", &RPCParser::parseChannelVerify, 4, 4},
             {"connect", &RPCParser::parseConnect, 1, 2},
             {"consensus_info", &RPCParser::parseAsIs, 0, 0},
+            {"crawl_shards", &RPCParser::parseAsIs, 0, 2},
             {"deposit_authorized", &RPCParser::parseDepositAuthorized, 2, 3},
             {"download_shard", &RPCParser::parseDownloadShard, 2, -1},
             {"feature", &RPCParser::parseFeature, 0, 2},
@@ -1286,14 +1307,14 @@ public:
              1},
             {"peer_reservations_list", &RPCParser::parseAsIs, 0, 0},
             {"ripple_path_find", &RPCParser::parseRipplePathFind, 1, 2},
-            {"sign", &RPCParser::parseSignSubmit, 2, 3},
-            {"sign_for", &RPCParser::parseSignFor, 3, 4},
-            {"submit", &RPCParser::parseSignSubmit, 1, 3},
-            {"submit_multisigned", &RPCParser::parseSubmitMultiSigned, 1, 1},
+            {"server_definitions", &RPCParser::parseServerDefinitions, 0, 1},
             {"server_info", &RPCParser::parseServerInfo, 0, 1},
             {"server_state", &RPCParser::parseServerInfo, 0, 1},
-            {"crawl_shards", &RPCParser::parseAsIs, 0, 2},
+            {"sign", &RPCParser::parseSignSubmit, 2, 3},
+            {"sign_for", &RPCParser::parseSignFor, 3, 4},
             {"stop", &RPCParser::parseAsIs, 0, 0},
+            {"submit", &RPCParser::parseSignSubmit, 1, 3},
+            {"submit_multisigned", &RPCParser::parseSubmitMultiSigned, 1, 1},
             {"transaction_entry", &RPCParser::parseTransactionEntry, 2, 2},
             {"tx", &RPCParser::parseTx, 1, 4},
             {"tx_account", &RPCParser::parseTxAccount, 1, 7},
@@ -1451,10 +1472,11 @@ struct RPCCallImp
 //------------------------------------------------------------------------------
 
 // Used internally by rpcClient.
-static Json::Value
-rpcCmdLineToJson(
+Json::Value
+rpcCmdToJson(
     std::vector<std::string> const& args,
     Json::Value& retParams,
+    unsigned int apiVersion,
     beast::Journal j)
 {
     Json::Value jvRequest(Json::objectValue);
@@ -1472,11 +1494,11 @@ rpcCmdLineToJson(
 
     jvRequest = rpParser.parseCommand(args[0], jvRpcParams, true);
 
-    auto insert_api_version = [](Json::Value& jr) {
+    auto insert_api_version = [apiVersion](Json::Value& jr) {
         if (jr.isObject() && !jr.isMember(jss::error) &&
             !jr.isMember(jss::api_version))
         {
-            jr[jss::api_version] = RPC::apiMaximumSupportedVersion;
+            jr[jss::api_version] = apiVersion;
         }
     };
 
@@ -1489,35 +1511,6 @@ rpcCmdLineToJson(
     return jvRequest;
 }
 
-Json::Value
-cmdLineToJSONRPC(std::vector<std::string> const& args, beast::Journal j)
-{
-    Json::Value jv = Json::Value(Json::objectValue);
-    auto const paramsObj = rpcCmdLineToJson(args, jv, j);
-
-    // Re-use jv to return our formatted result.
-    jv.clear();
-
-    // Allow parser to rewrite method.
-    jv[jss::method] = paramsObj.isMember(jss::method)
-        ? paramsObj[jss::method].asString()
-        : args[0];
-
-    // If paramsObj is not empty, put it in a [params] array.
-    if (paramsObj.begin() != paramsObj.end())
-    {
-        auto& paramsArray = Json::setArray(jv, jss::params);
-        paramsArray.append(paramsObj);
-    }
-    if (paramsObj.isMember(jss::jsonrpc))
-        jv[jss::jsonrpc] = paramsObj[jss::jsonrpc];
-    if (paramsObj.isMember(jss::ripplerpc))
-        jv[jss::ripplerpc] = paramsObj[jss::ripplerpc];
-    if (paramsObj.isMember(jss::id))
-        jv[jss::id] = paramsObj[jss::id];
-    return jv;
-}
-
 //------------------------------------------------------------------------------
 
 std::pair<int, Json::Value>
@@ -1525,6 +1518,7 @@ rpcClient(
     std::vector<std::string> const& args,
     Config const& config,
     Logs& logs,
+    unsigned int apiVersion,
     std::unordered_map<std::string, std::string> const& headers)
 {
     static_assert(
@@ -1540,7 +1534,8 @@ rpcClient(
     try
     {
         Json::Value jvRpc = Json::Value(Json::objectValue);
-        jvRequest = rpcCmdLineToJson(args, jvRpc, logs.journal("RPCParser"));
+        jvRequest =
+            rpcCmdToJson(args, jvRpc, apiVersion, logs.journal("RPCParser"));
 
         if (jvRequest.isMember(jss::error))
         {
@@ -1677,7 +1672,8 @@ fromCommandLine(
     const std::vector<std::string>& vCmd,
     Logs& logs)
 {
-    auto const result = rpcClient(vCmd, config, logs);
+    auto const result =
+        rpcClient(vCmd, config, logs, RPC::apiMaximumSupportedVersion);
 
     std::cout << result.second.toStyledString();
 

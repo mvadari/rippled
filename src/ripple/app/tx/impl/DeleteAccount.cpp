@@ -17,6 +17,7 @@
 */
 //==============================================================================
 
+#include <ripple/app/tx/impl/DID.h>
 #include <ripple/app/tx/impl/DeleteAccount.h>
 #include <ripple/app/tx/impl/DepositPreauth.h>
 #include <ripple/app/tx/impl/SetSignerList.h>
@@ -126,6 +127,18 @@ removeNFTokenOfferFromLedger(
     return tesSUCCESS;
 }
 
+TER
+removeDIDFromLedger(
+    Application& app,
+    ApplyView& view,
+    AccountID const& account,
+    uint256 const& delIndex,
+    std::shared_ptr<SLE> const& sleDel,
+    beast::Journal j)
+{
+    return DIDDelete::deleteSLE(view, sleDel, account, j);
+}
+
 // Return nullptr if the LedgerEntryType represents an obligation that can't
 // be deleted.  Otherwise return the pointer to the function that can delete
 // the non-obligation
@@ -144,6 +157,8 @@ nonObligationDeleter(std::uint16_t t)
             return removeDepositPreauthFromLedger;
         case ltNFTOKEN_OFFER:
             return removeNFTokenOfferFromLedger;
+        case ltDID:
+            return removeDIDFromLedger;
         default:
             if (auto it = pluginDeleterFunctions.find(t);
                 it != pluginDeleterFunctions.end())
@@ -295,19 +310,19 @@ DeleteAccount::doApply()
         ownerDirKeylet,
         [&](std::uint16_t nodeType,
             uint256 const& dirEntry,
-            std::shared_ptr<SLE>& sleItem) -> TER {
+            std::shared_ptr<SLE>& sleItem) -> std::pair<TER, SkipEntry> {
             if (auto deleter = nonObligationDeleter(nodeType))
             {
                 TER const result{
                     deleter(ctx_.app, view(), account_, dirEntry, sleItem, j_)};
 
-                return result;
+                return {result, SkipEntry::No};
             }
 
             assert(!"Undeletable entry should be found in preclaim.");
             JLOG(j_.error()) << "DeleteAccount undeletable item not "
                                 "found in preclaim.";
-            return tecHAS_OBLIGATIONS;
+            return {tecHAS_OBLIGATIONS, SkipEntry::No};
         },
         ctx_.journal);
     if (ter != tesSUCCESS)

@@ -34,6 +34,7 @@
 #include <ripple/app/tx/impl/CreateCheck.h>
 #include <ripple/app/tx/impl/CreateOffer.h>
 #include <ripple/app/tx/impl/CreateTicket.h>
+#include <ripple/app/tx/impl/DID.h>
 #include <ripple/app/tx/impl/DeleteAccount.h>
 #include <ripple/app/tx/impl/DepositPreauth.h>
 #include <ripple/app/tx/impl/Escrow.h>
@@ -48,6 +49,7 @@
 #include <ripple/app/tx/impl/SetRegularKey.h>
 #include <ripple/app/tx/impl/SetSignerList.h>
 #include <ripple/app/tx/impl/SetTrust.h>
+#include <ripple/app/tx/impl/XChainBridge.h>
 
 namespace ripple {
 
@@ -57,6 +59,12 @@ void
 registerTxFunctions(TransactorExport transactor)
 {
     transactors.insert({transactor.txType, transactor});
+}
+
+void
+resetTxFunctions()
+{
+    transactors.clear();
 }
 
 // Templates so preflight does the right thing with T::ConsequencesFactory.
@@ -171,6 +179,27 @@ invoke_preflight(PreflightContext const& ctx)
             return invoke_preflight_helper<AMMBid>(ctx);
         case ttAMM_DELETE:
             return invoke_preflight_helper<AMMDelete>(ctx);
+        case ttXCHAIN_CREATE_BRIDGE:
+            return invoke_preflight_helper<XChainCreateBridge>(ctx);
+        case ttXCHAIN_MODIFY_BRIDGE:
+            return invoke_preflight_helper<BridgeModify>(ctx);
+        case ttXCHAIN_CREATE_CLAIM_ID:
+            return invoke_preflight_helper<XChainCreateClaimID>(ctx);
+        case ttXCHAIN_COMMIT:
+            return invoke_preflight_helper<XChainCommit>(ctx);
+        case ttXCHAIN_CLAIM:
+            return invoke_preflight_helper<XChainClaim>(ctx);
+        case ttXCHAIN_ADD_CLAIM_ATTESTATION:
+            return invoke_preflight_helper<XChainAddClaimAttestation>(ctx);
+        case ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION:
+            return invoke_preflight_helper<XChainAddAccountCreateAttestation>(
+                ctx);
+        case ttXCHAIN_ACCOUNT_CREATE_COMMIT:
+            return invoke_preflight_helper<XChainCreateAccountCommit>(ctx);
+        case ttDID_SET:
+            return invoke_preflight_helper<DIDSet>(ctx);
+        case ttDID_DELETE:
+            return invoke_preflight_helper<DIDDelete>(ctx);
         default:
             if (auto it = transactors.find(ctx.tx.getTxnType());
                 it != transactors.end())
@@ -380,6 +409,26 @@ invoke_preclaim(PreclaimContext const& ctx)
             return invoke_preclaim<AMMBid>(ctx);
         case ttAMM_DELETE:
             return invoke_preclaim<AMMDelete>(ctx);
+        case ttXCHAIN_CREATE_BRIDGE:
+            return invoke_preclaim<XChainCreateBridge>(ctx);
+        case ttXCHAIN_MODIFY_BRIDGE:
+            return invoke_preclaim<BridgeModify>(ctx);
+        case ttXCHAIN_CREATE_CLAIM_ID:
+            return invoke_preclaim<XChainCreateClaimID>(ctx);
+        case ttXCHAIN_COMMIT:
+            return invoke_preclaim<XChainCommit>(ctx);
+        case ttXCHAIN_CLAIM:
+            return invoke_preclaim<XChainClaim>(ctx);
+        case ttXCHAIN_ADD_CLAIM_ATTESTATION:
+            return invoke_preclaim<XChainAddClaimAttestation>(ctx);
+        case ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION:
+            return invoke_preclaim<XChainAddAccountCreateAttestation>(ctx);
+        case ttXCHAIN_ACCOUNT_CREATE_COMMIT:
+            return invoke_preclaim<XChainCreateAccountCommit>(ctx);
+        case ttDID_SET:
+            return invoke_preclaim<DIDSet>(ctx);
+        case ttDID_DELETE:
+            return invoke_preclaim<DIDDelete>(ctx);
         default:
             if (auto it = transactors.find(ctx.tx.getTxnType());
                 it != transactors.end())
@@ -462,6 +511,27 @@ invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
             return AMMBid::calculateBaseFee(view, tx);
         case ttAMM_DELETE:
             return AMMDelete::calculateBaseFee(view, tx);
+        case ttXCHAIN_CREATE_BRIDGE:
+            return XChainCreateBridge::calculateBaseFee(view, tx);
+        case ttXCHAIN_MODIFY_BRIDGE:
+            return BridgeModify::calculateBaseFee(view, tx);
+        case ttXCHAIN_CREATE_CLAIM_ID:
+            return XChainCreateClaimID::calculateBaseFee(view, tx);
+        case ttXCHAIN_COMMIT:
+            return XChainCommit::calculateBaseFee(view, tx);
+        case ttXCHAIN_CLAIM:
+            return XChainClaim::calculateBaseFee(view, tx);
+        case ttXCHAIN_ADD_CLAIM_ATTESTATION:
+            return XChainAddClaimAttestation::calculateBaseFee(view, tx);
+        case ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION:
+            return XChainAddAccountCreateAttestation::calculateBaseFee(
+                view, tx);
+        case ttXCHAIN_ACCOUNT_CREATE_COMMIT:
+            return XChainCreateAccountCommit::calculateBaseFee(view, tx);
+        case ttDID_SET:
+            return DIDSet::calculateBaseFee(view, tx);
+        case ttDID_DELETE:
+            return DIDDelete::calculateBaseFee(view, tx);
         default:
             if (auto it = transactors.find(tx.getTxnType());
                 it != transactors.end())
@@ -649,6 +719,46 @@ invoke_apply(ApplyContext& ctx)
         }
         case ttAMM_DELETE: {
             AMMDelete p(ctx);
+            return p();
+        }
+        case ttXCHAIN_CREATE_BRIDGE: {
+            XChainCreateBridge p(ctx);
+            return p();
+        }
+        case ttXCHAIN_MODIFY_BRIDGE: {
+            BridgeModify p(ctx);
+            return p();
+        }
+        case ttXCHAIN_CREATE_CLAIM_ID: {
+            XChainCreateClaimID p(ctx);
+            return p();
+        }
+        case ttXCHAIN_COMMIT: {
+            XChainCommit p(ctx);
+            return p();
+        }
+        case ttXCHAIN_CLAIM: {
+            XChainClaim p(ctx);
+            return p();
+        }
+        case ttXCHAIN_ADD_CLAIM_ATTESTATION: {
+            XChainAddClaimAttestation p(ctx);
+            return p();
+        }
+        case ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION: {
+            XChainAddAccountCreateAttestation p(ctx);
+            return p();
+        }
+        case ttXCHAIN_ACCOUNT_CREATE_COMMIT: {
+            XChainCreateAccountCommit p(ctx);
+            return p();
+        }
+        case ttDID_SET: {
+            DIDSet p(ctx);
+            return p();
+        }
+        case ttDID_DELETE: {
+            DIDDelete p(ctx);
             return p();
         }
         default:

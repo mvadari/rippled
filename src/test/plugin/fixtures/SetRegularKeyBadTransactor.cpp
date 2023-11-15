@@ -43,13 +43,12 @@ getTransactors()
 {
     static SOElementExport format[] = {
         {sfRegularKey.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL},
     };
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"SetRegularKey2",
          25,
-         {formatPtr, 2},
+         {formatPtr, 1},
          ConsequencesFactoryType::Normal,
          NULL,
          NULL,

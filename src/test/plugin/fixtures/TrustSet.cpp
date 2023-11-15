@@ -34,7 +34,7 @@
 
 using namespace ripple;
 
-const int STI_UINT32_2 = 28;
+const int STI_UINT32_2 = 30;
 
 Buffer
 parseLeafTypeNew(
@@ -118,7 +118,7 @@ fromSerialIter(int typeId, SerialIter& st)
 SField const&
 sfFakeArray()
 {
-    return newUntypedSField<STArray>(13, "FakeArray");
+    return newUntypedSField<STArray>(30, "FakeArray");
 }
 
 SField const&
@@ -135,7 +135,7 @@ sfQualityIn2()
 
 static uint256 trustSet2Amendment{};
 
-const int temINVALID_FLAG2 = -256;
+const int temINVALID_FLAG2 = -210;
 
 NotTEC
 preflight(PreflightContext const& ctx)
@@ -656,15 +656,14 @@ getTransactors()
         {sfLimitAmount.getCode(), soeOPTIONAL},
         {sfQualityIn2().getCode(), soeOPTIONAL},
         {sfQualityOut.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL},
         {sfFakeArray().getCode(), soeOPTIONAL},
         {sfFakeElement().getCode(), soeOPTIONAL},
     };
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"TrustSet2",
-         50,
-         {formatPtr, 6},
+         61,
+         {formatPtr, 5},
          ConsequencesFactoryType::Normal,
          NULL,
          NULL,

@@ -60,13 +60,12 @@ getTransactors()
         {sfLimitAmount.getCode(), soeOPTIONAL},
         {sfQualityIn.getCode(), soeOPTIONAL},
         {sfQualityOut.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL},
     };
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"TrustSet2",
-         50,
-         {formatPtr, 4},
+         55,
+         {formatPtr, 3},
          ConsequencesFactoryType::Normal,
          NULL,
          NULL,

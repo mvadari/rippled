@@ -35,7 +35,7 @@
 
 using namespace ripple;
 
-static const std::uint16_t ltNEW_ESCROW = 0x0074;
+static const std::uint16_t ltNEW_ESCROW = 0x0001;
 static const std::uint16_t NEW_ESCROW_NAMESPACE = 't';
 
 template <class... Args>
@@ -278,13 +278,12 @@ getTransactors()
         {sfCondition.getCode(), soeOPTIONAL},
         {sfCancelAfter.getCode(), soeOPTIONAL},
         {sfFinishAfter.getCode(), soeOPTIONAL},
-        {sfDestinationTag.getCode(), soeOPTIONAL},
-        {sfTicketSequence.getCode(), soeOPTIONAL}};
+        {sfDestinationTag.getCode(), soeOPTIONAL}};
     SOElementExport* formatPtr = format;
     static TransactorExport list[] = {
         {"NewEscrowCreate",
-         51,
-         {formatPtr, 7},
+         61,
+         {formatPtr, 6},
          ConsequencesFactoryType::Normal,
          NULL,
          calculateBaseFee,

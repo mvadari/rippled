@@ -237,6 +237,9 @@ doApply(PreclaimResult const& preclaimResult, Application& app, OpenView& view);
 void
 registerTxFunctions(TransactorExport transactor);
 
+void
+resetTxFunctions();
+
 }  // namespace ripple
 
 #endif
