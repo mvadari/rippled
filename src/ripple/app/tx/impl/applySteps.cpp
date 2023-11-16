@@ -265,44 +265,6 @@ invoke_preflight(PreflightContext const& ctx)
     }
 }
 
-/* invoke_preclaim<T> uses name hiding to accomplish
-    compile-time polymorphism of (presumably) static
-    class functions for Transactor and derived classes.
-*/
-template <class T>
-static TER
-invoke_preclaim(PreclaimContext const& ctx)
-{
-    // If the transactor requires a valid account and the transaction doesn't
-    // list one, preflight will have already a flagged a failure.
-    auto const id = ctx.tx.getAccountID(sfAccount);
-
-    if (id != beast::zero)
-    {
-        TER result = T::checkSeqProxy(ctx.view, ctx.tx, ctx.j);
-
-        if (result != tesSUCCESS)
-            return result;
-
-        result = T::checkPriorTxAndLastLedger(ctx);
-
-        if (result != tesSUCCESS)
-            return result;
-
-        result = T::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));
-
-        if (result != tesSUCCESS)
-            return result;
-
-        result = T::checkSign(ctx);
-
-        if (result != tesSUCCESS)
-            return result;
-    }
-
-    return T::preclaim(ctx);
-}
-
 static TER
 invoke_plugin_preclaim(TransactorExport t, PreclaimContext const& ctx)
 {
