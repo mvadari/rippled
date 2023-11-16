@@ -20,7 +20,8 @@
 #ifndef RIPPLE_TEST_JTX_PLUGINENV_H_INCLUDED
 #define RIPPLE_TEST_JTX_PLUGINENV_H_INCLUDED
 
-#include <ripple/plugin/reset2.h>
+#include <ripple/app/tx/applySteps.h>
+#include <ripple/plugin/reset.h>
 #include <test/jtx/Env.h>
 
 namespace ripple {
@@ -48,7 +49,8 @@ public:
 
     ~PluginEnv()
     {
-        resetAll();
+        resetPlugins();
+        resetTxFunctions();
     }
 };
 
