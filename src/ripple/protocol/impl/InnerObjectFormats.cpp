@@ -62,7 +62,8 @@ registerPluginInnerObjectFormat(InnerObjectExport innerObject)
          {strName, convertToUniqueFields(innerObject.format)}});
 }
 
-InnerObjectFormats::InnerObjectFormats()
+void
+InnerObjectFormats::initialize()
 {
     add(sfSignerEntry.jsonName.c_str(),
         sfSignerEntry.getCode(),
@@ -176,11 +177,40 @@ InnerObjectFormats::InnerObjectFormats()
         });
 }
 
+InnerObjectFormats&
+InnerObjectFormats::getInstanceHelper()
+{
+    static InnerObjectFormats instance;
+    if (instance.cleared)
+    {
+        try
+        {
+            instance.initialize();
+        }
+        catch (...)
+        {
+            // If initialization errors, it shouldn't reset
+            instance.cleared = false;
+            throw;
+        }
+        instance.cleared = false;
+    }
+    return instance;
+}
+
+void
+InnerObjectFormats::reset()
+{
+    auto& instance = getInstanceHelper();
+    instance.clear();
+    instance.cleared = true;
+    pluginInnerObjectFormats.clear();
+}
+
 InnerObjectFormats const&
 InnerObjectFormats::getInstance()
 {
-    static InnerObjectFormats instance;
-    return instance;
+    return getInstanceHelper();
 }
 
 SOTemplate const*

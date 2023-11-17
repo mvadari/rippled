@@ -23,6 +23,7 @@
 #include <ripple/app/tx/impl/InvariantCheck.h>
 #include <ripple/plugin/SField.h>
 #include <ripple/protocol/Feature.h>
+#include <ripple/protocol/InnerObjectFormats.h>
 
 namespace ripple {
 
@@ -32,6 +33,7 @@ resetPlugins()
     SField::reset();
     TxFormats::reset();
     LedgerFormats::reset();
+    InnerObjectFormats::reset();
     resetPluginInvariantChecks();
     resetPluginTERcodes();
 }
