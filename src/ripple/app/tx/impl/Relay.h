@@ -24,12 +24,12 @@
 
 namespace ripple {
 
-class MultisigCreate : public Transactor
+class Relay : public Transactor
 {
 public:
     static constexpr ConsequencesFactoryType ConsequencesFactory{Normal};
 
-    explicit MultisigCreate(ApplyContext& ctx) : Transactor(ctx)
+    explicit Relay(ApplyContext& ctx) : Transactor(ctx)
     {
     }
 

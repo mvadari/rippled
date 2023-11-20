@@ -495,7 +495,7 @@ ValidNewAccountRoot::finalize(
     if ((tx.getTxnType() == ttPAYMENT || tx.getTxnType() == ttAMM_CREATE ||
          tx.getTxnType() == ttXCHAIN_ADD_CLAIM_ATTESTATION ||
          tx.getTxnType() == ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION ||
-         tx.getTxnType() == ttMULTISIG_CREATE) &&
+         tx.getTxnType() == ttRELAY) &&
         result == tesSUCCESS)
     {
         std::uint32_t const startingSeq{

@@ -36,7 +36,6 @@
 #include <ripple/app/tx/impl/DeleteAccount.h>
 #include <ripple/app/tx/impl/DepositPreauth.h>
 #include <ripple/app/tx/impl/Escrow.h>
-#include <ripple/app/tx/impl/Multisig.h>
 #include <ripple/app/tx/impl/NFTokenAcceptOffer.h>
 #include <ripple/app/tx/impl/NFTokenBurn.h>
 #include <ripple/app/tx/impl/NFTokenCancelOffer.h>
@@ -44,6 +43,7 @@
 #include <ripple/app/tx/impl/NFTokenMint.h>
 #include <ripple/app/tx/impl/PayChan.h>
 #include <ripple/app/tx/impl/Payment.h>
+#include <ripple/app/tx/impl/Relay.h>
 #include <ripple/app/tx/impl/SetAccount.h>
 #include <ripple/app/tx/impl/SetRegularKey.h>
 #include <ripple/app/tx/impl/SetSignerList.h>
@@ -95,8 +95,8 @@ with_txn_type(TxType txnType, F&& f)
             return f.template operator()<EscrowFinish>();
         case ttESCROW_CANCEL:
             return f.template operator()<EscrowCancel>();
-        case ttMULTISIG_CREATE:
-            return f.template operator()<MultisigCreate>();
+        case ttRELAY:
+            return f.template operator()<Relay>();
         case ttPAYCHAN_CLAIM:
             return f.template operator()<PayChanClaim>();
         case ttPAYCHAN_CREATE:

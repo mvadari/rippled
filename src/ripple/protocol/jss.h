@@ -93,7 +93,6 @@ JSS(Invalid);              //
 JSS(LastLedgerSequence);   // in: TransactionSign; field
 JSS(LedgerHashes);         // ledger type.
 JSS(LimitAmount);          // field.
-JSS(MultisigCreate);       // transaction type.
 JSS(NetworkID);            // field.
 JSS(NFTokenBurn);          // transaction type.
 JSS(NFTokenMint);          // transaction type.
@@ -115,6 +114,7 @@ JSS(Payment);              // transaction type.
 JSS(PaymentChannelClaim);  // transaction type.
 JSS(PaymentChannelCreate);               // transaction type.
 JSS(PaymentChannelFund);                 // transaction type.
+JSS(Relay);                              // transaction type.
 JSS(RippleState);                        // ledger type.
 JSS(SLE_hit_rate);                       // out: GetCounts.
 JSS(SetFee);                             // transaction type.

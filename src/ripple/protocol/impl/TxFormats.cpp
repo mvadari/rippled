@@ -484,8 +484,8 @@ TxFormats::TxFormats()
 
     add(jss::DIDDelete, ttDID_DELETE, {}, commonFields);
 
-    add(jss::MultisigCreate,
-        ttMULTISIG_CREATE,
+    add(jss::Relay,
+        ttRELAY,
         {
             {sfSignature, soeREQUIRED},
         },

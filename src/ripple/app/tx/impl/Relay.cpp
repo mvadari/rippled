@@ -17,7 +17,7 @@
 */
 //==============================================================================
 
-#include <ripple/app/tx/impl/Multisig.h>
+#include <ripple/app/tx/impl/Relay.h>
 
 #include <ripple/app/tx/impl/ApplyContext.h>
 #include <ripple/basics/Log.h>
@@ -31,7 +31,7 @@
 namespace ripple {
 
 NotTEC
-MultisigCreate::preflight(PreflightContext const& ctx)
+Relay::preflight(PreflightContext const& ctx)
 {
     if (auto const ret = preflight1(ctx); !isTesSuccess(ret))
         return ret;
@@ -66,14 +66,13 @@ MultisigCreate::preflight(PreflightContext const& ctx)
 }
 
 TER
-MultisigCreate::doApply()
+applyTx(ApplyContext& ctx_, Slice const& blob, beast::Journal j_)
 {
-    auto const blob = ctx_.tx[sfSignature];
-
     SerialIter sitTrans(blob);
 
     std::shared_ptr<STTx const> stpTrans;
     stpTrans = std::make_shared<STTx const>(std::ref(sitTrans));
+    JLOG(j_.trace()) << stpTrans->getFullText();
 
     auto const preflightResult = ripple::preflight(
         ctx_.app, ctx_.view().rules(), *stpTrans.get(), ctx_.flags(), j_);
@@ -106,13 +105,34 @@ MultisigCreate::doApply()
             j_);
         auto const result = invoke_apply(applyCtx);
         applyCtx.viewImpl().apply(ctx_.rawView());
+
+        auto const sleAccount = ctx_.view().peek(
+            keylet::account(stpTrans->getAccountID(sfAccount)));
+        sleAccount->setFieldAmount(
+            sfBalance,
+            sleAccount->getFieldAmount(sfBalance) +
+                stpTrans->getFieldAmount(sfFee));
         return result.first;
     }
     catch (std::exception const& e)
     {
-        JLOG(j_.fatal()) << "multisig apply: " << e.what();
+        JLOG(j_.fatal()) << "Relay apply: " << e.what();
         return tefEXCEPTION;
     }
+}
+
+TER
+Relay::doApply()
+{
+    if (auto const ret = applyTx(ctx_, ctx_.tx[sfSignature], j_);
+        !isTesSuccess(ret))
+        return ret;
+
+    // if (auto const ret = applyTx(ctx_, ctx_.tx[sfData], j_);
+    // !isTesSuccess(ret))
+    //     return ret;
+
+    return tesSUCCESS;
 }
 
 }  // namespace ripple
