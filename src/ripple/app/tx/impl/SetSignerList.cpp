@@ -32,11 +32,6 @@
 
 namespace ripple {
 
-// We're prepared for there to be multiple signer lists in the future,
-// but we don't need them yet.  So for the time being we're manually
-// setting the sfSignerListID to zero in all cases.
-static std::uint32_t const defaultSignerListID_ = 0;
-
 std::tuple<
     NotTEC,
     std::uint32_t,
