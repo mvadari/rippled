@@ -35,11 +35,16 @@ Json::Value
 signers(
     Account const& account,
     std::uint32_t quorum,
-    std::vector<signer> const& v)
+    std::vector<signer> const& v,
+    std::optional<Json::StaticString> listTransactionType)
 {
     Json::Value jv;
     jv[jss::Account] = account.human();
     jv[jss::TransactionType] = jss::SignerListSet;
+    if (listTransactionType)
+    {
+        jv[sfListTransactionType.getJsonName()] = listTransactionType->c_str();
+    }
     jv[sfSignerQuorum.getJsonName()] = quorum;
     auto& ja = jv[sfSignerEntries.getJsonName()];
     for (std::size_t i = 0; i < v.size(); ++i)
@@ -55,11 +60,18 @@ signers(
 }
 
 Json::Value
-signers(Account const& account, none_t)
+signers(
+    Account const& account,
+    none_t,
+    std::optional<Json::StaticString> listTransactionType)
 {
     Json::Value jv;
     jv[jss::Account] = account.human();
     jv[jss::TransactionType] = jss::SignerListSet;
+    if (listTransactionType)
+    {
+        jv[sfListTransactionType.getJsonName()] = listTransactionType->c_str();
+    }
     jv[sfSignerQuorum.getJsonName()] = 0;
     return jv;
 }

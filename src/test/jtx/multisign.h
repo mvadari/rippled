@@ -51,11 +51,15 @@ Json::Value
 signers(
     Account const& account,
     std::uint32_t quorum,
-    std::vector<signer> const& v);
+    std::vector<signer> const& v,
+    std::optional<Json::StaticString> listTransactionType = std::nullopt);
 
 /** Remove a signer list. */
 Json::Value
-signers(Account const& account, none_t);
+signers(
+    Account const& account,
+    none_t,
+    std::optional<Json::StaticString> listTransactionType = std::nullopt);
 
 //------------------------------------------------------------------------------
 

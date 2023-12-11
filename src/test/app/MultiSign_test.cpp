@@ -729,7 +729,7 @@ public:
     void
     test_heterogeneousSigners(FeatureBitset features)
     {
-        testcase("Heterogenious Signers");
+        testcase("Heterogenous Signers");
 
         using namespace jtx;
         Env env{*this, features};
@@ -1668,6 +1668,64 @@ public:
     }
 
     void
+    test_multipleSignerLists(FeatureBitset features)
+    {
+        if (!features[featureMultipleSignerLists])
+            return;
+
+        testcase("MultipleSignerLists");
+
+        using namespace jtx;
+        Env env{*this, features};
+        Account const alice{"alice"};
+        Account const becky{"becky"};
+        Account const cheri{"cheri"};
+        env.fund(XRP(1000), alice);
+        env.close();
+
+        // Attach signers to alice for payment transaction
+        env(signers(alice, 4, {{becky, 3}, {cheri, 4}}, jss::AccountSet),
+            sig(alice));
+        env.close();
+        env.require(owners(alice, 1));
+
+        // Attempt a multisigned transaction that meets the quorum with the
+        // right transaction type.
+        auto const baseFee = env.current()->fees().base;
+        env(noop(alice), msig(cheri), fee(2 * baseFee));
+        env.close();
+
+        // If we don't meet the quorum the transaction should fail.
+        auto aliceSeq = env.seq(alice);
+        env(noop(alice), msig(becky), fee(2 * baseFee), ter(tefBAD_QUORUM));
+        env.close();
+        BEAST_EXPECT(env.seq(alice) == aliceSeq);
+
+        // Attempt a multisigned transaction that meets the quorum with the
+        // wrong transaction type.
+        aliceSeq = env.seq(alice);
+        env(pay(alice, cheri, XRP(20)),
+            msig(cheri),
+            fee(2 * baseFee),
+            ter(tefNOT_MULTI_SIGNING));
+        env.close();
+
+        // Remove alice's signer list and get the owner count back.
+        env(signers(alice, jtx::none, jss::AccountSet));
+        env.close();
+        env.require(owners(alice, 0));
+
+        // Attempt a multisigned transaction that meets the quorum with the
+        // right transaction type. Should fail now because signer list has been
+        // removed.
+        env(noop(alice),
+            msig(cheri),
+            fee(2 * baseFee),
+            ter(tefNOT_MULTI_SIGNING));
+        env.close();
+    }
+
+    void
     testAll(FeatureBitset features)
     {
         test_noReserve(features);
@@ -1688,6 +1746,7 @@ public:
         test_signForHash(features);
         test_signersWithTickets(features);
         test_signersWithTags(features);
+        test_multipleSignerLists(features);
     }
 
     void
@@ -1700,8 +1759,11 @@ public:
         // featureMultiSignReserve.  Limits on the number of signers
         // changes based on featureExpandedSignerList.  Test both with and
         // without.
-        testAll(all - featureMultiSignReserve - featureExpandedSignerList);
-        testAll(all - featureExpandedSignerList);
+        testAll(
+            all - featureMultiSignReserve - featureExpandedSignerList -
+            featureMultipleSignerLists);
+        testAll(all - featureExpandedSignerList - featureMultipleSignerLists);
+        testAll(all - featureMultipleSignerLists);
         testAll(all);
         test_amendmentTransition();
     }
