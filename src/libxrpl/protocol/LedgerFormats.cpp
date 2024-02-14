@@ -117,7 +117,8 @@ LedgerFormats::LedgerFormats()
         {
             {sfAccount,              soeREQUIRED},
             {sfDestination,          soeREQUIRED},
-            {sfAmount,               soeREQUIRED},
+            {sfAmount,               soeOPTIONAL},
+            {sfNFTokens,             soeOPTIONAL},
             {sfCondition,            soeOPTIONAL},
             {sfCancelAfter,          soeOPTIONAL},
             {sfFinishAfter,          soeOPTIONAL},

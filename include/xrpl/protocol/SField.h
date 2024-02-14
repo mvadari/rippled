@@ -617,6 +617,7 @@ extern SF_VECTOR256 const sfIndexes;
 extern SF_VECTOR256 const sfHashes;
 extern SF_VECTOR256 const sfAmendments;
 extern SF_VECTOR256 const sfNFTokenOffers;
+extern SF_VECTOR256 const sfNFTokenIDs;
 
 // inner object
 // OBJECT/1 is reserved for end of object
@@ -675,6 +676,7 @@ extern SField const sfHookParameters;
 extern SField const sfHookGrants;
 extern SField const sfXChainClaimAttestations;
 extern SField const sfXChainCreateAccountAttestations;
+extern SField const sfAuthAccounts;
 
 //------------------------------------------------------------------------------
 

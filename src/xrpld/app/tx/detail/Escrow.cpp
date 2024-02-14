@@ -33,6 +33,8 @@
 #include <xrpl/protocol/TxFlags.h>
 #include <xrpl/protocol/digest.h>
 #include <xrpl/protocol/st.h>
+#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpl/protocol/nft.h>
 
 // During an EscrowFinish, the transaction must specify both
 // a condition and a fulfillment. We track whether that
@@ -93,7 +95,9 @@ after(NetClock::time_point now, std::uint32_t mark)
 TxConsequences
 EscrowCreate::makeTxConsequences(PreflightContext const& ctx)
 {
-    return TxConsequences{ctx.tx, ctx.tx[sfAmount].xrp()};
+    if (ctx.tx.isFieldPresent(sfAmount))
+        return TxConsequences{ctx.tx, ctx.tx[~sfAmount]->xrp()};
+    return TxConsequences{ctx.tx, XRPAmount{0}};
 }
 
 NotTEC
@@ -105,11 +109,36 @@ EscrowCreate::preflight(PreflightContext const& ctx)
     if (auto const ret = preflight1(ctx); !isTesSuccess(ret))
         return ret;
 
-    if (!isXRP(ctx.tx[sfAmount]))
-        return temBAD_AMOUNT;
+    if (!ctx.rules.enabled(featureNFTokenEscrow) &&
+        ctx.tx.isFieldPresent(sfNFTokenIDs))
+        return temDISABLED;
 
-    if (ctx.tx[sfAmount] <= beast::zero)
-        return temBAD_AMOUNT;
+    if (!ctx.tx.isFieldPresent(sfAmount) &&
+        !ctx.tx.isFieldPresent(sfNFTokenIDs))
+        return temMALFORMED;
+
+    if (ctx.tx.isFieldPresent(sfAmount))
+    {
+        if (!isXRP(ctx.tx[sfAmount]))
+            return temBAD_AMOUNT;
+
+        if (ctx.tx[sfAmount] <= beast::zero)
+            return temBAD_AMOUNT;
+    }
+
+    if (auto const& ids = ctx.tx[~sfNFTokenIDs]; ids)
+    {
+        auto const nftokenIds = *ids;
+        if (nftokenIds.empty() || (nftokenIds.size() > maxEscrowNFTokenCount))
+            return temMALFORMED;
+
+        // In order to prevent unnecessarily overlarge transactions, we
+        // disallow duplicates in the list of offers to cancel.
+        STVector256 idsCopy = ctx.tx.getFieldV256(sfNFTokenIDs);
+        std::sort(idsCopy.begin(), idsCopy.end());
+        if (std::adjacent_find(idsCopy.begin(), idsCopy.end()) != idsCopy.end())
+            return temMALFORMED;
+    }
 
     // We must specify at least one timeout value
     if (!ctx.tx[~sfCancelAfter] && !ctx.tx[~sfFinishAfter])
@@ -165,6 +194,27 @@ EscrowCreate::preclaim(PreclaimContext const& ctx)
     if (sled->isFieldPresent(sfAMMID))
         return tecNO_PERMISSION;
 
+    {
+        auto const& ids = ctx.tx[~sfNFTokenIDs];
+        if (ids)
+        {
+            for (auto it = ids->begin(); it != ids->end(); ++it)
+            {
+                auto const nftokenId = *it;
+                auto const nftoken =
+                    nft::findToken(ctx.view, ctx.tx[sfAccount], nftokenId);
+
+                // If id is not in the ledger we assume the NFToken was
+                // moved/burned before we got here.
+                if (!nftoken)
+                    return tecNO_ENTRY;
+
+                if (!(nft::getFlags(nftokenId) & nft::flagTransferable))
+                    return tefNFTOKEN_IS_NOT_TRANSFERABLE;
+            }
+        }
+    }
+
     return tesSUCCESS;
 }
 
@@ -216,11 +266,13 @@ EscrowCreate::doApply()
         auto const reserve =
             ctx_.view().fees().accountReserve((*sle)[sfOwnerCount] + 1);
 
+        // TODO: fix reserve check if a whole page of NFTs is moved
         if (balance < reserve)
             return tecINSUFFICIENT_RESERVE;
 
-        if (balance < reserve + STAmount(ctx_.tx[sfAmount]).xrp())
-            return tecUNFUNDED;
+        if (auto amount = ctx_.tx[~sfAmount]; amount)
+            if (balance < reserve + STAmount(*amount).xrp())
+                return tecUNFUNDED;
     }
 
     // Check destination account
@@ -245,8 +297,8 @@ EscrowCreate::doApply()
     Keylet const escrowKeylet =
         keylet::escrow(account, ctx_.tx.getSeqProxy().value());
     auto const slep = std::make_shared<SLE>(escrowKeylet);
-    (*slep)[sfAmount] = ctx_.tx[sfAmount];
     (*slep)[sfAccount] = account;
+    (*slep)[~sfAmount] = ctx_.tx[~sfAmount];
     (*slep)[~sfCondition] = ctx_.tx[~sfCondition];
     (*slep)[~sfSourceTag] = ctx_.tx[~sfSourceTag];
     (*slep)[sfDestination] = ctx_.tx[sfDestination];
@@ -265,6 +317,37 @@ EscrowCreate::doApply()
         (*slep)[sfOwnerNode] = *page;
     }
 
+    // add NFTokens
+    {
+        auto const& ids = ctx_.tx[~sfNFTokenIDs];
+        if (ids)
+        {
+            STArray nftokens;
+            for (auto it = ids->begin(); it != ids->end(); ++it)
+            {
+                auto const nftokenId = *it;
+                auto tokenAndPage =
+                    nft::findTokenAndPage(ctx_.view(), account, nftokenId);
+
+                // This is checked in preclaim already, extra sanity check
+                if (!tokenAndPage)
+                    return tecINTERNAL;
+
+                auto const ret = nft::removeToken(
+                    ctx_.view(),
+                    account,
+                    nftokenId,
+                    std::move(tokenAndPage->page));
+                if (!isTesSuccess(ret))
+                    return ret;
+
+                nftokens.push_back(std::move(tokenAndPage->token));
+            }
+
+            slep->setFieldArray(sfNFTokens, nftokens);
+        }
+    }
+
     // If it's not a self-send, add escrow to recipient's owner directory.
     if (auto const dest = ctx_.tx[sfDestination]; dest != ctx_.tx[sfAccount])
     {
@@ -276,7 +359,9 @@ EscrowCreate::doApply()
     }
 
     // Deduct owner's balance, increment owner count
-    (*sle)[sfBalance] = (*sle)[sfBalance] - ctx_.tx[sfAmount];
+    if (ctx_.tx.isFieldPresent(sfAmount))
+        (*sle)[sfBalance] = (*sle)[sfBalance] - *(ctx_.tx[~sfAmount]);
+
     adjustOwnerCount(ctx_.view(), sle, 1, ctx_.journal);
     ctx_.view().update(sle);
 
@@ -496,7 +581,8 @@ EscrowFinish::doApply()
     }
 
     // Transfer amount to destination
-    (*sled)[sfBalance] = (*sled)[sfBalance] + (*slep)[sfAmount];
+    if (slep->isFieldPresent(sfAmount))
+        (*sled)[sfBalance] = (*sled)[sfBalance] + *((*slep)[~sfAmount]);
     ctx_.view().update(sled);
 
     // Adjust source owner count
@@ -582,7 +668,8 @@ EscrowCancel::doApply()
 
     // Transfer amount back to owner, decrement owner count
     auto const sle = ctx_.view().peek(keylet::account(account));
-    (*sle)[sfBalance] = (*sle)[sfBalance] + (*slep)[sfAmount];
+    if (slep->isFieldPresent(sfAmount))
+        (*sle)[sfBalance] = (*sle)[sfBalance] + *((*slep)[~sfAmount]);
     adjustOwnerCount(ctx_.view(), sle, -1, ctx_.journal);
     ctx_.view().update(sle);
 

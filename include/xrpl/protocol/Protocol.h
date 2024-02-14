@@ -134,6 +134,9 @@ std::size_t constexpr maxPriceScale = 20;
  */
 std::size_t constexpr maxTrim = 25;
 
+/** The maximum number of token offers that can be canceled at once */
+std::size_t constexpr maxEscrowNFTokenCount = 32;
+
 }  // namespace ripple
 
 #endif

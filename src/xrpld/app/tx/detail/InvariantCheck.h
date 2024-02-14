@@ -303,7 +303,7 @@ public:
  * @brief Invariant: an escrow entry must take a value between 0 and
  *                   INITIAL_XRP drops exclusive.
  */
-class NoZeroEscrow
+class NoEmptyEscrow
 {
     bool bad_ = false;
 
@@ -459,7 +459,7 @@ using InvariantChecks = std::tuple<
     XRPNotCreated,
     NoXRPTrustLines,
     NoBadOffers,
-    NoZeroEscrow,
+    NoEmptyEscrow,
     ValidNewAccountRoot,
     ValidNFTokenPage,
     NFTokenCountTracking,

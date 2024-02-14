@@ -545,7 +545,7 @@ class Invariants_test : public beast::unit_test::suite
     }
 
     void
-    testNoZeroEscrow()
+    testNoEmptyEscrow()
     {
         using namespace test::jtx;
         testcase << "no zero escrow";
@@ -662,7 +662,7 @@ public:
         testXRPBalanceCheck();
         testTransactionFeeCheck();
         testNoBadOffers();
-        testNoZeroEscrow();
+        testNoEmptyEscrow();
         testValidNewAccountRoot();
     }
 };

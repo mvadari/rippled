@@ -175,7 +175,8 @@ TxFormats::TxFormats()
         ttESCROW_CREATE,
         {
             {sfDestination, soeREQUIRED},
-            {sfAmount, soeREQUIRED},
+            {sfAmount, soeOPTIONAL},
+            {sfNFTokenIDs, soeOPTIONAL},
             {sfCondition, soeOPTIONAL},
             {sfCancelAfter, soeOPTIONAL},
             {sfFinishAfter, soeOPTIONAL},

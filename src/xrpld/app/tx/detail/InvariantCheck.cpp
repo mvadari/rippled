@@ -105,7 +105,9 @@ XRPNotCreated::visitEntry(
                     ((*before)[sfAmount] - (*before)[sfBalance]).xrp().drops();
                 break;
             case ltESCROW:
-                drops_ -= (*before)[sfAmount].xrp().drops();
+                drops_ -= before->isFieldPresent(sfAmount)
+                    ? (*before)[~sfAmount]->xrp().drops()
+                    : 0;
                 break;
             default:
                 break;
@@ -127,7 +129,9 @@ XRPNotCreated::visitEntry(
                 break;
             case ltESCROW:
                 if (!isDelete)
-                    drops_ += (*after)[sfAmount].xrp().drops();
+                    drops_ += after->isFieldPresent(sfAmount)
+                        ? (*after)[~sfAmount]->xrp().drops()
+                        : 0;
                 break;
             default:
                 break;
@@ -260,33 +264,50 @@ NoBadOffers::finalize(
 //------------------------------------------------------------------------------
 
 void
-NoZeroEscrow::visitEntry(
+NoEmptyEscrow::visitEntry(
     bool isDelete,
     std::shared_ptr<SLE const> const& before,
     std::shared_ptr<SLE const> const& after)
 {
-    auto isBad = [](STAmount const& amount) {
-        if (!amount.native())
+    auto isBad = [](std::shared_ptr<SLE const> const& sle) {
+        if (!sle->isFieldPresent(sfAmount) && !sle->isFieldPresent(sfNFTokens))
             return true;
 
-        if (amount.xrp() <= XRPAmount{0})
-            return true;
+        if (sle->isFieldPresent(sfAmount))
+        {
+            auto const amount = sle->getFieldAmount(sfAmount);
+            if (!amount.native())
+                return true;
 
-        if (amount.xrp() >= INITIAL_XRP)
-            return true;
+            if (amount.xrp() <= XRPAmount{0})
+                return true;
+
+            if (amount.xrp() >= INITIAL_XRP)
+                return true;
+        }
+
+        if (sle->isFieldPresent(sfNFTokens))
+        {
+            auto const nftokens = sle->getFieldArray(sfNFTokens);
+            if (nftokens.empty())
+                return true;
+
+            if (nftokens.size() > maxEscrowNFTokenCount)
+                return true;
+        }
 
         return false;
     };
 
     if (before && before->getType() == ltESCROW)
-        bad_ |= isBad((*before)[sfAmount]);
+        bad_ |= isBad(before);
 
     if (after && after->getType() == ltESCROW)
-        bad_ |= isBad((*after)[sfAmount]);
+        bad_ |= isBad(after);
 }
 
 bool
-NoZeroEscrow::finalize(
+NoEmptyEscrow::finalize(
     STTx const&,
     TER const,
     XRPAmount const,
