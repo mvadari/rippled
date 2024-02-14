@@ -583,6 +583,19 @@ EscrowFinish::doApply()
     // Transfer amount to destination
     if (slep->isFieldPresent(sfAmount))
         (*sled)[sfBalance] = (*sled)[sfBalance] + *((*slep)[~sfAmount]);
+    if (slep->isFieldPresent(sfNFTokens))
+        for (auto it = slep->getFieldArray(sfNFTokens).begin();
+             it != slep->getFieldArray(sfNFTokens).end();
+             ++it)
+        {
+            auto nftoken = *it;
+
+            auto const ret =
+                nft::insertToken(ctx_.view(), destID, std::move(nftoken));
+            if (!isTesSuccess(ret))
+                return ret;
+        }
+
     ctx_.view().update(sled);
 
     // Adjust source owner count
@@ -670,6 +683,18 @@ EscrowCancel::doApply()
     auto const sle = ctx_.view().peek(keylet::account(account));
     if (slep->isFieldPresent(sfAmount))
         (*sle)[sfBalance] = (*sle)[sfBalance] + *((*slep)[~sfAmount]);
+    if (slep->isFieldPresent(sfNFTokens))
+        for (auto it = slep->getFieldArray(sfNFTokens).begin();
+             it != slep->getFieldArray(sfNFTokens).end();
+             ++it)
+        {
+            auto nftoken = *it;
+
+            auto const ret =
+                nft::insertToken(ctx_.view(), account, std::move(nftoken));
+            if (!isTesSuccess(ret))
+                return ret;
+        }
     adjustOwnerCount(ctx_.view(), sle, -1, ctx_.journal);
     ctx_.view().update(sle);
 
