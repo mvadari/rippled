@@ -237,6 +237,36 @@ setMinter(jtx::Account const& account, jtx::Account const& minter);
 Json::Value
 clearMinter(jtx::Account const& account);
 
+/** Sets the optional NFTokenIDs field when creating NFToken Escrows. */
+class nftokenIds
+{
+private:
+    std::vector<uint256> nftokenIds_;
+
+public:
+    explicit nftokenIds(std::vector<uint256> const& ids) : nftokenIds_({})
+    {
+        nftokenIds_.resize(ids.size());
+        std::transform(
+            ids.begin(), ids.end(), nftokenIds_.begin(), [](uint256 id) {
+                return id;
+            });
+    }
+
+    explicit nftokenIds(std::initializer_list<uint256> const& ids)
+        : nftokenIds_({})
+    {
+        nftokenIds_.resize(ids.size());
+        std::transform(
+            ids.begin(), ids.end(), nftokenIds_.begin(), [](uint256 id) {
+                return id;
+            });
+    }
+
+    void
+    operator()(Env&, JTx& jtx) const;
+};
+
 }  // namespace token
 
 }  // namespace jtx

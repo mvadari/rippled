@@ -232,6 +232,17 @@ clearMinter(jtx::Account const& account)
     return fclear(account, asfAuthorizedNFTokenMinter);
 }
 
+void
+nftokenIds::operator()(Env& env, JTx& jt) const
+{
+    if (!empty(nftokenIds_))
+    {
+        jt[sfNFTokenIDs.jsonName] = Json::arrayValue;
+        for (uint256 const& nftokenId : nftokenIds_)
+            jt[sfNFTokenIDs.jsonName].append(to_string(nftokenId));
+    }
+}
+
 }  // namespace token
 }  // namespace jtx
 }  // namespace test

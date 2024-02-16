@@ -209,6 +209,16 @@ expectLedgerEntryRoot(
 /******************************************************************************/
 
 Json::Value
+escrow(AccountID const& account, AccountID const& to)
+{
+    Json::Value jv;
+    jv[jss::TransactionType] = jss::EscrowCreate;
+    jv[jss::Account] = to_string(account);
+    jv[jss::Destination] = to_string(to);
+    return jv;
+}
+
+Json::Value
 escrow(AccountID const& account, AccountID const& to, STAmount const& amount)
 {
     Json::Value jv;

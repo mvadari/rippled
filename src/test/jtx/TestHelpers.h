@@ -222,7 +222,16 @@ expectLedgerEntryRoot(
 /******************************************************************************/
 
 Json::Value
+escrow(AccountID const& account, AccountID const& to);
+
+Json::Value
 escrow(AccountID const& account, AccountID const& to, STAmount const& amount);
+
+inline Json::Value
+escrow(Account const& account, Account const& to)
+{
+    return escrow(account.id(), to.id());
+}
 
 inline Json::Value
 escrow(Account const& account, Account const& to, STAmount const& amount)

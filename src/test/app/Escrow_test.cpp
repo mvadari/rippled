@@ -31,6 +31,47 @@
 namespace ripple {
 namespace test {
 
+// Helper function that returns the owner count of an account root.
+static std::uint32_t
+ownerCount(test::jtx::Env const& env, test::jtx::Account const& acct)
+{
+    std::uint32_t ret{0};
+    if (auto const sleAcct = env.le(acct))
+        ret = sleAcct->at(sfOwnerCount);
+    return ret;
+}
+
+// Helper function that returns the number of NFTs minted by an issuer.
+static std::uint32_t
+mintedCount(test::jtx::Env const& env, test::jtx::Account const& issuer)
+{
+    std::uint32_t ret{0};
+    if (auto const sleIssuer = env.le(issuer))
+        ret = sleIssuer->at(~sfMintedNFTokens).value_or(0);
+    return ret;
+}
+
+// Helper function that returns the number of an issuer's burned NFTs.
+static std::uint32_t
+burnedCount(test::jtx::Env const& env, test::jtx::Account const& issuer)
+{
+    std::uint32_t ret{0};
+    if (auto const sleIssuer = env.le(issuer))
+        ret = sleIssuer->at(~sfBurnedNFTokens).value_or(0);
+    return ret;
+}
+
+// Helper function that returns the number of nfts owned by an account.
+static std::uint32_t
+nftCount(test::jtx::Env& env, test::jtx::Account const& acct)
+{
+    Json::Value params;
+    params[jss::account] = acct.human();
+    params[jss::type] = "state";
+    Json::Value nfts = env.rpc("json", "account_nfts", to_string(params));
+    return nfts[jss::result][jss::account_nfts].size();
+};
+
 struct Escrow_test : public beast::unit_test::suite
 {
     // A PreimageSha256 fulfillments and its associated condition.
@@ -1509,6 +1550,104 @@ struct Escrow_test : public beast::unit_test::suite
     }
 
     void
+    testNFTokenEscrows()
+    {
+        testcase("Escrows with NFTokens");
+
+        using namespace jtx;
+        using namespace std::chrono;
+
+        Account const& alice{"alice"};
+        Account const& bob{"bob"};
+        Account const& charlie{"charlie"};
+
+        // disabled
+        {
+            Env env{*this, supported_amendments() - featureNFTokenEscrow};
+            Account const& master = env.master;
+            uint256 const nftId{token::getNextID(env, master, 0u)};
+
+            // just NFT escrow
+            env(escrow(master, alice),
+                token::nftokenIds({nftId}),
+                finish_time(env.now() + 5s),
+                ter(temDISABLED));
+
+            // NFT and Amount escrow
+            env(escrow(master, alice, XRPAmount{1000}),
+                token::nftokenIds({nftId}),
+                finish_time(env.now() + 5s),
+                ter(temDISABLED));
+        }
+
+        Env env(*this);
+        env.fund(XRP(5000), alice, bob, charlie);
+        env.close();
+
+        uint256 const nftId{token::getNextID(env, alice, 0u)};
+
+        // No Amount or NFTokenIDs
+        env(escrow(alice, bob), finish_time(env.now() + 5s), ter(temMALFORMED));
+
+        // Empty NFTokenIDs
+        {
+            Json::Value jt = escrow(alice, bob);
+            jt[sfNFTokenIDs.jsonName] = Json::arrayValue;
+            env(jt, finish_time(env.now() + 5s), ter(temMALFORMED));
+        }
+
+        // Repeat NFTokenIDs
+        env(escrow(alice, bob),
+            token::nftokenIds({nftId, nftId}),
+            finish_time(env.now() + 5s),
+            ter(temMALFORMED));
+
+        // TODO: add test for too many NFTs
+
+        // NFT doesn't exist
+        env(escrow(alice, bob),
+            token::nftokenIds({nftId}),
+            finish_time(env.now() + 5s),
+            ter(tecNO_ENTRY));
+
+        // create an NFT
+        env(token::mint(alice, 0u));
+        env.close();
+
+        BEAST_EXPECT(ownerCount(env, alice) == 1);
+        BEAST_EXPECT(mintedCount(env, alice) == 1);
+
+        uint256 const nftId2{token::getNextID(env, alice, 0u, tfTransferable)};
+
+        // NFT owned by someone else
+        env(escrow(charlie, bob),
+            token::nftokenIds({nftId}),
+            finish_time(env.now() + 5s),
+            ter(tecNO_ENTRY));
+
+        // One NFT doesn't exist
+        env(escrow(alice, bob),
+            token::nftokenIds({nftId, nftId2}),
+            finish_time(env.now() + 5s),
+            ter(tecNO_ENTRY));
+
+        // NFT isn't transferable
+        env(escrow(alice, bob),
+            token::nftokenIds({nftId}),
+            finish_time(env.now() + 5s),
+            ter(tefNFTOKEN_IS_NOT_TRANSFERABLE));
+
+        // create a transferrable NFT
+        env(token::mint(alice, 0u), txflags(tfTransferable));
+        env.close();
+
+        // success
+        env(escrow(alice, bob),
+            token::nftokenIds({nftId2}),
+            finish_time(env.now() + 5s));
+    }
+
+    void
     run() override
     {
         testEnablement();
@@ -1522,6 +1661,7 @@ struct Escrow_test : public beast::unit_test::suite
         testMetaAndOwnership();
         testConsequences();
         testEscrowWithTickets();
+        testNFTokenEscrows();
     }
 };
 
