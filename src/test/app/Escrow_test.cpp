@@ -1584,7 +1584,7 @@ struct Escrow_test : public beast::unit_test::suite
         env.fund(XRP(5000), alice, bob, charlie);
         env.close();
 
-        uint256 const nftId{token::getNextID(env, alice, 0u)};
+        uint256 const nonexistentNftId{token::getNextID(env, alice, 0u)};
 
         // No Amount or NFTokenIDs
         env(escrow(alice, bob), finish_time(env.now() + 5s), ter(temMALFORMED));
@@ -1598,7 +1598,7 @@ struct Escrow_test : public beast::unit_test::suite
 
         // Repeat NFTokenIDs
         env(escrow(alice, bob),
-            token::nftokenIds({nftId, nftId}),
+            token::nftokenIds({nonexistentNftId, nonexistentNftId}),
             finish_time(env.now() + 5s),
             ter(temMALFORMED));
 
@@ -1606,9 +1606,11 @@ struct Escrow_test : public beast::unit_test::suite
 
         // NFT doesn't exist
         env(escrow(alice, bob),
-            token::nftokenIds({nftId}),
+            token::nftokenIds({nonexistentNftId}),
             finish_time(env.now() + 5s),
             ter(tecNO_ENTRY));
+
+        uint256 const untransferableNftId{token::getNextID(env, alice, 0u)};
 
         // create an NFT
         env(token::mint(alice, 0u));
@@ -1616,24 +1618,31 @@ struct Escrow_test : public beast::unit_test::suite
 
         BEAST_EXPECT(ownerCount(env, alice) == 1);
         BEAST_EXPECT(mintedCount(env, alice) == 1);
+        BEAST_EXPECT(nftCount(env, alice) == 1);
 
-        uint256 const nftId2{token::getNextID(env, alice, 0u, tfTransferable)};
+        uint256 const nftId{token::getNextID(env, alice, 0u, tfTransferable)};
 
         // NFT owned by someone else
         env(escrow(charlie, bob),
-            token::nftokenIds({nftId}),
+            token::nftokenIds({untransferableNftId}),
             finish_time(env.now() + 5s),
             ter(tecNO_ENTRY));
 
-        // One NFT doesn't exist
+        // The first NFT doesn't exist
         env(escrow(alice, bob),
-            token::nftokenIds({nftId, nftId2}),
+            token::nftokenIds({nftId, untransferableNftId}),
             finish_time(env.now() + 5s),
             ter(tecNO_ENTRY));
 
         // NFT isn't transferable
         env(escrow(alice, bob),
-            token::nftokenIds({nftId}),
+            token::nftokenIds({untransferableNftId}),
+            finish_time(env.now() + 5s),
+            ter(tefNFTOKEN_IS_NOT_TRANSFERABLE));
+
+        // The first NFT isn't transferable
+        env(escrow(alice, bob),
+            token::nftokenIds({untransferableNftId, nftId}),
             finish_time(env.now() + 5s),
             ter(tefNFTOKEN_IS_NOT_TRANSFERABLE));
 
@@ -1641,10 +1650,26 @@ struct Escrow_test : public beast::unit_test::suite
         env(token::mint(alice, 0u), txflags(tfTransferable));
         env.close();
 
+        BEAST_EXPECT(ownerCount(env, alice) == 1);
+        BEAST_EXPECT(mintedCount(env, alice) == 2);
+        BEAST_EXPECT(burnedCount(env, alice) == 0);
+        BEAST_EXPECT(nftCount(env, alice) == 2);
+
         // success
         env(escrow(alice, bob),
-            token::nftokenIds({nftId2}),
+            token::nftokenIds({nftId}),
             finish_time(env.now() + 5s));
+
+        // Alice should no longer own the NFT, but she should own an escrow
+        BEAST_EXPECT(ownerCount(env, alice) == 2);
+        BEAST_EXPECT(mintedCount(env, alice) == 2);
+        BEAST_EXPECT(burnedCount(env, alice) == 0);
+        BEAST_EXPECT(nftCount(env, alice) == 1);
+
+        // Bob should not own the NFT either
+        BEAST_EXPECT(ownerCount(env, bob) == 0);
+        BEAST_EXPECT(mintedCount(env, bob) == 0);
+        BEAST_EXPECT(nftCount(env, bob) == 0);
     }
 
     void

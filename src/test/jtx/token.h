@@ -241,26 +241,12 @@ clearMinter(jtx::Account const& account);
 class nftokenIds
 {
 private:
-    std::vector<uint256> nftokenIds_;
+    std::initializer_list<uint256> const& nftokenIds_;
 
 public:
-    explicit nftokenIds(std::vector<uint256> const& ids) : nftokenIds_({})
+    explicit nftokenIds(std::initializer_list<uint256> const& ids = {})
+        : nftokenIds_(ids)
     {
-        nftokenIds_.resize(ids.size());
-        std::transform(
-            ids.begin(), ids.end(), nftokenIds_.begin(), [](uint256 id) {
-                return id;
-            });
-    }
-
-    explicit nftokenIds(std::initializer_list<uint256> const& ids)
-        : nftokenIds_({})
-    {
-        nftokenIds_.resize(ids.size());
-        std::transform(
-            ids.begin(), ids.end(), nftokenIds_.begin(), [](uint256 id) {
-                return id;
-            });
     }
 
     void
