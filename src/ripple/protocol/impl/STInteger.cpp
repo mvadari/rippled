@@ -105,16 +105,7 @@ STUInt16::getText() const
             return item->getName();
     }
 
-    if (getFName() == sfTransactionType)
-    {
-        auto item =
-            TxFormats::getInstance().findByType(safe_cast<TxType>(value_));
-
-        if (item != nullptr)
-            return item->getName();
-    }
-
-    if (getFName() == sfListTransactionType)
+    if (getFName() == sfTransactionType || getFName() == sfListTransactionType)
     {
         auto item =
             TxFormats::getInstance().findByType(safe_cast<TxType>(value_));
@@ -138,7 +129,7 @@ Json::Value STUInt16::getJson(JsonOptions) const
             return item->getName();
     }
 
-    if (getFName() == sfTransactionType)
+    if (getFName() == sfTransactionType || getFName() == sfListTransactionType)
     {
         auto item =
             TxFormats::getInstance().findByType(safe_cast<TxType>(value_));
