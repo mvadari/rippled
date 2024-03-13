@@ -390,6 +390,7 @@ CONSTRUCT_UNTYPED_SFIELD(sfXChainCreateAccountAttestationCollectionElement,
                                                  "XChainCreateAccountAttestationCollectionElement",
                                                                         OBJECT,    31);
 CONSTRUCT_UNTYPED_SFIELD(sfPriceData,            "PriceData",           OBJECT,    32);
+CONSTRUCT_UNTYPED_SFIELD(sfSponsor,              "Sponsor",             OBJECT,    33);
 
 // array of objects
 //                                                                            ARRAY/1 is reserved for end of array

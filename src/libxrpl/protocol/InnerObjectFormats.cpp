@@ -147,6 +147,15 @@ InnerObjectFormats::InnerObjectFormats()
             {sfAssetPrice, soeOPTIONAL},
             {sfScale, soeDEFAULT},
         });
+
+    add(sfSponsor.jsonName.c_str(),
+        sfSponsor.getCode(),
+        {
+            {sfAccount, soeREQUIRED},
+            {sfFlags, soeREQUIRED},
+            {sfSignature, soeOPTIONAL},
+            {sfSigners, soeOPTIONAL},
+        });
 }
 
 InnerObjectFormats const&

@@ -32,6 +32,7 @@
 #include <xrpl/protocol/Indexes.h>
 #include <xrpl/protocol/Protocol.h>
 #include <xrpl/protocol/STAccount.h>
+#include <xrpl/protocol/TxFlags.h>
 #include <xrpl/protocol/UintTypes.h>
 
 namespace ripple {
@@ -88,6 +89,11 @@ preflight1(PreflightContext const& ctx)
         return temMALFORMED;
     }
 
+    if (ctx.tx.isFieldPresent(sfSponsor) && !ctx.rules.enabled(featureSponsor))
+    {
+        return temDISABLED;
+    }
+
     auto const ret = preflight0(ctx);
     if (!isTesSuccess(ret))
         return ret;
@@ -124,6 +130,29 @@ preflight1(PreflightContext const& ctx)
     if (ctx.tx.getSeqProxy().isTicket() &&
         ctx.tx.isFieldPresent(sfAccountTxnID))
         return temINVALID;
+
+    // Sponsor checks
+    if (ctx.tx.isFieldPresent(sfSponsor))
+    {
+        auto const sponsor = ctx.tx.getFieldObject(sfSponsor);
+        if (sponsor[sfAccount] == ctx.tx[sfAccount])
+        {
+            JLOG(ctx.j.debug()) << "preflight1: invalid sponsor account";
+            return temMALFORMED;
+        }
+        if (!(sponsor[sfFlags] & tfSponsorFee) &&
+            !(sponsor[sfFlags] & tfSponsorReserve))
+        {
+            JLOG(ctx.j.debug()) << "preflight1: invalid sponsor flags";
+            return temMALFORMED;
+        }
+        if (!sponsor.isFieldPresent(sfSignature) &&
+            !sponsor.isFieldPresent(sfSigners))
+        {
+            JLOG(ctx.j.debug()) << "preflight1: no sfSignature or sfSigners";
+            return temMALFORMED;
+        }
+    }
 
     return tesSUCCESS;
 }
@@ -217,7 +246,8 @@ Transactor::checkFee(PreclaimContext const& ctx, XRPAmount baseFee)
     if (feePaid == beast::zero)
         return tesSUCCESS;
 
-    auto const id = ctx.tx.getAccountID(sfAccount);
+    auto const id = ctx.tx.getFeePayer();
+    JLOG(ctx.j.trace()) << "Fee payer: " + to_string(id);
     auto const sle = ctx.view.read(keylet::account(id));
     if (!sle)
         return terNO_ACCOUNT;
@@ -247,12 +277,22 @@ Transactor::payFee()
 {
     auto const feePaid = ctx_.tx[sfFee].xrp();
 
-    auto const sle = view().peek(keylet::account(account_));
+    auto const id = ctx_.tx.getFeePayer();
+    auto const sle = view().peek(keylet::account(id));
+    JLOG(j_.trace()) << "Fee payer: " + to_string(id);
     if (!sle)
         return tefINTERNAL;
 
     // Deduct the fee, so it's not available during the transaction.
     // Will only write the account back if the transaction succeeds.
+
+    if (id != account_)  // sponsor
+    {
+        sle->setFieldAmount(
+            sfBalance, sle->getFieldAmount(sfBalance) - feePaid);
+        view().update(sle);
+        return tesSUCCESS;
+    }
 
     mSourceBalance -= feePaid;
     sle->setFieldAmount(sfBalance, mSourceBalance);
@@ -483,6 +523,11 @@ Transactor::checkSign(PreclaimContext const& ctx)
     // If the pk is empty, then we must be multi-signing.
     if (ctx.tx.getSigningPubKey().empty())
         return checkMultiSign(ctx);
+
+    // if (ctx.tx.isFieldPresent(sfSponsor))
+    // {
+    //     // TODO: check the sponsor signature
+    // }
 
     return checkSingleSign(ctx);
 }

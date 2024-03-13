@@ -59,6 +59,10 @@ constexpr std::uint32_t tfFullyCanonicalSig                = 0x80000000;
 constexpr std::uint32_t tfUniversal                        = tfFullyCanonicalSig;
 constexpr std::uint32_t tfUniversalMask                    = ~tfUniversal;
 
+// Sponsor flags:
+constexpr std::uint32_t tfSponsorFee                       = 0x00000001;
+constexpr std::uint32_t tfSponsorReserve                   = 0x00000002;
+
 // AccountSet flags:
 constexpr std::uint32_t tfRequireDestTag                   = 0x00010000;
 constexpr std::uint32_t tfOptionalDestTag                  = 0x00020000;

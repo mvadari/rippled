@@ -195,6 +195,19 @@ STTx::getSeqProxy() const
     return SeqProxy{SeqProxy::ticket, *ticketSeq};
 }
 
+AccountID
+STTx::getFeePayer() const
+{
+    if (isFieldPresent(sfSponsor))
+    {
+        if (getFieldObject(sfSponsor)[sfFlags] & tfSponsorFee)
+        {
+            return getFieldObject(sfSponsor)[sfAccount];
+        }
+    }
+    return getAccountID(sfAccount);
+}
+
 void
 STTx::sign(PublicKey const& publicKey, SecretKey const& secretKey)
 {

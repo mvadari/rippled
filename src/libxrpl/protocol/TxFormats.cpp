@@ -45,6 +45,7 @@ TxFormats::TxFormats()
         {sfTxnSignature, soeOPTIONAL},
         {sfSigners, soeOPTIONAL},  // submit_multisigned
         {sfNetworkID, soeOPTIONAL},
+        {sfSponsor, soeOPTIONAL},
     };
 
     add(jss::AccountSet,
