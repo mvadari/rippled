@@ -405,6 +405,8 @@ extern SF_UINT32 const sfWalletSize;
 extern SF_UINT32 const sfOwnerCount;
 extern SF_UINT32 const sfDestinationTag;
 extern SF_UINT32 const sfLastUpdateTime;
+extern SF_UINT32 const sfSponsoredOwnerCount;
+extern SF_UINT32 const sfSponsoringOwnerCount;
 
 // 32-bit integers (uncommon)
 extern SF_UINT32 const sfHighQualityIn;
@@ -586,6 +588,7 @@ extern SF_ACCOUNT const sfUnauthorize;
 extern SF_ACCOUNT const sfRegularKey;
 extern SF_ACCOUNT const sfNFTokenMinter;
 extern SF_ACCOUNT const sfEmitCallback;
+extern SF_ACCOUNT const sfSponsorAccount;
 
 // account (uncommon)
 extern SF_ACCOUNT const sfHookAccount;

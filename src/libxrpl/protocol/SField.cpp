@@ -167,6 +167,8 @@ CONSTRUCT_TYPED_SFIELD(sfEmitGeneration,        "EmitGeneration",       UINT32, 
 CONSTRUCT_TYPED_SFIELD(sfVoteWeight,            "VoteWeight",           UINT32,    48);
 CONSTRUCT_TYPED_SFIELD(sfFirstNFTokenSequence,  "FirstNFTokenSequence", UINT32,    50);
 CONSTRUCT_TYPED_SFIELD(sfOracleDocumentID,      "OracleDocumentID",     UINT32,    51);
+CONSTRUCT_TYPED_SFIELD(sfSponsoredOwnerCount,   "SponsoredOwnerCount",  UINT32,    52);
+CONSTRUCT_TYPED_SFIELD(sfSponsoringOwnerCount,  "SponsoringOwnerCount", UINT32,    53);
 
 // 64-bit integers (common)
 CONSTRUCT_TYPED_SFIELD(sfIndexNext,             "IndexNext",            UINT64,     1);
@@ -318,6 +320,7 @@ CONSTRUCT_TYPED_SFIELD(sfUnauthorize,           "Unauthorize",          ACCOUNT,
 CONSTRUCT_TYPED_SFIELD(sfRegularKey,            "RegularKey",           ACCOUNT,    8);
 CONSTRUCT_TYPED_SFIELD(sfNFTokenMinter,         "NFTokenMinter",        ACCOUNT,    9);
 CONSTRUCT_TYPED_SFIELD(sfEmitCallback,          "EmitCallback",         ACCOUNT,   10);
+CONSTRUCT_TYPED_SFIELD(sfSponsorAccount,        "SponsorAccount",       ACCOUNT,   11);
 
 // account (uncommon)
 CONSTRUCT_TYPED_SFIELD(sfHookAccount,           "HookAccount",          ACCOUNT,   16);

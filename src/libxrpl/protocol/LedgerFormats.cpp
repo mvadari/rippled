@@ -31,6 +31,7 @@ LedgerFormats::LedgerFormats()
         {sfLedgerIndex,              soeOPTIONAL},
         {sfLedgerEntryType,          soeREQUIRED},
         {sfFlags,                    soeREQUIRED},
+        {sfSponsorAccount,           soeOPTIONAL},
     };
 
     add(jss::AccountRoot,
@@ -57,6 +58,8 @@ LedgerFormats::LedgerFormats()
             {sfBurnedNFTokens,       soeDEFAULT},
             {sfFirstNFTokenSequence, soeOPTIONAL},
             {sfAMMID,                soeOPTIONAL},
+            {sfSponsoredOwnerCount,  soeOPTIONAL},
+            {sfSponsoringOwnerCount, soeOPTIONAL},
         },
         commonFields);
 
