@@ -299,6 +299,31 @@ adjustOwnerCount(
         view, view.peek(keylet::account(account)), amount, j);
 }
 
+/** Adjust the sponsored/sponsoring count up or down. */
+void
+adjustSponsorCount(
+    ApplyView& view,
+    std::shared_ptr<SLE> const& sponsee,
+    std::shared_ptr<SLE> const& sponsor,
+    std::int32_t amount,
+    beast::Journal j);
+
+inline void
+adjustSponsorCount(
+    ApplyView& view,
+    AccountID const& sponsee,
+    AccountID const& sponsor,
+    std::int32_t amount,
+    beast::Journal j)
+{
+    return adjustSponsorCount(
+        view,
+        view.peek(keylet::account(sponsee)),
+        view.peek(keylet::account(sponsor)),
+        amount,
+        j);
+}
+
 /** @{ */
 /** Returns the first entry in the directory, advancing the index
 
@@ -365,6 +390,15 @@ dirNext(
 
 [[nodiscard]] std::function<void(SLE::ref)>
 describeOwnerDir(AccountID const& account);
+
+// Add a SLE
+TER
+addSLE(
+    ApplyView& view,
+    std::shared_ptr<SLE> const& sle,
+    AccountID const& owner,
+    std::optional<AccountID> const& sponsor,
+    beast::Journal j);
 
 // VFALCO NOTE Both STAmount parameters should just
 //             be "Amount", a unit-less number.

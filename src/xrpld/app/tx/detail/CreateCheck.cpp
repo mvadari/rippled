@@ -202,7 +202,12 @@ CreateCheck::doApply()
     if (auto const expiry = ctx_.tx[~sfExpiration])
         sleCheck->setFieldU32(sfExpiration, *expiry);
 
-    view().insert(sleCheck);
+    if (auto const ret =
+            addSLE(view(), sleCheck, account_, ctx_.tx.getSponsor(), j_);
+        !isTesSuccess(ret))
+    {
+        return ret;
+    }
 
     auto viewJ = ctx_.app.journal("View");
     // If it's not a self-send (and it shouldn't be), add Check to the

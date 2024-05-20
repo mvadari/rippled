@@ -104,6 +104,15 @@ public:
     AccountID
     getFeePayer() const;
 
+    AccountID
+    getReservePayer() const;
+
+    std::optional<AccountID>
+    getSponsor() const;
+
+    bool
+    isSponsoredReserve() const;
+
     boost::container::flat_set<AccountID>
     getMentionedAccounts() const;
 

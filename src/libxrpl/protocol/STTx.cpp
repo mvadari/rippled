@@ -208,6 +208,36 @@ STTx::getFeePayer() const
     return getAccountID(sfAccount);
 }
 
+AccountID
+STTx::getReservePayer() const
+{
+    if (isFieldPresent(sfSponsor))
+    {
+        if (getFieldObject(sfSponsor)[sfFlags] & tfSponsorReserve)
+        {
+            return getFieldObject(sfSponsor)[sfAccount];
+        }
+    }
+    return getAccountID(sfAccount);
+}
+
+std::optional<AccountID>
+STTx::getSponsor() const
+{
+    if (isFieldPresent(sfSponsor))
+    {
+        return getFieldObject(sfSponsor)[sfAccount];
+    }
+    return std::nullopt;
+}
+
+bool
+STTx::isSponsoredReserve() const
+{
+    return isFieldPresent(sfSponsor) &&
+        (getFieldObject(sfSponsor)[sfFlags] & tfSponsorReserve);
+}
+
 void
 STTx::sign(PublicKey const& publicKey, SecretKey const& secretKey)
 {

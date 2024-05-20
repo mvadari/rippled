@@ -144,6 +144,12 @@ STLedgerEntry::isThreadedType(Rules const& rules) const
 }
 
 bool
+STLedgerEntry::isSponsored() const
+{
+    return getFieldIndex(sfSponsorAccount) != -1;
+}
+
+bool
 STLedgerEntry::thread(
     uint256 const& txID,
     std::uint32_t ledgerSeq,

@@ -744,12 +744,83 @@ adjustOwnerCount(
     view.update(sle);
 }
 
+void
+adjustSponsorCount(
+    ApplyView& view,
+    std::shared_ptr<SLE> const& sponsee,
+    std::shared_ptr<SLE> const& sponsor,
+    std::int32_t amount,
+    beast::Journal j)
+{
+    if (!sponsor || !sponsee)
+        return;
+    assert(amount != 0);
+
+    std::uint32_t const currentSponsor{
+        sponsor->getFieldU32(sfSponsoringOwnerCount)};
+    std::uint32_t const adjustedSponsor =
+        confineOwnerCount(currentSponsor, amount, (*sponsor)[sfAccount], j);
+    std::uint32_t const currentSponsee{
+        sponsee->getFieldU32(sfSponsoredOwnerCount)};
+    std::uint32_t const adjustedSponsee =
+        confineOwnerCount(currentSponsee, amount, (*sponsee)[sfAccount], j);
+
+    sponsor->setFieldU32(sfSponsoringOwnerCount, adjustedSponsor);
+    sponsee->setFieldU32(sfSponsoredOwnerCount, adjustedSponsee);
+    view.update(sponsor);
+    view.update(sponsee);
+}
+
 std::function<void(SLE::ref)>
 describeOwnerDir(AccountID const& account)
 {
     return [&account](std::shared_ptr<SLE> const& sle) {
         (*sle)[sfOwner] = account;
     };
+}
+
+TER
+addSLE(
+    ApplyView& view,
+    std::shared_ptr<SLE> const& sle,
+    AccountID const& owner,
+    std::optional<AccountID> const& sponsor,
+    beast::Journal j)
+{
+    auto const sleAccount = view.peek(keylet::account(owner));
+    if (!sleAccount)
+        return tefINTERNAL;
+
+    // Check reserve availability for new object creation
+    {
+        auto const balance = STAmount((*sleAccount)[sfBalance]).xrp();
+        auto const reserve =
+            view.fees().accountReserve((*sleAccount)[sfOwnerCount] + 1);
+
+        if (balance < reserve)
+            return tecINSUFFICIENT_RESERVE;
+    }
+
+    // Add ledger object to ledger
+    view.insert(sle);
+
+    // Add ledger object to owner's page
+    {
+        auto page = view.dirInsert(
+            keylet::ownerDir(owner), sle->key(), describeOwnerDir(owner));
+        if (!page)
+            return tecDIR_FULL;
+        (*sle)[sfOwnerNode] = *page;
+    }
+    adjustOwnerCount(view, sleAccount, 1, j);
+    // Handle reserve sponsorship
+    if (sponsor)
+    {
+        adjustSponsorCount(view, owner, *sponsor, 1, j);
+    }
+    view.update(sleAccount);
+
+    return tesSUCCESS;
 }
 
 TER

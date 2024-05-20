@@ -79,43 +79,6 @@ DIDSet::preflight(PreflightContext const& ctx)
 }
 
 TER
-addSLE(
-    ApplyContext& ctx,
-    std::shared_ptr<SLE> const& sle,
-    AccountID const& owner)
-{
-    auto const sleAccount = ctx.view().peek(keylet::account(owner));
-    if (!sleAccount)
-        return tefINTERNAL;
-
-    // Check reserve availability for new object creation
-    {
-        auto const balance = STAmount((*sleAccount)[sfBalance]).xrp();
-        auto const reserve =
-            ctx.view().fees().accountReserve((*sleAccount)[sfOwnerCount] + 1);
-
-        if (balance < reserve)
-            return tecINSUFFICIENT_RESERVE;
-    }
-
-    // Add ledger object to ledger
-    ctx.view().insert(sle);
-
-    // Add ledger object to owner's page
-    {
-        auto page = ctx.view().dirInsert(
-            keylet::ownerDir(owner), sle->key(), describeOwnerDir(owner));
-        if (!page)
-            return tecDIR_FULL;
-        (*sle)[sfOwnerNode] = *page;
-    }
-    adjustOwnerCount(ctx.view(), sleAccount, 1, ctx.journal);
-    ctx.view().update(sleAccount);
-
-    return tesSUCCESS;
-}
-
-TER
 DIDSet::doApply()
 {
     // Edit ledger object if it already exists
@@ -169,7 +132,7 @@ DIDSet::doApply()
         return tecEMPTY_DID;
     }
 
-    return addSLE(ctx_, sleDID, account_);
+    return addSLE(view(), sleDID, account_, ctx_.tx.getSponsor(), j_);
 }
 
 NotTEC

@@ -155,18 +155,10 @@ CreateTicket::doApply()
     adjustOwnerCount(view(), sleAccountRoot, ticketCount, viewJ);
 
     // Check reserve sponsorship
-    if (ctx_.tx.isFieldPresent(sfSponsor) &&
-        (ctx_.tx.getFieldObject(sfSponsor)[sfFlags] & tfSponsorReserve))
+    if (ctx_.tx.isSponsoredReserve())
     {
-        AccountID const& sponsor = ctx_.tx.getFieldObject(sfSponsor)[sfAccount];
-        auto const& sponsorSle = view().peek(keylet::account(sponsor));
-        sponsorSle->setFieldU32(
-            sfSponsoringOwnerCount,
-            sponsorSle->getFieldU32(sfSponsoringOwnerCount) + ticketCount);
-        sleAccountRoot->setFieldU32(
-            sfSponsoredOwnerCount,
-            sleAccountRoot->getFieldU32(sfSponsoredOwnerCount) + ticketCount);
-        view().update(sponsorSle);
+        adjustSponsorCount(
+            view(), account_, ctx_.tx.getReservePayer(), ticketCount, viewJ);
     }
 
     // TicketCreate is the only transaction that can cause an account root's

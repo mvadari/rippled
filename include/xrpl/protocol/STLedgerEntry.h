@@ -71,6 +71,9 @@ public:
     isThreadedType(Rules const& rules) const;
 
     bool
+    isSponsored() const;
+
+    bool
     thread(
         uint256 const& txID,
         std::uint32_t ledgerSeq,

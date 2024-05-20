@@ -470,6 +470,13 @@ Transactor::ticketDelete(
     // Update the Ticket owner's reserve.
     adjustOwnerCount(view, sleAccount, -1, j);
 
+    // Update the sponsor's reserve.
+    if (sleTicket->isSponsored())
+    {
+        adjustSponsorCount(
+            view, account, (*sleTicket)[sfSponsorAccount], -1, j);
+    }
+
     // Remove Ticket from ledger.
     view.erase(sleTicket);
     return tesSUCCESS;
