@@ -80,6 +80,7 @@ SField const sfInvalid(access, -1);
 SField const sfGeneric(access, 0);
 SField const sfHash(access, STI_UINT256, 257, "hash");
 SField const sfIndex(access, STI_UINT256, 258, "index");
+SField const sfName{access, -2};
 
 // Untyped SFields
 CONSTRUCT_UNTYPED_SFIELD(sfLedgerEntry,         "LedgerEntry",          LEDGERENTRY, 257);

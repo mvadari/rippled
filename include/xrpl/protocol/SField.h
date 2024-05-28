@@ -361,6 +361,7 @@ extern SField const sfLedgerEntry;
 extern SField const sfTransaction;
 extern SField const sfValidation;
 extern SField const sfMetadata;
+extern SField const sfName;  // prevent its use
 
 // 8-bit integers (common)
 extern SF_UINT8 const sfCloseResolution;

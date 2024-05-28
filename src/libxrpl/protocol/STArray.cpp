@@ -147,8 +147,8 @@ STArray::getJson(JsonOptions p) const
     {
         if (object.getSType() != STI_NOTPRESENT)
         {
-            Json::Value& inner = v.append(Json::objectValue);
-            inner[object.getFName().getJsonName()] = object.getJson(p);
+            Json::Value& inner = v.append(object.getJson(p));
+            inner["name"] = object.getFName().getJsonName();
         }
     }
     return v;
