@@ -73,6 +73,17 @@ typedef NotTEC (*checkPriorTxAndLastLedgerPtr)(PreclaimContext const& ctx);
 typedef TER (*checkFeePtr)(PreclaimContext const& ctx, XRPAmount baseFee);
 typedef NotTEC (*checkSignPtr)(PreclaimContext const& ctx);
 
+typedef TER (*applyPtr)(
+    ApplyContext& ctx,
+    XRPAmount& priorBalance,
+    XRPAmount& sourceBalance);
+typedef void (*preComputePtr)(ApplyContext& ctx);
+typedef TER (*payFeePtr)(ApplyContext& ctx, XRPAmount& sourceBalance);
+typedef TER (
+    *consumeSeqProxyPtr)(ApplyContext& ctx, SLE::pointer const& sleAccount);
+typedef NotTEC (*checkSingleSignPtr)(PreclaimContext const& ctx);
+typedef NotTEC (*checkMultiSignPtr)(PreclaimContext const& ctx);
+
 struct TransactorExport
 {
     char const* txName;
@@ -88,6 +99,13 @@ struct TransactorExport
     checkPriorTxAndLastLedgerPtr checkPriorTxAndLastLedger = nullptr;
     checkFeePtr checkFee = nullptr;
     checkSignPtr checkSign = nullptr;
+
+    payFeePtr payFee = nullptr;
+    consumeSeqProxyPtr consumeSeqProxy = nullptr;
+    preComputePtr preCompute = nullptr;
+    applyPtr apply = nullptr;
+    checkSingleSignPtr checkSingleSign = nullptr;
+    checkMultiSignPtr checkMultiSign = nullptr;
 };
 
 template struct Container<TransactorExport>;

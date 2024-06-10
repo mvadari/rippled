@@ -148,7 +148,7 @@ ApplyHandler::preCompute()
 TER
 ApplyHandler::apply()
 {
-    preCompute();
+    transactor_.preCompute ? transactor_.preCompute(ctx) : preCompute();
 
     // If the transactor requires a valid account and the transaction doesn't
     // list one, preflight will have already a flagged a failure.
@@ -164,11 +164,14 @@ ApplyHandler::apply()
         mPriorBalance = STAmount{(*sle)[sfBalance]}.xrp();
         mSourceBalance = mPriorBalance;
 
-        TER result = consumeSeqProxy(sle);
+        TER result = transactor_.consumeSeqProxy
+            ? transactor_.consumeSeqProxy(ctx, sle)
+            : consumeSeqProxy(sle);
         if (result != tesSUCCESS)
             return result;
 
-        result = payFee();
+        result = transactor_.payFee ? transactor_.payFee(ctx, mSourceBalance)
+                                    : payFee();
         if (result != tesSUCCESS)
             return result;
 
@@ -254,8 +257,9 @@ ApplyHandler::reset(XRPAmount fee)
     // then the ledger is corrupted.  Rather than make things worse we
     // reject the transaction.
     txnAcct->setFieldAmount(sfBalance, balance - fee);
-    TER const ter{consumeSeqProxy(txnAcct)};
-    assert(isTesSuccess(ter));
+    TER const ter{
+        transactor_.consumeSeqProxy ? transactor_.consumeSeqProxy(ctx, txnAcct)
+                                    : consumeSeqProxy(txnAcct)};
 
     if (isTesSuccess(ter))
         ctx.view().update(txnAcct);
@@ -292,7 +296,9 @@ ApplyHandler::operator()()
 
     auto result = ctx.preclaimResult;
     if (result == tesSUCCESS)
-        result = apply();
+        result = transactor_.apply
+            ? transactor_.apply(ctx, mPriorBalance, mSourceBalance)
+            : apply();
 
     // No transaction can return temUNKNOWN from apply,
     // and it can't be passed in from a preclaim.

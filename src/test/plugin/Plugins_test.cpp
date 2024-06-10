@@ -613,6 +613,169 @@ public:
     }
 
     void
+    testTransactorPrivateFailure()
+    {
+        testcase("Transactor invalid private methods");
+
+        using namespace jtx;
+        Account const alice{"alice"};
+        Account const bob{"bob"};
+        Account const carol{"carol"};
+        Account const danny{"danny"};
+
+        std::string const amendmentName = "featurePluginTest";
+        auto const trustSet2Amendment =
+            sha512Half(Slice(amendmentName.data(), amendmentName.size()));
+
+        cleanup();
+        PluginEnv env{
+            *this,
+            makeConfig("plugin_test_trustset.xrplugin"),
+            FeatureBitset{supported_amendments_plugins()},
+            trustSet2Amendment};
+
+        env.fund(XRP(5000), alice, bob, carol, danny);
+        IOU const USD = bob["USD"];
+        // sanity checks
+        BEAST_EXPECT(env.balance(alice) == XRP(5000));
+        BEAST_EXPECT(env.balance(bob) == XRP(5000));
+
+        // fakePayFee
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet3";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const tx = env.jt(jv);
+
+            Serializer s;
+            tx.stx->add(s);
+            auto const jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() ==
+                    tecINTERNAL);
+            }
+        }
+
+        // fakeConsumeSeqProxy
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet4";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const tx = env.jt(jv);
+
+            Serializer s;
+            tx.stx->add(s);
+            auto const jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() ==
+                    tecINVARIANT_FAILED);
+            }
+        }
+
+        // fakePreCompute
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet5";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const tx = env.jt(jv);
+
+            // submit tx without expecting a TER object
+            Serializer s;
+            tx.stx->add(s);
+            auto const jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() ==
+                    tefEXCEPTION);
+            }
+        }
+
+        // fakeApply
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet6";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const tx = env.jt(jv);
+
+            // submit tx without expecting a TER object
+            Serializer s;
+            tx.stx->add(s);
+            auto const jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() ==
+                    tecINTERNAL);
+            }
+        }
+
+        // fakeCheckSing
+        {
+            Json::Value jv;
+            jv[jss::TransactionType] = "TrustSet7";
+            jv[jss::Account] = alice.human();
+            {
+                auto& ja = jv[jss::LimitAmount] =
+                    USD(1000).value().getJson(JsonOptions::none);
+                ja[jss::issuer] = bob.human();
+            }
+            auto const tx = env.jt(jv);
+
+            // submit tx without expecting a TER object
+            Serializer s;
+            tx.stx->add(s);
+            auto const jr = env.rpc("submit", strHex(s.slice()));
+
+            if (BEAST_EXPECT(
+                    jr.isObject() && jr.isMember(jss::result) &&
+                    jr[jss::result].isMember(jss::engine_result_code)))
+            {
+                BEAST_EXPECT(
+                    jr[jss::result][jss::engine_result_code].asInt() ==
+                    tefINTERNAL);
+            }
+        }
+        env.close();
+    }
+
+    void
     run() override
     {
         using namespace test::jtx;
@@ -621,6 +784,7 @@ public:
         testPluginSTypeSField();
         testPluginLedgerObjectInvariantCheck();
         testPluginFailure();
+        testTransactorPrivateFailure();
 
         // run after all plugin tests
         // to ensure that no leftover plugin data affects other tests

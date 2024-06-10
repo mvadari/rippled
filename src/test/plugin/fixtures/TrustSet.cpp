@@ -17,6 +17,8 @@
 */
 //==============================================================================
 
+#include <ripple/app/tx/impl/SignerEntries.h>
+#include <ripple/app/tx/impl/Transactor.h>
 #include <ripple/basics/Log.h>
 #include <ripple/beast/core/LexicalCast.h>
 #include <ripple/ledger/View.h>
@@ -650,6 +652,56 @@ doApply(ApplyContext& ctx, XRPAmount mPriorBalance, XRPAmount mSourceBalance)
     return terResult;
 }
 
+TER
+payFee(ApplyContext& ctx, XRPAmount& sourceBalance)
+{
+    auto const feePaid = ctx.tx[sfFee].xrp();
+    auto const sle =
+        ctx.view().peek(keylet::account(ctx.tx.getAccountID(sfAccount)));
+    if (!sle)
+        return tefINTERNAL;
+    sourceBalance -= feePaid;
+    sle->setFieldAmount(sfBalance, sourceBalance);
+
+    return tesSUCCESS;
+}
+
+TER
+fakePayFee(ApplyContext&, XRPAmount&)
+{
+    return tecINTERNAL;
+}
+
+TER
+fakeConsumeSeqProxy(ApplyContext&, SLE::pointer const&)
+{
+    return tecINTERNAL;
+}
+
+void
+fakePreCompute(ApplyContext&)
+{
+    throw std::runtime_error("fakePreCompute");
+}
+
+TER
+fakeApply(ApplyContext& ctx, XRPAmount& priorBalance, XRPAmount& sourceBalance)
+{
+    return tecINTERNAL;
+}
+
+NotTEC
+fakeCheckSingleSign(PreclaimContext const&)
+{
+    return tefINTERNAL;
+}
+
+NotTEC
+fakeCheckMultiSign(PreclaimContext const&)
+{
+    return tefINTERNAL;
+}
+
 extern "C" Container<TransactorExport>
 getTransactors()
 {
@@ -666,17 +718,118 @@ getTransactors()
          61,
          {formatPtr, 5},
          ConsequencesFactoryType::Normal,
-         NULL,
-         NULL,
+         nullptr,
+         nullptr,
          preflight,
          preclaim,
          doApply,
-         NULL,
-         NULL,
-         NULL,
-         NULL}};
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         payFee,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr},
+        {"TrustSet3",
+         73,
+         {formatPtr, 5},
+         ConsequencesFactoryType::Normal,
+         nullptr,
+         nullptr,
+         preflight,
+         preclaim,
+         doApply,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         fakePayFee,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr},
+        {"TrustSet4",
+         74,
+         {formatPtr, 5},
+         ConsequencesFactoryType::Normal,
+         nullptr,
+         nullptr,
+         preflight,
+         preclaim,
+         doApply,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         fakeConsumeSeqProxy,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr},
+        {"TrustSet5",
+         75,
+         {formatPtr, 5},
+         ConsequencesFactoryType::Normal,
+         nullptr,
+         nullptr,
+         preflight,
+         preclaim,
+         doApply,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         fakePreCompute,
+         nullptr,
+         nullptr,
+         nullptr},
+        {"TrustSet6",
+         76,
+         {formatPtr, 5},
+         ConsequencesFactoryType::Normal,
+         nullptr,
+         nullptr,
+         preflight,
+         preclaim,
+         doApply,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         fakeApply,
+         nullptr,
+         nullptr},
+        {"TrustSet7",
+         77,
+         {formatPtr, 5},
+         ConsequencesFactoryType::Normal,
+         nullptr,
+         nullptr,
+         preflight,
+         preclaim,
+         doApply,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         nullptr,
+         fakeCheckSingleSign,
+         fakeCheckMultiSign}};
     TransactorExport* ptr = list;
-    return {ptr, 1};
+    return {ptr, sizeof(list) / sizeof(list[0])};
 }
 
 EXPORT_STYPES({
@@ -684,7 +837,7 @@ EXPORT_STYPES({
     "STI_UINT32_2",
     parseLeafTypeNew,
     toString,
-    NULL,
+    nullptr,
     toSerializer,
     fromSerialIter,
 });

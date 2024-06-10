@@ -272,6 +272,24 @@ invoke_preflight(PreflightContext const& ctx)
 }
 
 static TER
+invoke_checkSign(TransactorExport t, PreclaimContext const& ctx)
+{
+    if (t.checkSign)
+    {
+        return t.checkSign(ctx);
+    }
+    else if (t.checkSingleSign && t.checkMultiSign)
+    {
+        // If the pk is empty, then we must be multi-signing.
+        if (ctx.tx.getSigningPubKey().empty())
+            return t.checkMultiSign(ctx);
+        return t.checkSingleSign(ctx);
+    }
+
+    return Transactor::checkSign(ctx);
+}
+
+static TER
 invoke_plugin_preclaim(TransactorExport t, PreclaimContext const& ctx)
 {
     // If the transactor requires a valid account and the transaction doesn't
@@ -318,14 +336,7 @@ invoke_plugin_preclaim(TransactorExport t, PreclaimContext const& ctx)
         if (result != tesSUCCESS)
             return result;
 
-        if (t.checkSign != NULL)
-        {
-            result = t.checkSign(ctx);
-        }
-        else
-        {
-            result = Transactor::checkSign(ctx);
-        }
+        result = invoke_checkSign(t, ctx);
 
         if (result != tesSUCCESS)
             return result;
