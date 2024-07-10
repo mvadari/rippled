@@ -131,25 +131,13 @@ DepositPreauth::doApply()
 
         slePreauth->setAccountID(sfAccount, account_);
         slePreauth->setAccountID(sfAuthorize, auth);
-        view().insert(slePreauth);
 
-        auto viewJ = ctx_.app.journal("View");
-        auto const page = view().dirInsert(
-            keylet::ownerDir(account_),
-            preauthKeylet,
-            describeOwnerDir(account_));
-
-        JLOG(j_.trace()) << "Adding DepositPreauth to owner directory "
-                         << to_string(preauthKeylet.key) << ": "
-                         << (page ? "success" : "failure");
-
-        if (!page)
-            return tecDIR_FULL;
-
-        slePreauth->setFieldU64(sfOwnerNode, *page);
-
-        // If we succeeded, the new entry counts against the creator's reserve.
-        adjustOwnerCount(view(), sleOwner, 1, viewJ);
+        if (auto const ret =
+                addSLE(view(), slePreauth, account_, ctx_.tx.getSponsor(), j_);
+            !isTesSuccess(ret))
+        {
+            return ret;
+        }
     }
     else
     {

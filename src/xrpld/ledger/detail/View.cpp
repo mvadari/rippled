@@ -817,6 +817,7 @@ addSLE(
     if (sponsor)
     {
         adjustSponsorCount(view, owner, *sponsor, 1, j);
+        (*sle)[sfSponsorAccount] = *sponsor;
     }
     view.update(sleAccount);
 

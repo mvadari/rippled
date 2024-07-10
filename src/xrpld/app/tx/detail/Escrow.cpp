@@ -254,15 +254,11 @@ EscrowCreate::doApply()
     (*slep)[~sfFinishAfter] = ctx_.tx[~sfFinishAfter];
     (*slep)[~sfDestinationTag] = ctx_.tx[~sfDestinationTag];
 
-    ctx_.view().insert(slep);
-
-    // Add escrow to sender's owner directory
+    if (auto const ret =
+            addSLE(view(), slep, account_, ctx_.tx.getSponsor(), j_);
+        !isTesSuccess(ret))
     {
-        auto page = ctx_.view().dirInsert(
-            keylet::ownerDir(account), escrowKeylet, describeOwnerDir(account));
-        if (!page)
-            return tecDIR_FULL;
-        (*slep)[sfOwnerNode] = *page;
+        return ret;
     }
 
     // If it's not a self-send, add escrow to recipient's owner directory.
@@ -277,7 +273,6 @@ EscrowCreate::doApply()
 
     // Deduct owner's balance, increment owner count
     (*sle)[sfBalance] = (*sle)[sfBalance] - ctx_.tx[sfAmount];
-    adjustOwnerCount(ctx_.view(), sle, 1, ctx_.journal);
     ctx_.view().update(sle);
 
     return tesSUCCESS;
