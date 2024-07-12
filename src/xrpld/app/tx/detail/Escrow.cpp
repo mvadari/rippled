@@ -20,6 +20,7 @@
 #include <xrpld/app/tx/detail/Escrow.h>
 
 #include <xrpld/app/misc/HashRouter.h>
+#include <xrpld/app/tx/detail/NFTokenUtils.h>
 #include <xrpld/conditions/Condition.h>
 #include <xrpld/conditions/Fulfillment.h>
 #include <xrpld/ledger/ApplyView.h>
@@ -32,9 +33,8 @@
 #include <xrpl/protocol/Indexes.h>
 #include <xrpl/protocol/TxFlags.h>
 #include <xrpl/protocol/digest.h>
-#include <xrpl/protocol/st.h>
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
 #include <xrpl/protocol/nft.h>
+#include <xrpl/protocol/st.h>
 
 // During an EscrowFinish, the transaction must specify both
 // a condition and a fulfillment. We track whether that
