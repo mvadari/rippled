@@ -31,7 +31,8 @@ canHaveNFTokenOfferID(
         return false;
 
     std::uint16_t const tt = serializedTx->getTxnType();
-    if (tt != ttNFTOKEN_CREATE_OFFER)
+    if (!(tt == ttNFTOKEN_MINT && serializedTx->isFieldPresent(sfAmount)) &&
+        tt != ttNFTOKEN_CREATE_OFFER)
         return false;
 
     // if the transaction failed nothing could have been delivered.
