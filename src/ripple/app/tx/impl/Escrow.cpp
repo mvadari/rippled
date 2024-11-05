@@ -19,6 +19,7 @@
 
 #include <ripple/app/tx/impl/Escrow.h>
 
+#include <ripple/app/hook/Guard.h>
 #include <ripple/app/misc/HashRouter.h>
 #include <ripple/basics/Log.h>
 #include <ripple/basics/XRPAmount.h>
@@ -163,6 +164,95 @@ EscrowCreate::preflight(PreflightContext const& ctx)
         if (condition->type != Type::preimageSha256 &&
             !ctx.rules.enabled(featureCryptoConditionsSuite))
             return temDISABLED;
+    }
+
+    if (ctx.tx.isFieldPresent(sfFinishFunction))
+    {
+        auto const code = ctx.tx.getFieldVL(sfFinishFunction);
+        auto const account = ctx.tx.getAccountID(sfAccount);
+        if (code.size() == 0 || code.size() > hook::maxHookWasmSize())
+        {
+            JLOG(ctx.j.trace())
+                << "EscrowCreate(" << hook::log::WASM_TOO_BIG << ")"
+                << ": Malformed transaction: EscrowCreate extension would "
+                   "create "
+                   "blob larger than max";
+            return temMALFORMED;
+        }
+
+        // MV NOTE: This code was copied from SetHook.cpp
+
+        // RH NOTE: validateGuards has a generic non-rippled specific
+        // interface so it can be used in other projects (i.e. tooling).
+        // As such the calling here is a bit convoluted.
+
+        std::optional<std::reference_wrapper<std::basic_ostream<char>>> logger;
+        std::ostringstream loggerStream;
+        std::string hsacc{""};
+        if (ctx.j.trace())
+        {
+            logger = loggerStream;
+            std::stringstream ss;
+            ss << account;
+            hsacc = ss.str();
+        }
+
+        auto result = validateGuards(
+            code,  // wasm to verify
+            logger,
+            hsacc,
+            ctx.rules.enabled(featureHooksUpdate1) ? 1 : 0);
+
+        if (ctx.j.trace())
+        {
+            // clunky but to get the stream to accept the output
+            // correctly we will split on new line and feed each line
+            // one by one into the trace stream beast::Journal should be
+            // updated to inherit from basic_ostream<char> then this
+            // wouldn't be necessary.
+
+            // is this a needless copy or does the compiler do copy
+            // elision here?
+            std::string s = loggerStream.str();
+
+            char* data = s.data();
+            size_t len = s.size();
+
+            char* last = data;
+            size_t i = 0;
+            for (; i < len; ++i)
+            {
+                if (data[i] == '\n')
+                {
+                    data[i] = '\0';
+                    ctx.j.trace() << last;
+                    last = data + i;
+                }
+            }
+
+            if (last < data + i)
+                ctx.j.trace() << last;
+        }
+
+        if (!result)
+            return temMALFORMED;
+
+        JLOG(ctx.j.trace())
+            << "HookSet(" << hook::log::WASM_SMOKE_TEST << ")[" << account
+            << "]: Trying to wasm instantiate proposed hook "
+            << "size = " << code.size();
+
+        std::optional<std::string> result2 =
+            hook::HookExecutor::validateWasm(code.data(), (size_t)code.size());
+
+        if (result2)
+        {
+            JLOG(ctx.j.trace())
+                << "HookSet(" << hook::log::WASM_TEST_FAILURE << ")[" << account
+                << "Tried to set a hook with invalid code. VM error: "
+                << *result2;
+            return temMALFORMED;
+        }
     }
 
     return preflight2(ctx);

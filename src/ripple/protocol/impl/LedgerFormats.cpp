@@ -132,6 +132,7 @@ LedgerFormats::LedgerFormats()
             {sfCondition,            soeOPTIONAL},
             {sfCancelAfter,          soeOPTIONAL},
             {sfFinishAfter,          soeOPTIONAL},
+            {sfFinishFunction,       soeOPTIONAL},
             {sfSourceTag,            soeOPTIONAL},
             {sfDestinationTag,       soeOPTIONAL},
             {sfDestinationNode,      soeOPTIONAL},

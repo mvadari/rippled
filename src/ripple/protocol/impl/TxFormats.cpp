@@ -139,6 +139,7 @@ TxFormats::TxFormats()
             {sfCondition, soeOPTIONAL},
             {sfCancelAfter, soeOPTIONAL},
             {sfFinishAfter, soeOPTIONAL},
+            {sfFinishFunction, soeOPTIONAL},
             {sfDestinationTag, soeOPTIONAL},
             {sfTicketSequence, soeOPTIONAL},
         },

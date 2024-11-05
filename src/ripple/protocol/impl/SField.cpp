@@ -290,6 +290,7 @@ CONSTRUCT_TYPED_SFIELD(sfHookReturnString,      "HookReturnString",     VL,     
 CONSTRUCT_TYPED_SFIELD(sfHookParameterName,     "HookParameterName",    VL,        24);
 CONSTRUCT_TYPED_SFIELD(sfHookParameterValue,    "HookParameterValue",   VL,        25);
 CONSTRUCT_TYPED_SFIELD(sfBlob,                  "Blob",                 VL,        26);
+CONSTRUCT_TYPED_SFIELD(sfFinishFunction,        "FinishFunction",       VL,        27);
 
 // account
 CONSTRUCT_TYPED_SFIELD(sfAccount,               "Account",              ACCOUNT,    1);

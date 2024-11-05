@@ -2,12 +2,41 @@
   "C_Cpp.formatting": "clangFormat",
   "C_Cpp.clang_format_path": ".clang-format",
   "C_Cpp.clang_format_fallbackStyle": "{ ColumnLimit: 0 }",
-  "[cpp]":{
+  "[cpp]": {
     "editor.wordBasedSuggestions": "off",
     "editor.suggest.insertMode": "replace",
     "editor.semanticHighlighting.enabled": true,
     "editor.tabSize": 4,
     "editor.defaultFormatter": "xaver.clang-format",
     "editor.formatOnSave": false
+  },
+  "files.associations": {
+    "*.gyp": "jsonc",
+    "__locale": "cpp",
+    "iosfwd": "cpp",
+    "vector": "cpp",
+    "__hash_table": "cpp",
+    "__split_buffer": "cpp",
+    "__tree": "cpp",
+    "array": "cpp",
+    "bitset": "cpp",
+    "deque": "cpp",
+    "hash_map": "cpp",
+    "hash_set": "cpp",
+    "initializer_list": "cpp",
+    "list": "cpp",
+    "map": "cpp",
+    "queue": "cpp",
+    "regex": "cpp",
+    "set": "cpp",
+    "stack": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "valarray": "cpp",
+    "random": "cpp",
+    "*.ipp": "cpp",
+    "optional": "cpp"
   }
 }
