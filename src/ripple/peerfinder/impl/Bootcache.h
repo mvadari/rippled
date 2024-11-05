@@ -92,7 +92,7 @@ private:
 
     struct Transform
 #ifdef _LIBCPP_VERSION
-        : std::unary_function<
+        : std::__unary_function<
               map_type::right_map::const_iterator::value_type const&,
               beast::IP::Endpoint const&>
 #endif

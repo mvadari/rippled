@@ -149,7 +149,7 @@ private:
         : public beast::detail::empty_base_optimization<Compare>
 #ifdef _LIBCPP_VERSION
         ,
-          public std::binary_function<value_type, value_type, bool>
+          public std::__binary_function<value_type, value_type, bool>
 #endif
     {
     public:
@@ -189,7 +189,7 @@ private:
         : public beast::detail::empty_base_optimization<Compare>
 #ifdef _LIBCPP_VERSION
         ,
-          public std::binary_function<Key, element, bool>
+          public std::__binary_function<Key, element, bool>
 #endif
     {
     public:

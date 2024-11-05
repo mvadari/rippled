@@ -70,7 +70,7 @@ public:
         // Iterator transformation to extract the endpoint from Element
         struct Transform
 #ifdef _LIBCPP_VERSION
-            : public std::unary_function<Element, Endpoint>
+            : public std::__unary_function<Element, Endpoint>
 #endif
         {
 #ifndef _LIBCPP_VERSION
@@ -240,8 +240,9 @@ public:
         template <bool IsConst>
         struct Transform
 #ifdef _LIBCPP_VERSION
-            : public std::
-                  unary_function<typename lists_type::value_type, Hop<IsConst>>
+            : public std::__unary_function<
+                  typename lists_type::value_type,
+                  Hop<IsConst>>
 #endif
         {
 #ifndef _LIBCPP_VERSION

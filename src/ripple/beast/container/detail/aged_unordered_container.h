@@ -151,7 +151,7 @@ private:
     class ValueHash : private beast::detail::empty_base_optimization<Hash>
 #ifdef _LIBCPP_VERSION
         ,
-                      public std::unary_function<element, std::size_t>
+                      public std::__unary_function<element, std::size_t>
 #endif
     {
     public:
@@ -194,7 +194,7 @@ private:
         : private beast::detail::empty_base_optimization<KeyEqual>
 #ifdef _LIBCPP_VERSION
         ,
-          public std::binary_function<Key, element, bool>
+          public std::__binary_function<Key, element, bool>
 #endif
     {
     public:
