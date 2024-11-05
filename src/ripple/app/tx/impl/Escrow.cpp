@@ -395,6 +395,7 @@ EscrowCreate::doApply()
     (*slep)[~sfCancelAfter] = ctx_.tx[~sfCancelAfter];
     (*slep)[~sfFinishAfter] = ctx_.tx[~sfFinishAfter];
     (*slep)[~sfDestinationTag] = ctx_.tx[~sfDestinationTag];
+    (*slep)[~sfFinishFunction] = ctx_.tx[~sfFinishFunction];
 
     if (ctx_.view().rules().enabled(featurePaychanAndEscrowForTokens))
     {
@@ -719,6 +720,35 @@ EscrowFinish::doApply()
 
         if (!isTesSuccess(result))
             return result;
+    }
+
+    // Execute extension
+    if ((*slep)[~sfFinishFunction])
+    {
+        auto const wasmBytes = slep->getFieldVL(sfFinishFunction);
+        auto const hookHash = ripple::sha512Half_s(
+            ripple::Slice(wasmBytes.data(), wasmBytes.size()));
+        auto const ns = uint256(
+            "4FF9961269BF7630D32E15276569C94470174A5DA79FA567C0F62251AA9A36B9");
+        std::map<std::vector<uint8_t>, std::vector<uint8_t>> parameters{};
+        hook::HookStateMap stateMap;
+        JLOG(j_.error()) << "APPLYING HOOOOOOOOOOOOOOOOOOOOOK";
+        hook::apply(
+            (*slep)[sfPreviousTxnID],
+            hookHash,
+            ns,
+            wasmBytes,
+            parameters,
+            {},
+            stateMap,
+            ctx_,
+            account_,
+            false,
+            false,
+            true,
+            (true ? 0 : 1UL),  // 0 = strong, 1 = weak
+            0,
+            {});
     }
 
     // Remove escrow from owner directory
