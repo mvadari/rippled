@@ -594,11 +594,19 @@ EscrowFinish::doApply()
 
         // Too soon: can't execute before the finish time
         if ((*slep)[~sfFinishAfter] && !after(now, (*slep)[sfFinishAfter]))
+        {
+            JLOG(ctx_.journal.trace())
+                << "Too soon: can't execute before the finish time";
             return tecNO_PERMISSION;
+        }
 
         // Too late: can't execute after the cancel time
         if ((*slep)[~sfCancelAfter] && after(now, (*slep)[sfCancelAfter]))
+        {
+            JLOG(ctx_.journal.trace())
+                << "Too late: can't execute after the cancel time";
             return tecNO_PERMISSION;
+        }
     }
     else
     {
@@ -606,13 +614,19 @@ EscrowFinish::doApply()
         if ((*slep)[~sfFinishAfter] &&
             ctx_.view().info().parentCloseTime.time_since_epoch().count() <=
                 (*slep)[sfFinishAfter])
+        {
+            JLOG(ctx_.journal.trace()) << "Too soon?";
             return tecNO_PERMISSION;
+        }
 
         // Too late?
         if ((*slep)[~sfCancelAfter] &&
             ctx_.view().info().parentCloseTime.time_since_epoch().count() <=
                 (*slep)[sfCancelAfter])
+        {
+            JLOG(ctx_.journal.trace()) << "Too late?";
             return tecNO_PERMISSION;
+        }
     }
 
     // Check cryptocondition fulfillment
@@ -726,29 +740,41 @@ EscrowFinish::doApply()
     if ((*slep)[~sfFinishFunction])
     {
         auto const wasmBytes = slep->getFieldVL(sfFinishFunction);
-        auto const hookHash = ripple::sha512Half_s(
+        auto const extHash = ripple::sha512Half_s(
             ripple::Slice(wasmBytes.data(), wasmBytes.size()));
         auto const ns = uint256(
             "4FF9961269BF7630D32E15276569C94470174A5DA79FA567C0F62251AA9A36B9");
         std::map<std::vector<uint8_t>, std::vector<uint8_t>> parameters{};
         hook::HookStateMap stateMap;
         JLOG(j_.error()) << "APPLYING HOOOOOOOOOOOOOOOOOOOOOK";
-        hook::apply(
+        auto const wasmResult = hook::apply(
             (*slep)[sfPreviousTxnID],
-            hookHash,
+            extHash,
             ns,
             wasmBytes,
             parameters,
             {},
             stateMap,
             ctx_,
-            account_,
+            (*slep)[sfAccount],
             false,
             false,
             true,
             (true ? 0 : 1UL),  // 0 = strong, 1 = weak
             0,
             {});
+
+        if (wasmResult.exitType != hook_api::ExitType::ACCEPT)
+        {
+            if (wasmResult.exitType == hook_api::ExitType::WASM_ERROR)
+            {
+                JLOG(j_.warn()) << "HookError[" << (*slep)[sfAccount] << "-"
+                                << ctx_.tx.getAccountID(sfAccount) << "]: "
+                                << "]: Execution failure (graceful) "
+                                << "ExtHash: " << extHash;
+            }
+            return tecHOOK_REJECTED;
+        }
     }
 
     // Remove escrow from owner directory
