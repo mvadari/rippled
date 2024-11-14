@@ -48,9 +48,6 @@ class GetCounts_test : public beast::unit_test::suite
             BEAST_EXPECT(
                 result.isMember(jss::uptime) &&
                 !result[jss::uptime].asString().empty());
-            BEAST_EXPECT(
-                result.isMember(jss::dbKBTotal) &&
-                result[jss::dbKBTotal].asInt() > 0);
         }
 
         // create some transactions

@@ -40,8 +40,9 @@ setupConfigForUnitTests(Config& cfg)
     // The Beta API (currently v2) is always available to tests
     cfg.BETA_RPC_API = true;
 
-    cfg.overwrite(ConfigSection::nodeDatabase(), "type", "memory");
+    cfg.overwrite(ConfigSection::nodeDatabase(), "type", "rwdb");
     cfg.overwrite(ConfigSection::nodeDatabase(), "path", "main");
+    cfg.overwrite(SECTION_RELATIONAL_DB, "backend", "rwdb");
     cfg.deprecatedClearSection(ConfigSection::importNodeDatabase());
     cfg.legacy("database_path", "");
     cfg.setupControl(true, true, true);

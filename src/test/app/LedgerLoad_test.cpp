@@ -48,6 +48,9 @@ class LedgerLoad_test : public beast::unit_test::suite
         cfg->TRAP_TX_HASH = trapTxHash;
         assert(!dbPath.empty());
         cfg->legacy("database_path", dbPath);
+        auto& sectionNode = cfg->section(ConfigSection::nodeDatabase());
+        sectionNode.set("type", "memory");
+        cfg->overwrite(SECTION_RELATIONAL_DB, "backend", "sqlite");
         return cfg;
     }
 
@@ -69,7 +72,13 @@ class LedgerLoad_test : public beast::unit_test::suite
 
         retval.ledgerFile = td.file("ledgerdata.json");
 
-        Env env{*this};
+        Env env{*this, envconfig([](std::unique_ptr<Config> cfg) {
+                    auto& sectionNode =
+                        cfg->section(ConfigSection::nodeDatabase());
+                    sectionNode.set("type", "memory");
+                    cfg->overwrite(SECTION_RELATIONAL_DB, "backend", "sqlite");
+                    return cfg;
+                })};
         std::optional<Account> prev;
 
         for (auto i = 0; i < 20; ++i)

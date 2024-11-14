@@ -52,7 +52,13 @@ struct LedgerReplay_test : public beast::unit_test::suite
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
-        Env env(*this);
+        Env env = [&] {
+            auto c = jtx::envconfig();
+            auto& sectionNode = c->section(ConfigSection::nodeDatabase());
+            sectionNode.set("type", "memory");
+            c->overwrite(SECTION_RELATIONAL_DB, "backend", "sqlite");
+            return jtx::Env(*this, std::move(c));
+        }();
         env.fund(XRP(100000), alice, bob);
         env.close();
 
