@@ -36,9 +36,26 @@
 
 namespace ripple {
 
+std::optional<AccountID>
+parseAccountID(Json::Value const& param)
+{
+    if (!param.isString())
+        return std::nullopt;
+
+    auto const account = parseBase58<AccountID>(param.asString());
+    if (!account || account->isZero())
+    {
+        return std::nullopt;
+    }
+
+    return account;
+}
+
 static STArray
 parseAuthorizeCredentials(Json::Value const& jv)
 {
+    if (!jv.isArray())
+        return {};
     STArray arr(sfAuthorizeCredentials, jv.size());
     for (auto const& jo : jv)
     {
@@ -48,7 +65,7 @@ parseAuthorizeCredentials(Json::Value const& jv)
             !jo[jss::credential_type].isString())
             return {};
 
-        auto const issuer = parseBase58<AccountID>(jo[jss::issuer].asString());
+        auto const issuer = parseAccountID(jo[jss::issuer]);
         if (!issuer || !*issuer)
             return {};
 
@@ -83,8 +100,8 @@ parseIndex(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseAccountRoot(Json::Value const& params, Json::Value& jvResult)
 {
-    auto const account = parseBase58<AccountID>(params.asString());
-    if (!account || account->isZero())
+    auto const account = parseAccountID(params);
+    if (!account)
     {
         jvResult[jss::error] = "malformedAddress";
         return std::nullopt;
@@ -109,18 +126,15 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 
     // clang-format off
     if (
-        (!dp.isMember(jss::owner) || !dp[jss::owner].isString()) ||
-        (dp.isMember(jss::authorized) == dp.isMember(jss::authorized_credentials)) ||
-        (dp.isMember(jss::authorized) && !dp[jss::authorized].isString()) ||
-        (dp.isMember(jss::authorized_credentials) && !dp[jss::authorized_credentials].isArray())
-        )
+        !dp.isMember(jss::owner) ||
+        (dp.isMember(jss::authorized) == dp.isMember(jss::authorized_credentials)))
     // clang-format on
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
-    auto const owner = parseBase58<AccountID>(dp[jss::owner].asString());
+    auto const owner = parseAccountID(dp[jss::owner]);
     if (!owner)
     {
         jvResult[jss::error] = "malformedOwner";
@@ -129,8 +143,7 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 
     if (dp.isMember(jss::authorized))
     {
-        auto const authorized =
-            parseBase58<AccountID>(dp[jss::authorized].asString());
+        auto const authorized = parseAccountID(dp[jss::authorized]);
         if (!authorized)
         {
             jvResult[jss::error] = "malformedAuthorized";
@@ -178,21 +191,20 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
+    if (params.isMember(jss::owner) == params.isMember(jss::dir_root))
+    {
+        jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
+    }
+
     std::uint64_t uSubIndex =
         params.isMember(jss::sub_index) ? params[jss::sub_index].asUInt() : 0;
 
     if (params.isMember(jss::dir_root))
     {
         uint256 uDirRoot;
-
-        if (params.isMember(jss::owner))
-        {
-            // May not specify both dir_root and owner.
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-
-        if (!uDirRoot.parseHex(params[jss::dir_root].asString()))
+        if (!params[jss::dir_root].isString() ||
+            !uDirRoot.parseHex(params[jss::dir_root].asString()))
         {
             jvResult[jss::error] = "malformedRequest";
             return std::nullopt;
@@ -202,12 +214,11 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 
     if (params.isMember(jss::owner))
     {
-        auto const ownerID =
-            parseBase58<AccountID>(params[jss::owner].asString());
+        auto const ownerID = parseAccountID(params[jss::owner]);
 
         if (!ownerID)
         {
-            jvResult[jss::error] = "malformedAddress";
+            jvResult[jss::error] = "malformedOwner";
             return std::nullopt;
         }
 
@@ -233,7 +244,7 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const id = parseBase58<AccountID>(params[jss::owner].asString());
+    auto const id = parseAccountID(params[jss::owner]);
 
     if (!id)
     {
@@ -289,10 +300,10 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const id = parseBase58<AccountID>(params[jss::account].asString());
+    auto const id = parseAccountID(params[jss::account]);
     if (!id)
     {
-        jvResult[jss::error] = "malformedAddress";
+        jvResult[jss::error] = "malformedAccount";
         return std::nullopt;
     }
 
@@ -323,17 +334,16 @@ parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const id1 =
-        parseBase58<AccountID>(jvRippleState[jss::accounts][0u].asString());
-    auto const id2 =
-        parseBase58<AccountID>(jvRippleState[jss::accounts][1u].asString());
+    auto const id1 = parseAccountID(jvRippleState[jss::accounts][0u]);
+    auto const id2 = parseAccountID(jvRippleState[jss::accounts][1u]);
     if (!id1 || !id2)
     {
         jvResult[jss::error] = "malformedAddress";
         return std::nullopt;
     }
 
-    if (!to_currency(uCurrency, jvRippleState[jss::currency].asString()))
+    if (!jvRippleState[jss::currency].isString() ||
+        !to_currency(uCurrency, jvRippleState[jss::currency].asString()))
     {
         jvResult[jss::error] = "malformedCurrency";
         return std::nullopt;
@@ -357,10 +367,10 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const id = parseBase58<AccountID>(params[jss::account].asString());
+    auto const id = parseAccountID(params[jss::account]);
     if (!id)
     {
-        jvResult[jss::error] = "malformedAddress";
+        jvResult[jss::error] = "malformedAccount";
         return std::nullopt;
     }
 
@@ -418,14 +428,8 @@ parseBridge(Json::Value const& params, Json::Value& jvResult)
                 return std::nullopt;
 
             auto const& jsBridgeAccount = params[jss::bridge_account];
-            if (!jsBridgeAccount.isString())
-            {
-                return std::nullopt;
-            }
-
-            auto const account =
-                parseBase58<AccountID>(jsBridgeAccount.asString());
-            if (!account || account->isZero())
+            auto const account = parseAccountID(jsBridgeAccount);
+            if (!account)
             {
                 return std::nullopt;
             }
@@ -481,10 +485,10 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
     // four strings defining the bridge (locking_chain_door,
     // locking_chain_issue, issuing_chain_door, issuing_chain_issue)
     // and the claim id sequence number.
-    auto const lockingChainDoor = parseBase58<AccountID>(
-        claim_id[sfLockingChainDoor.getJsonName()].asString());
-    auto const issuingChainDoor = parseBase58<AccountID>(
-        claim_id[sfIssuingChainDoor.getJsonName()].asString());
+    auto const lockingChainDoor =
+        parseAccountID(claim_id[sfLockingChainDoor.getJsonName()]);
+    auto const issuingChainDoor =
+        parseAccountID(claim_id[sfIssuingChainDoor.getJsonName()]);
     Issue lockingChainIssue, issuingChainIssue;
     bool valid = lockingChainDoor && issuingChainDoor;
 
@@ -548,10 +552,10 @@ parseXChainOwnedCreateAccountClaimID(
     // (locking_chain_door, locking_chain_issue, issuing_chain_door,
     // issuing_chain_issue) and the create account claim id sequence
     // number.
-    auto const lockingChainDoor = parseBase58<AccountID>(
-        claim_id[sfLockingChainDoor.getJsonName()].asString());
-    auto const issuingChainDoor = parseBase58<AccountID>(
-        claim_id[sfIssuingChainDoor.getJsonName()].asString());
+    auto const lockingChainDoor =
+        parseAccountID(claim_id[sfLockingChainDoor.getJsonName()]);
+    auto const issuingChainDoor =
+        parseAccountID(claim_id[sfIssuingChainDoor.getJsonName()]);
     Issue lockingChainIssue, issuingChainIssue;
     bool valid = lockingChainDoor && issuingChainDoor;
     if (valid)
@@ -591,8 +595,8 @@ parseXChainOwnedCreateAccountClaimID(
 std::optional<uint256>
 parseDID(Json::Value const& params, Json::Value& jvResult)
 {
-    auto const account = parseBase58<AccountID>(params.asString());
-    if (!account || account->isZero())
+    auto const account = parseAccountID(params);
+    if (!account)
     {
         jvResult[jss::error] = "malformedAddress";
         return std::nullopt;
@@ -632,9 +636,8 @@ parseOracle(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }();
 
-    auto const account =
-        parseBase58<AccountID>(oracle[jss::account].asString());
-    if (!account || account->isZero())
+    auto const account = parseAccountID(oracle[jss::account]);
+    if (!account)
     {
         jvResult[jss::error] = "malformedAddress";
         return std::nullopt;
@@ -657,8 +660,7 @@ parseCredential(Json::Value const& cred, Json::Value& jvResult)
         return parseIndex(cred, jvResult);
     }
 
-    if ((!cred.isMember(jss::subject) || !cred[jss::subject].isString()) ||
-        (!cred.isMember(jss::issuer) || !cred[jss::issuer].isString()) ||
+    if (!cred.isMember(jss::subject) || !cred.isMember(jss::issuer) ||
         (!cred.isMember(jss::credential_type) ||
          !cred[jss::credential_type].isString()))
     {
@@ -666,12 +668,11 @@ parseCredential(Json::Value const& cred, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const subject = parseBase58<AccountID>(cred[jss::subject].asString());
-    auto const issuer = parseBase58<AccountID>(cred[jss::issuer].asString());
+    auto const subject = parseAccountID(cred[jss::subject]);
+    auto const issuer = parseAccountID(cred[jss::issuer]);
     auto const credType = strUnHex(cred[jss::credential_type].asString());
 
-    if (!subject || subject->isZero() || !issuer || issuer->isZero() ||
-        !credType || credType->empty())
+    if (!subject || !issuer || !credType || credType->empty())
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -720,16 +721,13 @@ parseMPToken(Json::Value const& mptJson, Json::Value& jvResult)
 
     try
     {
-        auto const mptIssuanceIdStr = mptJson[jss::mpt_issuance_id].asString();
-
         uint192 mptIssuanceID;
-        if (!mptIssuanceID.parseHex(mptIssuanceIdStr))
+        if (!mptJson[jss::mpt_issuance_id].isString() ||
+            !mptIssuanceID.parseHex(mptJson[jss::mpt_issuance_id].asString()))
             Throw<std::runtime_error>("Cannot parse mpt_issuance_id");
 
-        auto const account =
-            parseBase58<AccountID>(mptJson[jss::account].asString());
-
-        if (!account || account->isZero())
+        auto const account = parseAccountID(mptJson[jss::account]);
+        if (!account)
         {
             jvResult[jss::error] = "malformedAddress";
             return std::nullopt;
