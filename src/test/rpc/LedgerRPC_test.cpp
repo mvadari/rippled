@@ -1010,7 +1010,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedRequest", "");
+            checkErrorValue(jrr, "malformedOwner", "");
         }
         {
             // Malformed: missing [jss::deposit_preauth][jss::authorized]
@@ -1029,7 +1029,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedRequest", "");
+            checkErrorValue(jrr, "malformedAuthorized", "");
         }
         {
             // Malformed: [jss::deposit_preauth][jss::owner] is malformed.
@@ -1205,7 +1205,8 @@ class LedgerRPC_test : public beast::unit_test::suite
 
             auto const jrr =
                 env.rpc("json", "ledger_entry", to_string(jvParams));
-            checkErrorValue(jrr[jss::result], "malformedRequest", "");
+            checkErrorValue(
+                jrr[jss::result], "malformedAuthorizedCredentials", "");
         }
 
         {
@@ -1593,7 +1594,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedAddress", "");
+            checkErrorValue(jrr, "malformedOwner", "");
         }
         {
             // Malformed directory object.  Specify both dir_root and owner.
@@ -1767,7 +1768,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedAddress", "");
+            checkErrorValue(jrr, "malformedAccount", "");
         }
         {
             // Malformed offer object.  Missing account member.
@@ -2120,7 +2121,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedAddress", "");
+            checkErrorValue(jrr, "malformedAccount", "");
         }
         {
             // Malformed ticket object.  Missing account member.
@@ -2265,10 +2266,7 @@ class LedgerRPC_test : public beast::unit_test::suite
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-            if (apiVersion < 2u)
-                checkErrorValue(jrr, "internal", "Internal error.");
-            else
-                checkErrorValue(jrr, "invalidParams", "");
+            checkErrorValue(jrr, "malformedRequest", "");
         }
         // Fields that can handle objects just fine
         for (auto const& field :
@@ -2289,10 +2287,7 @@ class LedgerRPC_test : public beast::unit_test::suite
         {
             // invalid input for fields that can't handle an object or an array
             for (auto const& field :
-                 {jss::index,
-                  jss::account_root,
-                  jss::check,
-                  jss::payment_channel})
+                 {jss::index, jss::check, jss::payment_channel})
             {
                 auto const jvParams =
                     makeParams([&field, &inject](Json::Value& jvParams) {
@@ -2302,10 +2297,20 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                checkErrorValue(jrr, "malformedRequest", "");
+            }
+            // `account`/`account_root` has a separate error message
+            for (auto const& field : {jss::account, jss::account_root})
+            {
+                auto const jvParams =
+                    makeParams([&field, &inject](Json::Value& jvParams) {
+                        jvParams[field] = inject;
+                    });
+
+                Json::Value const jrr = env.rpc(
+                    "json", "ledger_entry", to_string(jvParams))[jss::result];
+
+                checkErrorValue(jrr, "malformedAddress", "");
             }
             // directory sub-fields
             for (auto const& field : {jss::dir_root, jss::owner})
@@ -2318,10 +2323,10 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                auto const expectedError = field == jss::dir_root
+                    ? "malformedRequest"
+                    : "malformedOwner";
+                checkErrorValue(jrr, expectedError, "");
             }
             // escrow sub-fields
             {
@@ -2334,10 +2339,7 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                checkErrorValue(jrr, "malformedOwner", "");
             }
             // offer sub-fields
             {
@@ -2350,10 +2352,7 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                checkErrorValue(jrr, "malformedAccount", "");
             }
             // ripple_state sub-fields
             {
@@ -2373,10 +2372,7 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                checkErrorValue(jrr, "malformedCurrency", "");
             }
             // ticket sub-fields
             {
@@ -2389,10 +2385,7 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                if (apiVersion < 2u)
-                    checkErrorValue(jrr, "internal", "Internal error.");
-                else
-                    checkErrorValue(jrr, "invalidParams", "");
+                checkErrorValue(jrr, "malformedAccount", "");
             }
 
             // Fields that can handle malformed inputs just fine
@@ -2425,7 +2418,10 @@ class LedgerRPC_test : public beast::unit_test::suite
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
-                checkErrorValue(jrr, "malformedRequest", "");
+                auto const expectedError = field == jss::owner
+                    ? "malformedOwner"
+                    : "malformedAuthorized";
+                checkErrorValue(jrr, expectedError, "");
             }
         }
     }
