@@ -71,7 +71,7 @@ std::optional<uint256>
 parseIndex(Json::Value const& params, Json::Value& jvResult)
 {
     uint256 uNodeIndex;
-    if (!uNodeIndex.parseHex(params.asString()))
+    if (!params.isString() || !uNodeIndex.parseHex(params.asString()))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -96,14 +96,7 @@ parseAccountRoot(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseCheck(Json::Value const& params, Json::Value& jvResult)
 {
-    uint256 uNodeIndex;
-    if (!uNodeIndex.parseHex(params.asString()))
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
-
-    return uNodeIndex;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
@@ -111,13 +104,7 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 {
     if (!dp.isObject())
     {
-        uint256 uNodeIndex;
-        if (!dp.isString() || !uNodeIndex.parseHex(dp.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(dp, jvResult);
     }
 
     // clang-format off
@@ -182,13 +169,7 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (params.isMember(jss::sub_index) && !params[jss::sub_index].isIntegral())
@@ -242,14 +223,7 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (!params.isMember(jss::owner) || !params.isMember(jss::seq) ||
@@ -273,91 +247,31 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseAmendments(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
 parseFeeSettings(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
 parseSignerList(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
 parseNegativeUNL(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
 parseLedgerHashes(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
@@ -365,13 +279,7 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (!params.isMember(jss::account) || !params.isMember(jss::seq) ||
@@ -394,14 +302,7 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parsePayChannel(Json::Value const& params, Json::Value& jvResult)
 {
-    uint256 uNodeIndex;
-    if (!uNodeIndex.parseHex(params.asString()))
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
-
-    return uNodeIndex;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
@@ -446,13 +347,7 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (!params.isMember(jss::account) || !params.isMember(jss::ticket_seq) ||
@@ -475,37 +370,13 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseNFTokenPage(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
 parseNFTokenOffer(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isString())
-    {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
@@ -513,13 +384,7 @@ parseAMM(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (!params.isMember(jss::asset) || !params.isMember(jss::asset2))
@@ -595,20 +460,12 @@ parseBridge(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
 {
-    if (claim_id.isString())
+    if (!claim_id.isObject())
     {
-        uint256 uNodeIndex;
-        // we accept a node id as specifier of a xchain claim id
-        if (!uNodeIndex.parseHex(claim_id.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(claim_id, jvResult);
     }
 
-    if (!claim_id.isObject() ||
-        !(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
+    if (!(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
           claim_id[sfIssuingChainDoor.getJsonName()].isString()) ||
         !(claim_id.isMember(sfLockingChainDoor.getJsonName()) &&
           claim_id[sfLockingChainDoor.getJsonName()].isString()) ||
@@ -669,21 +526,12 @@ parseXChainOwnedCreateAccountClaimID(
     Json::Value const& claim_id,
     Json::Value& jvResult)
 {
-    if (claim_id.isString())
+    if (!claim_id.isObject())
     {
-        uint256 uNodeIndex;
-        // we accept a node id as specifier of a xchain create account
-        // claim_id
-        if (!uNodeIndex.parseHex(claim_id.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(claim_id, jvResult);
     }
 
-    if (!claim_id.isObject() ||
-        !(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
+    if (!(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
           claim_id[sfIssuingChainDoor.getJsonName()].isString()) ||
         !(claim_id.isMember(sfLockingChainDoor.getJsonName()) &&
           claim_id[sfLockingChainDoor.getJsonName()].isString()) ||
@@ -758,13 +606,7 @@ parseOracle(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(params.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(params, jvResult);
     }
 
     if (!params.isMember(jss::oracle_document_id) ||
@@ -810,15 +652,9 @@ parseOracle(Json::Value const& params, Json::Value& jvResult)
 std::optional<uint256>
 parseCredential(Json::Value const& cred, Json::Value& jvResult)
 {
-    if (cred.isString())
+    if (!cred.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(cred.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(cred, jvResult);
     }
 
     if ((!cred.isMember(jss::subject) || !cred[jss::subject].isString()) ||
@@ -872,13 +708,7 @@ parseMPToken(Json::Value const& mptJson, Json::Value& jvResult)
 {
     if (!mptJson.isObject())
     {
-        uint256 uNodeIndex;
-        if (!uNodeIndex.parseHex(mptJson.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-        return uNodeIndex;
+        return parseIndex(mptJson, jvResult);
     }
 
     if (!mptJson.isMember(jss::mpt_issuance_id) ||
