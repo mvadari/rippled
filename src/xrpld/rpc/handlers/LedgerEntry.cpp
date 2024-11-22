@@ -172,7 +172,7 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseDirectory(Json::Value const& params, Json::Value& jvResult)
+parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 {
     if (params.isNull())
     {
@@ -271,6 +271,96 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
+parseAmendments(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseFeeSettings(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseSignerList(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseNegativeUNL(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseLedgerHashes(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
 parseOffer(Json::Value const& params, Json::Value& jvResult)
 {
     if (!params.isObject())
@@ -302,7 +392,7 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parsePaymentChannel(Json::Value const& params, Json::Value& jvResult)
+parsePayChannel(Json::Value const& params, Json::Value& jvResult)
 {
     uint256 uNodeIndex;
     if (!uNodeIndex.parseHex(params.asString()))
@@ -384,6 +474,24 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
 
 std::optional<uint256>
 parseNFTokenPage(Json::Value const& params, Json::Value& jvResult)
+{
+    if (params.isString())
+    {
+        uint256 uNodeIndex;
+        if (!uNodeIndex.parseHex(params.asString()))
+        {
+            jvResult[jss::error] = "malformedRequest";
+            return std::nullopt;
+        }
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseNFTokenOffer(Json::Value const& params, Json::Value& jvResult)
 {
     if (params.isString())
     {
@@ -831,36 +939,19 @@ doLedgerEntry(RPC::JsonContext& context)
         return jvResult;
 
     static auto ledgerEntryParsers = std::to_array<LedgerEntry>({
+#pragma push_macro("LEDGER_ENTRY")
+#undef LEDGER_ENTRY
+
+#define LEDGER_ENTRY(tag, value, name, rpcName, fields) \
+    {jss::rpcName, parse##name, tag},
+
+#include <xrpl/protocol/detail/ledger_entries.macro>
+
+#undef LEDGER_ENTRY
+#pragma pop_macro("LEDGER_ENTRY")
         {jss::index, parseIndex, ltANY},
         {jss::account_root, parseAccountRoot, ltACCOUNT_ROOT},
-        // TODO: add amendments
-        {jss::amm, parseAMM, ltAMM},
-        {jss::bridge, parseBridge, ltBRIDGE},
-        {jss::check, parseCheck, ltCHECK},
-        {jss::credential, parseCredential, ltCREDENTIAL},
-        {jss::deposit_preauth, parseDepositPreauth, ltDEPOSIT_PREAUTH},
-        {jss::did, parseDID, ltDID},
-        {jss::directory, parseDirectory, ltDIR_NODE},
-        {jss::escrow, parseEscrow, ltESCROW},
-        // TODO: add fee, hashes
-        {jss::mpt_issuance, parseMPTokenIssuance, ltMPTOKEN_ISSUANCE},
-        {jss::mptoken, parseMPToken, ltMPTOKEN},
-        // TODO: add NFT Offers
-        {jss::nft_page, parseNFTokenPage, ltNFTOKEN_PAGE},
-        // TODO: add NegativeUNL
-        {jss::offer, parseOffer, ltOFFER},
-        {jss::oracle, parseOracle, ltORACLE},
-        {jss::payment_channel, parsePaymentChannel, ltPAYCHAN},
         {jss::ripple_state, parseRippleState, ltRIPPLE_STATE},
-        // This is an alias, since the `ledger_data` filter uses jss::state
-        {jss::state, parseRippleState, ltRIPPLE_STATE},
-        {jss::ticket, parseTicket, ltTICKET},
-        {jss::xchain_owned_claim_id,
-         parseXChainOwnedClaimID,
-         ltXCHAIN_OWNED_CLAIM_ID},
-        {jss::xchain_owned_create_account_claim_id,
-         parseXChainOwnedCreateAccountClaimID,
-         ltXCHAIN_OWNED_CREATE_ACCOUNT_CLAIM_ID},
     });
 
     uint256 uNodeIndex;
