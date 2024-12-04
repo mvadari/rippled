@@ -51,6 +51,21 @@ parseAccountID(Json::Value const& param)
     return account;
 }
 
+bool
+hasRequired(
+    const Json::Value& params,
+    std::initializer_list<Json::StaticString> fields)
+{
+    for (const auto& field : fields)
+    {
+        if (!params.isMember(field))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 static STArray
 parseAuthorizeCredentials(Json::Value const& jv)
 {
@@ -59,9 +74,8 @@ parseAuthorizeCredentials(Json::Value const& jv)
     STArray arr(sfAuthorizeCredentials, jv.size());
     for (auto const& jo : jv)
     {
-        if (!jo.isObject() ||  //
-            !jo.isMember(jss::issuer) || !jo[jss::issuer].isString() ||
-            !jo.isMember(jss::credential_type) ||
+        if (!jo.isObject() ||
+            !hasRequired(jo, {jss::issuer, jss::credential_type}) ||
             !jo[jss::credential_type].isString())
             return {};
 
@@ -85,16 +99,27 @@ parseAuthorizeCredentials(Json::Value const& jv)
 }
 
 std::optional<uint256>
-parseIndex(Json::Value const& params, Json::Value& jvResult)
+parseUInt256(Json::Value const& param)
 {
     uint256 uNodeIndex;
-    if (!params.isString() || !uNodeIndex.parseHex(params.asString()))
+    if (!param.isString() || !uNodeIndex.parseHex(param.asString()))
     {
-        jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
     return uNodeIndex;
+}
+
+std::optional<uint256>
+parseIndex(Json::Value const& params, Json::Value& jvResult)
+{
+    if (auto const uNodeIndex = parseUInt256(params))
+    {
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
 }
 
 std::optional<uint256>
@@ -124,11 +149,9 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
         return parseIndex(dp, jvResult);
     }
 
-    // clang-format off
-    if (
-        !dp.isMember(jss::owner) ||
-        (dp.isMember(jss::authorized) == dp.isMember(jss::authorized_credentials)))
-    // clang-format on
+    if (!dp.isMember(jss::owner) ||
+        (dp.isMember(jss::authorized) ==
+         dp.isMember(jss::authorized_credentials)))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -143,13 +166,13 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 
     if (dp.isMember(jss::authorized))
     {
-        auto const authorized = parseAccountID(dp[jss::authorized]);
-        if (!authorized)
+        if (auto const authorized = parseAccountID(dp[jss::authorized]))
         {
-            jvResult[jss::error] = "malformedAuthorized";
-            return std::nullopt;
+            return keylet::depositPreauth(*owner, *authorized).key;
         }
-        return keylet::depositPreauth(*owner, *authorized).key;
+
+        jvResult[jss::error] = "malformedAuthorized";
+        return std::nullopt;
     }
 
     auto const& ac(dp[jss::authorized_credentials]);
@@ -202,20 +225,18 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 
     if (params.isMember(jss::dir_root))
     {
-        uint256 uDirRoot;
-        if (!params[jss::dir_root].isString() ||
-            !uDirRoot.parseHex(params[jss::dir_root].asString()))
+        if (auto const uDirRoot = parseUInt256(params[jss::dir_root]))
         {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
+            return keylet::page(*uDirRoot, uSubIndex).key;
         }
-        return keylet::page(uDirRoot, uSubIndex).key;
+
+        jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
     }
 
     if (params.isMember(jss::owner))
     {
         auto const ownerID = parseAccountID(params[jss::owner]);
-
         if (!ownerID)
         {
             jvResult[jss::error] = "malformedOwner";
@@ -245,7 +266,6 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
     }
 
     auto const id = parseAccountID(params[jss::owner]);
-
     if (!id)
     {
         jvResult[jss::error] = "malformedOwner";
@@ -321,16 +341,22 @@ parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
 {
     Currency uCurrency;
 
-    if (!jvRippleState.isObject() || !jvRippleState.isMember(jss::currency) ||
-        !jvRippleState.isMember(jss::accounts) ||
-        !jvRippleState[jss::accounts].isArray() ||
-        2 != jvRippleState[jss::accounts].size() ||
-        !jvRippleState[jss::accounts][0u].isString() ||
-        !jvRippleState[jss::accounts][1u].isString() ||
-        (jvRippleState[jss::accounts][0u].asString() ==
-         jvRippleState[jss::accounts][1u].asString()))
+    if (!jvRippleState.isObject())
+    {
+        return parseIndex(jvRippleState, jvResult);
+    }
+
+    if (!jvRippleState.isMember(jss::currency) ||
+        !jvRippleState.isMember(jss::accounts))
     {
         jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
+    }
+
+    if (!jvRippleState[jss::accounts].isArray() ||
+        2 != jvRippleState[jss::accounts].size())
+    {
+        jvResult[jss::error] = "malformedAccounts";
         return std::nullopt;
     }
 
@@ -338,7 +364,12 @@ parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
     auto const id2 = parseAccountID(jvRippleState[jss::accounts][1u]);
     if (!id1 || !id2)
     {
-        jvResult[jss::error] = "malformedAddress";
+        jvResult[jss::error] = "malformedAccount";
+        return std::nullopt;
+    }
+    if (id1 == id2)
+    {
+        jvResult[jss::error] = "badRequest";
         return std::nullopt;
     }
 
