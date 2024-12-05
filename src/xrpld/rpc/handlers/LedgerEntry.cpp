@@ -66,6 +66,64 @@ hasRequired(
     return true;
 }
 
+std::optional<std::uint32_t>
+parseUInt32(Json::Value const& param)
+{
+    if (param.isUInt() || (param.isInt() && param.asInt() >= 0))
+        return std::make_optional(param.asUInt());
+
+    if (param.isString())
+    {
+        std::uint32_t v;
+        if (beast::lexicalCastChecked(v, param.asString()))
+            return std::make_optional(v);
+    }
+
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseUInt256(Json::Value const& param)
+{
+    uint256 uNodeIndex;
+    if (!param.isString() || !uNodeIndex.parseHex(param.asString()))
+    {
+        return std::nullopt;
+    }
+
+    return uNodeIndex;
+}
+
+std::optional<uint256>
+parseIndex(Json::Value const& params, Json::Value& jvResult)
+{
+    if (auto const uNodeIndex = parseUInt256(params))
+    {
+        return uNodeIndex;
+    }
+
+    jvResult[jss::error] = "malformedRequest";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseAccountRoot(Json::Value const& params, Json::Value& jvResult)
+{
+    if (auto const account = parseAccountID(params))
+    {
+        return keylet::account(*account).key;
+    }
+
+    jvResult[jss::error] = "malformedAddress";
+    return std::nullopt;
+}
+
+std::optional<uint256>
+parseCheck(Json::Value const& params, Json::Value& jvResult)
+{
+    return parseIndex(params, jvResult);
+}
+
 static STArray
 parseAuthorizeCredentials(Json::Value const& jv)
 {
@@ -96,49 +154,6 @@ parseAuthorizeCredentials(Json::Value const& jv)
     }
 
     return arr;
-}
-
-std::optional<uint256>
-parseUInt256(Json::Value const& param)
-{
-    uint256 uNodeIndex;
-    if (!param.isString() || !uNodeIndex.parseHex(param.asString()))
-    {
-        return std::nullopt;
-    }
-
-    return uNodeIndex;
-}
-
-std::optional<uint256>
-parseIndex(Json::Value const& params, Json::Value& jvResult)
-{
-    if (auto const uNodeIndex = parseUInt256(params))
-    {
-        return uNodeIndex;
-    }
-
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
-}
-
-std::optional<uint256>
-parseAccountRoot(Json::Value const& params, Json::Value& jvResult)
-{
-    auto const account = parseAccountID(params);
-    if (!account)
-    {
-        jvResult[jss::error] = "malformedAddress";
-        return std::nullopt;
-    }
-
-    return keylet::account(*account).key;
-}
-
-std::optional<uint256>
-parseCheck(Json::Value const& params, Json::Value& jvResult)
-{
-    return parseIndex(params, jvResult);
 }
 
 std::optional<uint256>
@@ -177,7 +192,6 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 
     auto const& ac(dp[jss::authorized_credentials]);
     STArray const arr = parseAuthorizeCredentials(ac);
-
     if (arr.empty() || (arr.size() > maxCredentialsArraySize))
     {
         jvResult[jss::error] = "malformedAuthorizedCredentials";
@@ -197,12 +211,6 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 std::optional<uint256>
 parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 {
-    if (params.isNull())
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
-
     if (!params.isObject())
     {
         return parseIndex(params, jvResult);
@@ -258,8 +266,7 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
         return parseIndex(params, jvResult);
     }
 
-    if (!params.isMember(jss::owner) || !params.isMember(jss::seq) ||
-        !params[jss::seq].isIntegral())
+    if (!hasRequired(params, {jss::owner, jss::seq}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -269,6 +276,13 @@ parseEscrow(Json::Value const& params, Json::Value& jvResult)
     if (!id)
     {
         jvResult[jss::error] = "malformedOwner";
+        return std::nullopt;
+    }
+
+    auto const seq = parseUInt32(params[jss::seq]);
+    if (!seq)
+    {
+        jvResult[jss::error] = "malformedSeq";
         return std::nullopt;
     }
 
@@ -313,8 +327,7 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
         return parseIndex(params, jvResult);
     }
 
-    if (!params.isMember(jss::account) || !params.isMember(jss::seq) ||
-        !params[jss::seq].isIntegral())
+    if (!hasRequired(params, {jss::account, jss::seq}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -327,7 +340,14 @@ parseOffer(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    return keylet::offer(*id, params[jss::seq].asUInt()).key;
+    auto const seq = parseUInt32(params[jss::seq]);
+    if (!seq)
+    {
+        jvResult[jss::error] = "malformedSeq";
+        return std::nullopt;
+    }
+
+    return keylet::offer(*id, *seq).key;
 }
 
 std::optional<uint256>
@@ -405,7 +425,14 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    return getTicketIndex(*id, params[jss::ticket_seq].asUInt());
+    auto const seq = parseUInt32(params[jss::ticket_seq]);
+    if (!seq)
+    {
+        jvResult[jss::error] = "malformedTicketSeq";
+        return std::nullopt;
+    }
+
+    return getTicketIndex(*id, *seq);
 }
 
 std::optional<uint256>
@@ -500,13 +527,13 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
         return parseIndex(claim_id, jvResult);
     }
 
-    if (!(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
-          claim_id[sfIssuingChainDoor.getJsonName()].isString()) ||
-        !(claim_id.isMember(sfLockingChainDoor.getJsonName()) &&
-          claim_id[sfLockingChainDoor.getJsonName()].isString()) ||
-        !claim_id.isMember(sfIssuingChainIssue.getJsonName()) ||
-        !claim_id.isMember(sfLockingChainIssue.getJsonName()) ||
-        !claim_id.isMember(jss::xchain_owned_claim_id))
+    if (!hasRequired(
+            claim_id,
+            {sfIssuingChainDoor.getJsonName(),
+             sfLockingChainDoor.getJsonName(),
+             sfIssuingChainIssue.getJsonName(),
+             sfLockingChainIssue.getJsonName(),
+             jss::xchain_owned_claim_id}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -523,37 +550,39 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
     Issue lockingChainIssue, issuingChainIssue;
     bool valid = lockingChainDoor && issuingChainDoor;
 
-    if (valid)
+    if (!valid)
     {
-        try
-        {
-            lockingChainIssue =
-                issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
-            issuingChainIssue =
-                issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
-        }
-        catch (std::runtime_error const& ex)
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
+        jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
     }
 
-    if (valid && claim_id[jss::xchain_owned_claim_id].isIntegral())
+    try
     {
-        auto const seq = claim_id[jss::xchain_owned_claim_id].asUInt();
-
-        STXChainBridge bridge_spec(
-            *lockingChainDoor,
-            lockingChainIssue,
-            *issuingChainDoor,
-            issuingChainIssue);
-        Keylet keylet = keylet::xChainClaimID(bridge_spec, seq);
-        return keylet.key;
+        lockingChainIssue =
+            issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
+        issuingChainIssue =
+            issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
+    }
+    catch (std::runtime_error const& ex)
+    {
+        jvResult[jss::error] = "malformedIssue";
+        return std::nullopt;
     }
 
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    auto const seq = parseUInt32(claim_id[jss::xchain_owned_claim_id]);
+    if (!seq)
+    {
+        jvResult[jss::error] = "malformedXChainOwnedClaimID";
+        return std::nullopt;
+    }
+
+    STXChainBridge bridge_spec(
+        *lockingChainDoor,
+        lockingChainIssue,
+        *issuingChainDoor,
+        issuingChainIssue);
+    Keylet keylet = keylet::xChainClaimID(bridge_spec, *seq);
+    return keylet.key;
 }
 
 std::optional<uint256>
@@ -566,13 +595,13 @@ parseXChainOwnedCreateAccountClaimID(
         return parseIndex(claim_id, jvResult);
     }
 
-    if (!(claim_id.isMember(sfIssuingChainDoor.getJsonName()) &&
-          claim_id[sfIssuingChainDoor.getJsonName()].isString()) ||
-        !(claim_id.isMember(sfLockingChainDoor.getJsonName()) &&
-          claim_id[sfLockingChainDoor.getJsonName()].isString()) ||
-        !claim_id.isMember(sfIssuingChainIssue.getJsonName()) ||
-        !claim_id.isMember(sfLockingChainIssue.getJsonName()) ||
-        !claim_id.isMember(jss::xchain_owned_create_account_claim_id))
+    if (!hasRequired(
+            claim_id,
+            {sfIssuingChainDoor.getJsonName(),
+             sfLockingChainDoor.getJsonName(),
+             sfIssuingChainIssue.getJsonName(),
+             sfLockingChainIssue.getJsonName(),
+             jss::xchain_owned_create_account_claim_id}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -589,38 +618,40 @@ parseXChainOwnedCreateAccountClaimID(
         parseAccountID(claim_id[sfIssuingChainDoor.getJsonName()]);
     Issue lockingChainIssue, issuingChainIssue;
     bool valid = lockingChainDoor && issuingChainDoor;
-    if (valid)
+
+    if (!valid)
     {
-        try
-        {
-            lockingChainIssue =
-                issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
-            issuingChainIssue =
-                issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
-        }
-        catch (std::runtime_error const& ex)
-        {
-            valid = false;
-            jvResult[jss::error] = "malformedRequest";
-        }
+        return std::nullopt;
     }
 
-    if (valid &&
-        claim_id[jss::xchain_owned_create_account_claim_id].isIntegral())
+    try
     {
-        auto const seq =
-            claim_id[jss::xchain_owned_create_account_claim_id].asUInt();
-
-        STXChainBridge bridge_spec(
-            *lockingChainDoor,
-            lockingChainIssue,
-            *issuingChainDoor,
-            issuingChainIssue);
-        Keylet keylet = keylet::xChainCreateAccountClaimID(bridge_spec, seq);
-        return keylet.key;
+        lockingChainIssue =
+            issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
+        issuingChainIssue =
+            issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
+    }
+    catch (std::runtime_error const& ex)
+    {
+        valid = false;
+        jvResult[jss::error] = "malformedRequest";
     }
 
-    return std::nullopt;
+    auto const seq =
+        parseUInt32(claim_id[jss::xchain_owned_create_account_claim_id]);
+    if (!seq)
+    {
+        jvResult[jss::error] = "malformedXChainOwnedCreateAccountClaimID";
+        return std::nullopt;
+    }
+
+    STXChainBridge bridge_spec(
+        *lockingChainDoor,
+        lockingChainIssue,
+        *issuingChainDoor,
+        issuingChainIssue);
+    Keylet keylet = keylet::xChainCreateAccountClaimID(bridge_spec, *seq);
+    return keylet.key;
 }
 
 std::optional<uint256>
@@ -644,28 +675,14 @@ parseOracle(Json::Value const& params, Json::Value& jvResult)
         return parseIndex(params, jvResult);
     }
 
-    if (!params.isMember(jss::oracle_document_id) ||
-        !params.isMember(jss::account))
+    if (!hasRequired(params, {jss::oracle_document_id, jss::account}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
     auto const& oracle = params;
-    auto const documentID = [&]() -> std::optional<std::uint32_t> {
-        auto const id = oracle[jss::oracle_document_id];
-        if (id.isUInt() || (id.isInt() && id.asInt() >= 0))
-            return std::make_optional(id.asUInt());
-
-        if (id.isString())
-        {
-            std::uint32_t v;
-            if (beast::lexicalCastChecked(v, id.asString()))
-                return std::make_optional(v);
-        }
-
-        return std::nullopt;
-    }();
+    auto const documentID = parseUInt32(oracle[jss::oracle_document_id]);
 
     auto const account = parseAccountID(oracle[jss::account]);
     if (!account)
@@ -791,12 +808,6 @@ struct LedgerEntry
 Json::Value
 doLedgerEntry(RPC::JsonContext& context)
 {
-    std::shared_ptr<ReadView const> lpLedger;
-    auto jvResult = RPC::lookupLedger(lpLedger, context);
-
-    if (!lpLedger)
-        return jvResult;
-
     static auto ledgerEntryParsers = std::to_array<LedgerEntry>({
 #pragma push_macro("LEDGER_ENTRY")
 #undef LEDGER_ENTRY
@@ -812,6 +823,12 @@ doLedgerEntry(RPC::JsonContext& context)
         {jss::account_root, parseAccountRoot, ltACCOUNT_ROOT},
         {jss::ripple_state, parseRippleState, ltRIPPLE_STATE},
     });
+
+    std::shared_ptr<ReadView const> lpLedger;
+    auto jvResult = RPC::lookupLedger(lpLedger, context);
+
+    if (!lpLedger)
+        return jvResult;
 
     uint256 uNodeIndex;
     LedgerEntryType expectedType = ltANY;
