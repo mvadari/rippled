@@ -37,10 +37,10 @@
 namespace ripple {
 
 std::nullopt_t
-missingFieldError(Json::Value& json, std::string& err, Json::StaticString field)
+missingFieldError(Json::Value& json, Json::StaticString field)
 {
     auto const& error = RPC::missing_field_message(std::string(field.c_str()));
-    json[jss::error] = err;
+    json[jss::error] = "malformedRequest";
     json[jss::error_code] = rpcINVALID_PARAMS;
     json[jss::error_message] = error;
     return std::nullopt;
@@ -49,7 +49,7 @@ missingFieldError(Json::Value& json, std::string& err, Json::StaticString field)
 std::nullopt_t
 invalidFieldError(
     Json::Value& json,
-    std::string& err,
+    std::string err,
     Json::StaticString field,
     std::string const& type)
 {
@@ -76,6 +76,24 @@ parseAccountID(Json::Value const& param)
     return account;
 }
 
+std::optional<AccountID>
+requiredAccountID(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult,
+    std::string err)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(jvResult, fieldName);
+    }
+    if (auto account = parseAccountID(params[fieldName]))
+    {
+        return account;
+    }
+    return invalidFieldError(jvResult, err, fieldName, "AccountID");
+}
+
 std::optional<Blob>
 parseHexBlob(Json::Value const& param, std::size_t maxLength)
 {
@@ -87,6 +105,25 @@ parseHexBlob(Json::Value const& param, std::size_t maxLength)
         return std::nullopt;
 
     return blob;
+}
+
+std::optional<Blob>
+requiredHexBlob(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::size_t maxLength,
+    Json::Value& jvResult,
+    std::string err)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(jvResult, fieldName);
+    }
+    if (auto blob = parseHexBlob(params[fieldName], maxLength))
+    {
+        return blob;
+    }
+    return invalidFieldError(jvResult, err, fieldName, "hex string");
 }
 
 bool
@@ -121,6 +158,24 @@ parseUInt32(Json::Value const& param)
     return std::nullopt;
 }
 
+std::optional<std::uint32_t>
+requiredUInt32(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult,
+    std::string err)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(jvResult, fieldName);
+    }
+    if (auto value = parseUInt32(params[fieldName]))
+    {
+        return value;
+    }
+    return invalidFieldError(jvResult, err, fieldName, "number");
+}
+
 std::optional<uint256>
 parseUInt256(Json::Value const& param)
 {
@@ -134,34 +189,60 @@ parseUInt256(Json::Value const& param)
 }
 
 std::optional<uint256>
-parseIndex(Json::Value const& params, Json::Value& jvResult)
+requiredUInt256(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult,
+    std::string err)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(jvResult, fieldName);
+    }
+    if (auto value = parseUInt256(params[fieldName]))
+    {
+        return value;
+    }
+    return invalidFieldError(jvResult, err, fieldName, "hex string");
+}
+
+std::optional<uint256>
+parseIndex(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (auto const uNodeIndex = parseUInt256(params))
     {
         return uNodeIndex;
     }
 
-    // TODO: use `invalidFieldError`
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return invalidFieldError(
+        jvResult, "malformedRequest", fieldName, "hex string");
 }
 
 std::optional<uint256>
-parseAccountRoot(Json::Value const& params, Json::Value& jvResult)
+parseAccountRoot(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (auto const account = parseAccountID(params))
     {
         return keylet::account(*account).key;
     }
 
-    jvResult[jss::error] = "malformedAddress";
-    return std::nullopt;
+    return invalidFieldError(
+        jvResult, "malformedAddress", fieldName, "AccountID");
 }
 
 std::optional<uint256>
-parseCheck(Json::Value const& params, Json::Value& jvResult)
+parseCheck(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 static STArray
@@ -196,25 +277,31 @@ parseAuthorizeCredentials(Json::Value const& jv)
 }
 
 std::optional<uint256>
-parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
+parseDepositPreauth(
+    Json::Value const& dp,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!dp.isObject())
     {
-        return parseIndex(dp, jvResult);
+        return parseIndex(dp, fieldName, jvResult);
     }
 
-    if (!dp.isMember(jss::owner) ||
-        (dp.isMember(jss::authorized) ==
+    if ((dp.isMember(jss::authorized) ==
          dp.isMember(jss::authorized_credentials)))
     {
         jvResult[jss::error] = "malformedRequest";
+        jvResult[jss::error_code] = rpcINVALID_PARAMS;
+        jvResult[jss::error_message] =
+            "Must have exactly one of `authorized` and "
+            "`authorized_credentials`.";
         return std::nullopt;
     }
 
-    auto const owner = parseAccountID(dp[jss::owner]);
+    auto const owner =
+        requiredAccountID(dp, jss::owner, jvResult, "malformedOwner");
     if (!owner)
     {
-        jvResult[jss::error] = "malformedOwner";
         return std::nullopt;
     }
 
@@ -224,9 +311,8 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
         {
             return keylet::depositPreauth(*owner, *authorized).key;
         }
-
-        jvResult[jss::error] = "malformedAuthorized";
-        return std::nullopt;
+        return invalidFieldError(
+            jvResult, "malformedAuthorized", jss::authorized, "Account");
     }
 
     auto const& ac(dp[jss::authorized_credentials]);
@@ -248,11 +334,14 @@ parseDepositPreauth(Json::Value const& dp, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
+parseDirectoryNode(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
     if (params.isMember(jss::sub_index) && !params[jss::sub_index].isIntegral())
@@ -297,111 +386,114 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseEscrow(Json::Value const& params, Json::Value& jvResult)
+parseEscrow(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
-    if (!hasRequired(params, {jss::owner, jss::seq}))
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
+    if (auto const id =
+            requiredAccountID(params, jss::owner, jvResult, "malformedOwner"))
+        if (auto const seq =
+                requiredUInt32(params, jss::seq, jvResult, "malformedSeq"))
+        {
+            return keylet::escrow(*id, *seq).key;
+        }
 
-    auto const id = parseAccountID(params[jss::owner]);
-    if (!id)
-    {
-        jvResult[jss::error] = "malformedOwner";
-        return std::nullopt;
-    }
-
-    auto const seq = parseUInt32(params[jss::seq]);
-    if (!seq)
-    {
-        jvResult[jss::error] = "malformedSeq";
-        return std::nullopt;
-    }
-
-    return keylet::escrow(*id, params[jss::seq].asUInt()).key;
+    return std::nullopt;
 }
 
 std::optional<uint256>
-parseAmendments(Json::Value const& params, Json::Value& jvResult)
+parseAmendments(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseFeeSettings(Json::Value const& params, Json::Value& jvResult)
+parseFeeSettings(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseSignerList(Json::Value const& params, Json::Value& jvResult)
+parseSignerList(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseNegativeUNL(Json::Value const& params, Json::Value& jvResult)
+parseNegativeUNL(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseLedgerHashes(Json::Value const& params, Json::Value& jvResult)
+parseLedgerHashes(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseOffer(Json::Value const& params, Json::Value& jvResult)
+parseOffer(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
-    if (!hasRequired(params, {jss::account, jss::seq}))
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
+    if (auto const id = requiredAccountID(
+            params, jss::account, jvResult, "malformedAccount"))
+        if (auto const seq =
+                requiredUInt32(params, jss::seq, jvResult, "malformedSeq"))
+        {
+            return keylet::offer(*id, *seq).key;
+        }
 
-    auto const id = parseAccountID(params[jss::account]);
-    if (!id)
-    {
-        jvResult[jss::error] = "malformedAccount";
-        return std::nullopt;
-    }
-
-    auto const seq = parseUInt32(params[jss::seq]);
-    if (!seq)
-    {
-        jvResult[jss::error] = "malformedSeq";
-        return std::nullopt;
-    }
-
-    return keylet::offer(*id, *seq).key;
+    return std::nullopt;
 }
 
 std::optional<uint256>
-parsePayChannel(Json::Value const& params, Json::Value& jvResult)
+parsePayChannel(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
+parseRippleState(
+    Json::Value const& jvRippleState,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     Currency uCurrency;
 
     if (!jvRippleState.isObject())
     {
-        return parseIndex(jvRippleState, jvResult);
+        return parseIndex(jvRippleState, fieldName, jvResult);
     }
 
     if (!hasRequired(jvRippleState, {jss::currency, jss::accounts}))
@@ -441,54 +533,54 @@ parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseTicket(Json::Value const& params, Json::Value& jvResult)
+parseTicket(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
-    if (!hasRequired(params, {jss::account, jss::ticket_seq}))
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
+    if (auto const id = requiredAccountID(
+            params, jss::account, jvResult, "malformedAccount"))
+        if (auto const seq = requiredUInt32(
+                params, jss::ticket_seq, jvResult, "malformedTicketSeq"))
+        {
+            return getTicketIndex(*id, *seq);
+        }
 
-    auto const id = parseAccountID(params[jss::account]);
-    if (!id)
-    {
-        jvResult[jss::error] = "malformedAccount";
-        return std::nullopt;
-    }
-
-    auto const seq = parseUInt32(params[jss::ticket_seq]);
-    if (!seq)
-    {
-        jvResult[jss::error] = "malformedTicketSeq";
-        return std::nullopt;
-    }
-
-    return getTicketIndex(*id, *seq);
+    return std::nullopt;
 }
 
 std::optional<uint256>
-parseNFTokenPage(Json::Value const& params, Json::Value& jvResult)
+parseNFTokenPage(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseNFTokenOffer(Json::Value const& params, Json::Value& jvResult)
+parseNFTokenOffer(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
-    return parseIndex(params, jvResult);
+    return parseIndex(params, fieldName, jvResult);
 }
 
 std::optional<uint256>
-parseAMM(Json::Value const& params, Json::Value& jvResult)
+parseAMM(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
     if (!hasRequired(params, {jss::asset, jss::asset2}))
@@ -511,7 +603,10 @@ parseAMM(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseBridge(Json::Value const& params, Json::Value& jvResult)
+parseBridge(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     // return the keylet for the specified bridge or nullopt if the
     // request is malformed
@@ -556,11 +651,14 @@ parseBridge(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
+parseXChainOwnedClaimID(
+    Json::Value const& claim_id,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!claim_id.isObject())
     {
-        return parseIndex(claim_id, jvResult);
+        return parseIndex(claim_id, fieldName, jvResult);
     }
 
     if (!hasRequired(
@@ -622,11 +720,12 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
 std::optional<uint256>
 parseXChainOwnedCreateAccountClaimID(
     Json::Value const& claim_id,
+    Json::StaticString const& fieldName,
     Json::Value& jvResult)
 {
     if (!claim_id.isObject())
     {
-        return parseIndex(claim_id, jvResult);
+        return parseIndex(claim_id, fieldName, jvResult);
     }
 
     if (!hasRequired(
@@ -687,7 +786,10 @@ parseXChainOwnedCreateAccountClaimID(
 }
 
 std::optional<uint256>
-parseDID(Json::Value const& params, Json::Value& jvResult)
+parseDID(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     auto const account = parseAccountID(params);
     if (!account)
@@ -700,11 +802,14 @@ parseDID(Json::Value const& params, Json::Value& jvResult)
 }
 
 std::optional<uint256>
-parseOracle(Json::Value const& params, Json::Value& jvResult)
+parseOracle(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!params.isObject())
     {
-        return parseIndex(params, jvResult);
+        return parseIndex(params, fieldName, jvResult);
     }
 
     if (!hasRequired(params, {jss::oracle_document_id, jss::account}))
@@ -713,31 +818,29 @@ parseOracle(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const& oracle = params;
-    auto const documentID = parseUInt32(oracle[jss::oracle_document_id]);
+    if (auto const id = requiredAccountID(
+            params, jss::account, jvResult, "malformedAddress"))
+        if (auto const seq = requiredUInt32(
+                params,
+                jss::oracle_document_id,
+                jvResult,
+                "malformedDocumentID"))
+        {
+            return keylet::oracle(*id, *seq).key;
+        }
 
-    auto const account = parseAccountID(oracle[jss::account]);
-    if (!account)
-    {
-        jvResult[jss::error] = "malformedAddress";
-        return std::nullopt;
-    }
-
-    if (!documentID)
-    {
-        jvResult[jss::error] = "malformedDocumentID";
-        return std::nullopt;
-    }
-
-    return keylet::oracle(*account, *documentID).key;
+    return std::nullopt;
 }
 
 std::optional<uint256>
-parseCredential(Json::Value const& cred, Json::Value& jvResult)
+parseCredential(
+    Json::Value const& cred,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!cred.isObject())
     {
-        return parseIndex(cred, jvResult);
+        return parseIndex(cred, fieldName, jvResult);
     }
 
     if (!hasRequired(cred, {jss::subject, jss::issuer, jss::credential_type}))
@@ -746,25 +849,32 @@ parseCredential(Json::Value const& cred, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    auto const subject = parseAccountID(cred[jss::subject]);
-    auto const issuer = parseAccountID(cred[jss::issuer]);
-    auto const credType =
-        parseHexBlob(cred[jss::credential_type], maxCredentialTypeLength);
+    if (auto const subject =
+            requiredAccountID(cred, jss::subject, jvResult, "malformedSubject"))
 
-    if (!subject || !issuer || !credType)
-    {
-        jvResult[jss::error] = "malformedRequest";
-        return std::nullopt;
-    }
+        if (auto const issuer = requiredAccountID(
+                cred, jss::issuer, jvResult, "malformedIssuer"))
+            if (auto const credType = requiredHexBlob(
+                    cred,
+                    jss::credential_type,
+                    maxCredentialTypeLength,
+                    jvResult,
+                    "malformedCredentialType"))
+            {
+                return keylet::credential(
+                           *subject,
+                           *issuer,
+                           Slice(credType->data(), credType->size()))
+                    .key;
+            }
 
-    return keylet::credential(
-               *subject, *issuer, Slice(credType->data(), credType->size()))
-        .key;
+    return std::nullopt;
 }
 
 std::optional<uint256>
 parseMPTokenIssuance(
     Json::Value const& unparsedMPTIssuanceID,
+    Json::StaticString const& fieldName,
     Json::Value& jvResult)
 {
     uint192 mptIssuanceID;
@@ -779,11 +889,14 @@ parseMPTokenIssuance(
 }
 
 std::optional<uint256>
-parseMPToken(Json::Value const& mptJson, Json::Value& jvResult)
+parseMPToken(
+    Json::Value const& mptJson,
+    Json::StaticString const& fieldName,
+    Json::Value& jvResult)
 {
     if (!mptJson.isObject())
     {
-        return parseIndex(mptJson, jvResult);
+        return parseIndex(mptJson, fieldName, jvResult);
     }
 
     if (!hasRequired(mptJson, {jss::mpt_issuance_id, jss::account}))
@@ -810,8 +923,10 @@ parseMPToken(Json::Value const& mptJson, Json::Value& jvResult)
     return keylet::mptoken(mptIssuanceID, *account).key;
 }
 
-using FunctionType =
-    std::optional<uint256> (*)(Json::Value const&, Json::Value&);
+using FunctionType = std::optional<uint256> (*)(
+    Json::Value const&,
+    Json::StaticString const&,
+    Json::Value&);
 
 struct LedgerEntry
 {
@@ -891,8 +1006,10 @@ doLedgerEntry(RPC::JsonContext& context)
                 Json::Value const& params = ledgerEntry.fieldName == jss::bridge
                     ? context.params
                     : context.params[ledgerEntry.fieldName];
-                uNodeIndex = ledgerEntry.parseFunction(params, jvResult)
-                                 .value_or(beast::zero);
+                uNodeIndex =
+                    ledgerEntry
+                        .parseFunction(params, ledgerEntry.fieldName, jvResult)
+                        .value_or(beast::zero);
                 if (jvResult.isMember(jss::error))
                 {
                     return jvResult;
