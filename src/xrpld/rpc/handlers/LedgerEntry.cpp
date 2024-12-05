@@ -36,6 +36,31 @@
 
 namespace ripple {
 
+std::nullopt_t
+missingFieldError(Json::Value& json, std::string& err, Json::StaticString field)
+{
+    auto const& error = RPC::missing_field_message(std::string(field.c_str()));
+    json[jss::error] = err;
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = error;
+    return std::nullopt;
+}
+
+std::nullopt_t
+invalidFieldError(
+    Json::Value& json,
+    std::string& err,
+    Json::StaticString field,
+    std::string const& type)
+{
+    auto const& error =
+        RPC::expected_field_message(std::string(field.c_str()), type);
+    json[jss::error] = err;
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = error;
+    return std::nullopt;
+}
+
 std::optional<AccountID>
 parseAccountID(Json::Value const& param)
 {
@@ -51,6 +76,19 @@ parseAccountID(Json::Value const& param)
     return account;
 }
 
+std::optional<Blob>
+parseHexBlob(Json::Value const& param, std::size_t maxLength)
+{
+    if (!param.isString())
+        return std::nullopt;
+
+    auto const blob = strUnHex(param.asString());
+    if (!blob || blob->empty() || blob->size() > maxLength)
+        return std::nullopt;
+
+    return blob;
+}
+
 bool
 hasRequired(
     const Json::Value& params,
@@ -60,6 +98,7 @@ hasRequired(
     {
         if (!params.isMember(field))
         {
+            // TODO: use `missingFieldError`
             return false;
         }
     }
@@ -102,6 +141,7 @@ parseIndex(Json::Value const& params, Json::Value& jvResult)
         return uNodeIndex;
     }
 
+    // TODO: use `invalidFieldError`
     jvResult[jss::error] = "malformedRequest";
     return std::nullopt;
 }
@@ -142,9 +182,8 @@ parseAuthorizeCredentials(Json::Value const& jv)
             return {};
 
         auto const credentialType =
-            strUnHex(jo[jss::credential_type].asString());
-        if (!credentialType || credentialType->empty() ||
-            credentialType->size() > maxCredentialTypeLength)
+            parseHexBlob(jo[jss::credential_type], maxCredentialTypeLength);
+        if (!credentialType)
             return {};
 
         auto credential = STObject::makeInnerObject(sfCredential);
@@ -228,8 +267,7 @@ parseDirectoryNode(Json::Value const& params, Json::Value& jvResult)
         return std::nullopt;
     }
 
-    std::uint64_t uSubIndex =
-        params.isMember(jss::sub_index) ? params[jss::sub_index].asUInt() : 0;
+    std::uint64_t uSubIndex = params.get(jss::sub_index, 0).asUInt();
 
     if (params.isMember(jss::dir_root))
     {
@@ -708,9 +746,7 @@ parseCredential(Json::Value const& cred, Json::Value& jvResult)
         return parseIndex(cred, jvResult);
     }
 
-    if (!cred.isMember(jss::subject) || !cred.isMember(jss::issuer) ||
-        (!cred.isMember(jss::credential_type) ||
-         !cred[jss::credential_type].isString()))
+    if (!hasRequired(cred, {jss::subject, jss::issuer, jss::credential_type}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -718,9 +754,10 @@ parseCredential(Json::Value const& cred, Json::Value& jvResult)
 
     auto const subject = parseAccountID(cred[jss::subject]);
     auto const issuer = parseAccountID(cred[jss::issuer]);
-    auto const credType = strUnHex(cred[jss::credential_type].asString());
+    auto const credType =
+        parseHexBlob(cred[jss::credential_type], maxCredentialTypeLength);
 
-    if (!subject || !issuer || !credType || credType->empty())
+    if (!subject || !issuer || !credType)
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -823,6 +860,29 @@ doLedgerEntry(RPC::JsonContext& context)
         {jss::account_root, parseAccountRoot, ltACCOUNT_ROOT},
         {jss::ripple_state, parseRippleState, ltRIPPLE_STATE},
     });
+
+    auto hasMoreThanOneMember = [&]() {
+        int count = 0;
+
+        for (const auto& ledgerEntry : ledgerEntryParsers)
+        {
+            if (context.params.isMember(ledgerEntry.fieldName))
+            {
+                count++;
+                if (count > 1)  // Early exit if more than one is found
+                    return true;
+            }
+        }
+        return false;  // Return false if <= 1 is found
+    }();
+
+    if (hasMoreThanOneMember)
+    {
+        Json::Value jvResult = Json::objectValue;
+        jvResult[jss::error] = "invalidParams";
+        jvResult[jss::error_message] = "Too many fields provided.";
+        return jvResult;
+    }
 
     std::shared_ptr<ReadView const> lpLedger;
     auto jvResult = RPC::lookupLedger(lpLedger, context);
