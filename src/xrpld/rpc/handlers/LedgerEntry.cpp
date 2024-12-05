@@ -404,15 +404,14 @@ parseRippleState(Json::Value const& jvRippleState, Json::Value& jvResult)
         return parseIndex(jvRippleState, jvResult);
     }
 
-    if (!jvRippleState.isMember(jss::currency) ||
-        !jvRippleState.isMember(jss::accounts))
+    if (!hasRequired(jvRippleState, {jss::currency, jss::accounts}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
     if (!jvRippleState[jss::accounts].isArray() ||
-        2 != jvRippleState[jss::accounts].size())
+        jvRippleState[jss::accounts].size() != 2)
     {
         jvResult[jss::error] = "malformedAccounts";
         return std::nullopt;
@@ -449,8 +448,7 @@ parseTicket(Json::Value const& params, Json::Value& jvResult)
         return parseIndex(params, jvResult);
     }
 
-    if (!params.isMember(jss::account) || !params.isMember(jss::ticket_seq) ||
-        !params[jss::ticket_seq].isIntegral())
+    if (!hasRequired(params, {jss::account, jss::ticket_seq}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -493,7 +491,7 @@ parseAMM(Json::Value const& params, Json::Value& jvResult)
         return parseIndex(params, jvResult);
     }
 
-    if (!params.isMember(jss::asset) || !params.isMember(jss::asset2))
+    if (!hasRequired(params, {jss::asset, jss::asset2}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
@@ -567,10 +565,10 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
 
     if (!hasRequired(
             claim_id,
-            {sfIssuingChainDoor.getJsonName(),
-             sfLockingChainDoor.getJsonName(),
-             sfIssuingChainIssue.getJsonName(),
-             sfLockingChainIssue.getJsonName(),
+            {jss::IssuingChainDoor,
+             jss::LockingChainDoor,
+             jss::IssuingChainIssue,
+             jss::LockingChainIssue,
              jss::xchain_owned_claim_id}))
     {
         jvResult[jss::error] = "malformedRequest";
@@ -582,24 +580,22 @@ parseXChainOwnedClaimID(Json::Value const& claim_id, Json::Value& jvResult)
     // locking_chain_issue, issuing_chain_door, issuing_chain_issue)
     // and the claim id sequence number.
     auto const lockingChainDoor =
-        parseAccountID(claim_id[sfLockingChainDoor.getJsonName()]);
+        parseAccountID(claim_id[jss::LockingChainDoor]);
     auto const issuingChainDoor =
-        parseAccountID(claim_id[sfIssuingChainDoor.getJsonName()]);
-    Issue lockingChainIssue, issuingChainIssue;
-    bool valid = lockingChainDoor && issuingChainDoor;
+        parseAccountID(claim_id[jss::IssuingChainDoor]);
 
-    if (!valid)
+    if (!(lockingChainDoor && issuingChainDoor))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
+    Issue lockingChainIssue, issuingChainIssue;
+
     try
     {
-        lockingChainIssue =
-            issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
-        issuingChainIssue =
-            issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
+        lockingChainIssue = issueFromJson(claim_id[jss::LockingChainIssue]);
+        issuingChainIssue = issueFromJson(claim_id[jss::IssuingChainIssue]);
     }
     catch (std::runtime_error const& ex)
     {
@@ -635,10 +631,10 @@ parseXChainOwnedCreateAccountClaimID(
 
     if (!hasRequired(
             claim_id,
-            {sfIssuingChainDoor.getJsonName(),
-             sfLockingChainDoor.getJsonName(),
-             sfIssuingChainIssue.getJsonName(),
-             sfLockingChainIssue.getJsonName(),
+            {jss::IssuingChainDoor,
+             jss::LockingChainDoor,
+             jss::IssuingChainIssue,
+             jss::LockingChainIssue,
              jss::xchain_owned_create_account_claim_id}))
     {
         jvResult[jss::error] = "malformedRequest";
@@ -651,28 +647,26 @@ parseXChainOwnedCreateAccountClaimID(
     // issuing_chain_issue) and the create account claim id sequence
     // number.
     auto const lockingChainDoor =
-        parseAccountID(claim_id[sfLockingChainDoor.getJsonName()]);
+        parseAccountID(claim_id[jss::LockingChainDoor]);
     auto const issuingChainDoor =
-        parseAccountID(claim_id[sfIssuingChainDoor.getJsonName()]);
-    Issue lockingChainIssue, issuingChainIssue;
-    bool valid = lockingChainDoor && issuingChainDoor;
+        parseAccountID(claim_id[jss::IssuingChainDoor]);
 
-    if (!valid)
+    if (!(lockingChainDoor && issuingChainDoor))
     {
         return std::nullopt;
     }
 
+    Issue lockingChainIssue, issuingChainIssue;
+
     try
     {
-        lockingChainIssue =
-            issueFromJson(claim_id[sfLockingChainIssue.getJsonName()]);
-        issuingChainIssue =
-            issueFromJson(claim_id[sfIssuingChainIssue.getJsonName()]);
+        lockingChainIssue = issueFromJson(claim_id[jss::LockingChainIssue]);
+        issuingChainIssue = issueFromJson(claim_id[jss::IssuingChainIssue]);
     }
     catch (std::runtime_error const& ex)
     {
-        valid = false;
         jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
     }
 
     auto const seq =
@@ -773,20 +767,15 @@ parseMPTokenIssuance(
     Json::Value const& unparsedMPTIssuanceID,
     Json::Value& jvResult)
 {
-    if (unparsedMPTIssuanceID.isString())
+    uint192 mptIssuanceID;
+    if (!unparsedMPTIssuanceID.isString() ||
+        !mptIssuanceID.parseHex(unparsedMPTIssuanceID.asString()))
     {
-        uint192 mptIssuanceID;
-        if (!mptIssuanceID.parseHex(unparsedMPTIssuanceID.asString()))
-        {
-            jvResult[jss::error] = "malformedRequest";
-            return std::nullopt;
-        }
-
-        return keylet::mptIssuance(mptIssuanceID).key;
+        jvResult[jss::error] = "malformedRequest";
+        return std::nullopt;
     }
 
-    jvResult[jss::error] = "malformedRequest";
-    return std::nullopt;
+    return keylet::mptIssuance(mptIssuanceID).key;
 }
 
 std::optional<uint256>
@@ -797,34 +786,28 @@ parseMPToken(Json::Value const& mptJson, Json::Value& jvResult)
         return parseIndex(mptJson, jvResult);
     }
 
-    if (!mptJson.isMember(jss::mpt_issuance_id) ||
-        !mptJson.isMember(jss::account))
+    if (!hasRequired(mptJson, {jss::mpt_issuance_id, jss::account}))
     {
         jvResult[jss::error] = "malformedRequest";
         return std::nullopt;
     }
 
-    try
+    uint192 mptIssuanceID;
+    if (!mptJson[jss::mpt_issuance_id].isString() ||
+        !mptIssuanceID.parseHex(mptJson[jss::mpt_issuance_id].asString()))
     {
-        uint192 mptIssuanceID;
-        if (!mptJson[jss::mpt_issuance_id].isString() ||
-            !mptIssuanceID.parseHex(mptJson[jss::mpt_issuance_id].asString()))
-            Throw<std::runtime_error>("Cannot parse mpt_issuance_id");
-
-        auto const account = parseAccountID(mptJson[jss::account]);
-        if (!account)
-        {
-            jvResult[jss::error] = "malformedAddress";
-            return std::nullopt;
-        }
-
-        return keylet::mptoken(mptIssuanceID, *account).key;
-    }
-    catch (std::runtime_error const&)
-    {
-        jvResult[jss::error] = "malformedRequest";
+        jvResult[jss::error] = "malformedMPTIssuanceID";
         return std::nullopt;
     }
+
+    auto const account = parseAccountID(mptJson[jss::account]);
+    if (!account)
+    {
+        jvResult[jss::error] = "malformedAddress";
+        return std::nullopt;
+    }
+
+    return keylet::mptoken(mptIssuanceID, *account).key;
 }
 
 using FunctionType =
