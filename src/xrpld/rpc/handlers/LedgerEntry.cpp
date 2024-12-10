@@ -135,13 +135,6 @@ parseCredential(Json::Value const& cred, Json::StaticString const& fieldName)
         return parseIndex(cred, fieldName);
     }
 
-    if (auto const value = hasRequired(
-            cred, {jss::subject, jss::issuer, jss::credential_type});
-        !value)
-    {
-        return Unexpected(value.error());
-    }
-
     auto const subject =
         requiredAccountID(cred, jss::subject, "malformedSubject");
     if (!subject)
