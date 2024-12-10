@@ -73,9 +73,10 @@ parseAMM(Json::Value const& params, Json::StaticString const& fieldName)
         return parseIndex(params, fieldName);
     }
 
-    if (!hasRequired(params, {jss::asset, jss::asset2}))
+    if (auto const value = hasRequired(params, {jss::asset, jss::asset2});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     try
@@ -148,9 +149,11 @@ parseCredential(Json::Value const& cred, Json::StaticString const& fieldName)
         return parseIndex(cred, fieldName);
     }
 
-    if (!hasRequired(cred, {jss::subject, jss::issuer, jss::credential_type}))
+    if (auto const value = hasRequired(
+            cred, {jss::subject, jss::issuer, jss::credential_type});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     auto const subject =
@@ -361,9 +364,11 @@ parseMPToken(Json::Value const& mptJson, Json::StaticString const& fieldName)
         return parseIndex(mptJson, fieldName);
     }
 
-    if (!hasRequired(mptJson, {jss::mpt_issuance_id, jss::account}))
+    if (auto const value =
+            hasRequired(mptJson, {jss::mpt_issuance_id, jss::account});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     uint192 mptIssuanceID;
@@ -444,9 +449,11 @@ parseOracle(Json::Value const& params, Json::StaticString const& fieldName)
         return parseIndex(params, fieldName);
     }
 
-    if (!hasRequired(params, {jss::oracle_document_id, jss::account}))
+    if (auto const value =
+            hasRequired(params, {jss::oracle_document_id, jss::account});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     auto const id = requiredAccountID(params, jss::account, "malformedAccount");
@@ -478,9 +485,11 @@ parseRippleState(
         return parseIndex(jvRippleState, fieldName);
     }
 
-    if (!hasRequired(jvRippleState, {jss::currency, jss::accounts}))
+    if (auto const value =
+            hasRequired(jvRippleState, {jss::currency, jss::accounts});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     if (!jvRippleState[jss::accounts].isArray() ||
@@ -548,15 +557,16 @@ parseXChainOwnedClaimID(
         return parseIndex(claim_id, fieldName);
     }
 
-    if (!hasRequired(
+    if (auto const value = hasRequired(
             claim_id,
             {jss::IssuingChainDoor,
              jss::LockingChainDoor,
              jss::IssuingChainIssue,
              jss::LockingChainIssue,
-             jss::xchain_owned_claim_id}))
+             jss::xchain_owned_claim_id});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     // if not specified with a node id, a claim_id is specified by
@@ -611,15 +621,16 @@ parseXChainOwnedCreateAccountClaimID(
         return parseIndex(claim_id, fieldName);
     }
 
-    if (!hasRequired(
+    if (auto const value = hasRequired(
             claim_id,
             {jss::IssuingChainDoor,
              jss::LockingChainDoor,
              jss::IssuingChainIssue,
              jss::LockingChainIssue,
-             jss::xchain_owned_create_account_claim_id}))
+             jss::xchain_owned_create_account_claim_id});
+        !value)
     {
-        return malformedError("malformedRequest", "");
+        return Unexpected(value.error());
     }
 
     // if not specified with a node id, a create account claim_id is

@@ -67,7 +67,7 @@ malformedError(std::string err, std::string message)
     return Unexpected(json);
 }
 
-bool
+Expected<bool, Json::Value>
 hasRequired(
     const Json::Value& params,
     std::initializer_list<Json::StaticString> fields)
@@ -76,8 +76,7 @@ hasRequired(
     {
         if (!params.isMember(field))
         {
-            // TODO: use `missingFieldError`
-            return false;
+            return missingFieldError(field);
         }
     }
     return true;
