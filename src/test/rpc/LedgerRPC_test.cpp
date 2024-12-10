@@ -2257,7 +2257,7 @@ class LedgerEntry_test : public beast::unit_test::suite
             jvParams[jss::ledger_hash] = ledgerHash;
             Json::Value const jrr = env.rpc(
                 "json", "ledger_entry", to_string(jvParams))[jss::result];
-            checkErrorValue(jrr, "malformedRequest", "", __LINE__);
+            checkErrorValue(jrr, "malformedSubIndex", "", __LINE__);
         }
         {
             // Malformed owner entry.
@@ -2641,7 +2641,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                 jvParams[jss::ledger_hash] = ledgerHash;
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
-                checkErrorValue(jrr, "malformedAccount", "", __LINE__);
+                checkErrorValue(jrr, "malformedAccounts", "", __LINE__);
             }
             {
                 // ripple_state account[1] is not a string.
@@ -2654,7 +2654,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                 jvParams[jss::ledger_hash] = ledgerHash;
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
-                checkErrorValue(jrr, "malformedAccount", "", __LINE__);
+                checkErrorValue(jrr, "malformedAccounts", "", __LINE__);
             }
             {
                 // ripple_state account[0] == account[1].
@@ -2667,7 +2667,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                 jvParams[jss::ledger_hash] = ledgerHash;
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
-                checkErrorValue(jrr, "badRequest", "", __LINE__);
+                checkErrorValue(jrr, "malformedAccounts", "", __LINE__);
             }
             {
                 // ripple_state malformed account[0].
@@ -2681,7 +2681,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                 jvParams[jss::ledger_hash] = ledgerHash;
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
-                checkErrorValue(jrr, "malformedAccount", "", __LINE__);
+                checkErrorValue(jrr, "malformedAccounts", "", __LINE__);
             }
             {
                 // ripple_state malformed account[1].
@@ -2695,7 +2695,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                 jvParams[jss::ledger_hash] = ledgerHash;
                 Json::Value const jrr = env.rpc(
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
-                checkErrorValue(jrr, "malformedAccount", "", __LINE__);
+                checkErrorValue(jrr, "malformedAccounts", "", __LINE__);
             }
             {
                 // ripple_state malformed currency.
@@ -2997,7 +2997,7 @@ class LedgerEntry_test : public beast::unit_test::suite
                     "json", "ledger_entry", to_string(jvParams))[jss::result];
 
                 auto const expectedError = field == jss::dir_root
-                    ? "malformedRequest"
+                    ? "malformedDirRoot"
                     : "malformedOwner";
                 checkErrorValue(jrr, expectedError, "", __LINE__);
             }
