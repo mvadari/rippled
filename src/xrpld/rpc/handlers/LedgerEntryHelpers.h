@@ -206,7 +206,84 @@ requiredUInt256(
     Json::StaticString const& fieldName,
     std::string err)
 {
-    return required<uint256>(params, fieldName, err, "hex string");
+    return required<uint256>(params, fieldName, err, "Hash256");
+}
+
+template <>
+std::optional<uint192>
+parse(Json::Value const& param)
+{
+    uint192 field;
+    if (!param.isString() || !field.parseHex(param.asString()))
+    {
+        return std::nullopt;
+    }
+
+    return field;
+}
+
+Expected<uint192, Json::Value>
+requiredUInt192(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err)
+{
+    return required<uint192>(params, fieldName, err, "Hash192");
+}
+
+Expected<STXChainBridge, Json::Value>
+parseBridgeFields(Json::Value const& params)
+{
+    if (auto const value = hasRequired(
+            params,
+            {jss::IssuingChainDoor,
+             jss::LockingChainDoor,
+             jss::IssuingChainIssue,
+             jss::LockingChainIssue});
+        !value)
+    {
+        return Unexpected(value.error());
+    }
+
+    auto const lockingChainDoor = requiredAccountID(
+        params, jss::LockingChainDoor, "malformedLockingChainDoor");
+    if (!lockingChainDoor)
+    {
+        return Unexpected(lockingChainDoor.error());
+    }
+
+    auto const issuingChainDoor = requiredAccountID(
+        params, jss::IssuingChainDoor, "malformedIssuingChainDoor");
+    if (!issuingChainDoor)
+    {
+        return Unexpected(issuingChainDoor.error());
+    }
+
+    Issue lockingChainIssue, issuingChainIssue;
+    try
+    {
+        lockingChainIssue = issueFromJson(params[jss::LockingChainIssue]);
+    }
+    catch (std::runtime_error const& ex)
+    {
+        return invalidFieldError(
+            "malformedIssue", jss::LockingChainIssue, "Issue");
+    }
+    try
+    {
+        issuingChainIssue = issueFromJson(params[jss::IssuingChainIssue]);
+    }
+    catch (std::runtime_error const& ex)
+    {
+        return invalidFieldError(
+            "malformedIssue", jss::IssuingChainIssue, "Issue");
+    }
+
+    return STXChainBridge(
+        *lockingChainDoor,
+        lockingChainIssue,
+        *issuingChainDoor,
+        issuingChainIssue);
 }
 
 }  // namespace ripple

@@ -34,8 +34,8 @@
 
 namespace ripple {
 
-class LedgerRPC_XChain_test : public beast::unit_test::suite,
-                              public test::jtx::XChainBridgeObjects
+class LedgerEntry_XChain_test : public beast::unit_test::suite,
+                                public test::jtx::XChainBridgeObjects
 {
     void
     checkErrorValue(
@@ -3308,7 +3308,7 @@ public:
 };
 
 BEAST_DEFINE_TESTSUITE(LedgerRPC, app, ripple);
-BEAST_DEFINE_TESTSUITE(LedgerRPC_XChain, app, ripple);
+BEAST_DEFINE_TESTSUITE(LedgerEntry_XChain, app, ripple);
 BEAST_DEFINE_TESTSUITE(LedgerEntry, app, ripple);
 
 }  // namespace ripple

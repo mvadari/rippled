@@ -94,45 +94,25 @@ parseAMM(Json::Value const& params, Json::StaticString const& fieldName)
 Expected<uint256, Json::Value>
 parseBridge(Json::Value const& params, Json::StaticString const& fieldName)
 {
-    // return the keylet for the specified bridge or nullopt if the
-    // request is malformed
-    auto const maybeKeylet = [&]() -> std::optional<Keylet> {
-        try
-        {
-            if (!params.isMember(jss::bridge_account))
-                return std::nullopt;
+    auto const account = requiredAccountID(
+        params, jss::bridge_account, "malformedBridgeAccount");
+    if (!account)
+        return Unexpected(account.error());
 
-            auto const& jsBridgeAccount = params[jss::bridge_account];
-            auto const account = parse<AccountID>(jsBridgeAccount);
-            if (!account)
-            {
-                return std::nullopt;
-            }
-
-            // This may throw and is the reason for the `try` block. The
-            // try block has a larger scope so the `bridge` variable
-            // doesn't need to be an optional.
-            STXChainBridge const bridge(params[jss::bridge]);
-            STXChainBridge::ChainType const chainType =
-                STXChainBridge::srcChain(account == bridge.lockingChainDoor());
-
-            if (account != bridge.door(chainType))
-                return std::nullopt;
-
-            return keylet::bridge(bridge, chainType);
-        }
-        catch (...)
-        {
-            return std::nullopt;
-        }
-    }();
-
-    if (maybeKeylet)
+    if (!params.isMember(jss::bridge))
     {
-        return maybeKeylet->key;
+        return Unexpected(missingFieldError(jss::bridge));
     }
+    auto const bridge = parseBridgeFields(params[jss::bridge]);
+    if (!bridge)
+        return Unexpected(bridge.error());
+    STXChainBridge::ChainType const chainType =
+        STXChainBridge::srcChain(account.value() == bridge->lockingChainDoor());
 
-    return malformedError("malformedRequest", "");
+    if (account.value() != bridge->door(chainType))
+        return malformedError("malformedRequest", "");
+
+    return keylet::bridge(*bridge, chainType).key;
 }
 
 Expected<uint256, Json::Value>
@@ -357,50 +337,37 @@ parseLedgerHashes(
 }
 
 Expected<uint256, Json::Value>
-parseMPToken(Json::Value const& mptJson, Json::StaticString const& fieldName)
+parseMPToken(Json::Value const& params, Json::StaticString const& fieldName)
 {
-    if (!mptJson.isObject())
+    if (!params.isObject())
     {
-        return parseIndex(mptJson, fieldName);
+        return parseIndex(params, fieldName);
     }
 
-    if (auto const value =
-            hasRequired(mptJson, {jss::mpt_issuance_id, jss::account});
-        !value)
-    {
-        return Unexpected(value.error());
-    }
+    auto const mptIssuanceID =
+        requiredUInt192(params, jss::mpt_issuance_id, "malformedMPTIssuanceID");
+    if (!mptIssuanceID)
+        return Unexpected(mptIssuanceID.error());
 
-    uint192 mptIssuanceID;
-    if (!mptJson[jss::mpt_issuance_id].isString() ||
-        !mptIssuanceID.parseHex(mptJson[jss::mpt_issuance_id].asString()))
-    {
-        return invalidFieldError(
-            "malformedMPTIssuanceID", jss::mpt_issuance_id, "Hash192");
-    }
-
-    auto const account = parse<AccountID>(mptJson[jss::account]);
+    auto const account =
+        requiredAccountID(params, jss::account, "malformedAccount");
     if (!account)
-    {
-        return invalidFieldError("malformedAddress", jss::account, "Account");
-    }
+        return Unexpected(account.error());
 
-    return keylet::mptoken(mptIssuanceID, *account).key;
+    return keylet::mptoken(*mptIssuanceID, *account).key;
 }
 
 Expected<uint256, Json::Value>
 parseMPTokenIssuance(
-    Json::Value const& unparsedMPTIssuanceID,
+    Json::Value const& params,
     Json::StaticString const& fieldName)
 {
-    uint192 mptIssuanceID;
-    if (!unparsedMPTIssuanceID.isString() ||
-        !mptIssuanceID.parseHex(unparsedMPTIssuanceID.asString()))
-    {
-        return malformedError("malformedRequest", "");
-    }
+    auto const mptIssuanceID = parse<uint192>(params);
+    if (!mptIssuanceID)
+        return invalidFieldError(
+            "malformedMPTokenIssuance", fieldName, "Hash192");
 
-    return keylet::mptIssuance(mptIssuanceID).key;
+    return keylet::mptIssuance(*mptIssuanceID).key;
 }
 
 Expected<uint256, Json::Value>
@@ -434,6 +401,7 @@ parseOffer(Json::Value const& params, Json::StaticString const& fieldName)
     auto const id = requiredAccountID(params, jss::account, "malformedAccount");
     if (!id)
         return Unexpected(id.error());
+
     auto const seq = requiredUInt32(params, jss::seq, "malformedSeq");
     if (!seq)
         return Unexpected(seq.error());
@@ -449,16 +417,10 @@ parseOracle(Json::Value const& params, Json::StaticString const& fieldName)
         return parseIndex(params, fieldName);
     }
 
-    if (auto const value =
-            hasRequired(params, {jss::oracle_document_id, jss::account});
-        !value)
-    {
-        return Unexpected(value.error());
-    }
-
     auto const id = requiredAccountID(params, jss::account, "malformedAccount");
     if (!id)
         return Unexpected(id.error());
+
     auto const seq =
         requiredUInt32(params, jss::oracle_document_id, "malformedDocumentID");
     if (!seq)
@@ -496,7 +458,7 @@ parseRippleState(
         jvRippleState[jss::accounts].size() != 2)
     {
         return invalidFieldError(
-            "malformedAccounts", jss::accounts, "array of Accounts");
+            "malformedAccounts", jss::accounts, "length-2 array of Accounts");
     }
 
     auto const id1 = parse<AccountID>(jvRippleState[jss::accounts][0u]);
@@ -539,6 +501,7 @@ parseTicket(Json::Value const& params, Json::StaticString const& fieldName)
     auto const id = requiredAccountID(params, jss::account, "malformedAccount");
     if (!id)
         return Unexpected(id.error());
+
     auto const seq =
         requiredUInt32(params, jss::ticket_seq, "malformedTicketSeq");
     if (!seq)
@@ -557,43 +520,9 @@ parseXChainOwnedClaimID(
         return parseIndex(claim_id, fieldName);
     }
 
-    if (auto const value = hasRequired(
-            claim_id,
-            {jss::IssuingChainDoor,
-             jss::LockingChainDoor,
-             jss::IssuingChainIssue,
-             jss::LockingChainIssue,
-             jss::xchain_owned_claim_id});
-        !value)
-    {
-        return Unexpected(value.error());
-    }
-
-    // if not specified with a node id, a claim_id is specified by
-    // four strings defining the bridge (locking_chain_door,
-    // locking_chain_issue, issuing_chain_door, issuing_chain_issue)
-    // and the claim id sequence number.
-    auto const lockingChainDoor =
-        parse<AccountID>(claim_id[jss::LockingChainDoor]);
-    auto const issuingChainDoor =
-        parse<AccountID>(claim_id[jss::IssuingChainDoor]);
-
-    if (!(lockingChainDoor && issuingChainDoor))
-    {
-        return malformedError("malformedRequest", "");
-    }
-
-    Issue lockingChainIssue, issuingChainIssue;
-
-    try
-    {
-        lockingChainIssue = issueFromJson(claim_id[jss::LockingChainIssue]);
-        issuingChainIssue = issueFromJson(claim_id[jss::IssuingChainIssue]);
-    }
-    catch (std::runtime_error const& ex)
-    {
-        invalidFieldError("malformedIssue", jss::LockingChainIssue, "Issue");
-    }
+    auto const bridge_spec = parseBridgeFields(claim_id);
+    if (!bridge_spec)
+        return Unexpected(bridge_spec.error());
 
     auto const seq = requiredUInt32(
         claim_id, jss::xchain_owned_claim_id, "malformedXChainOwnedClaimID");
@@ -602,12 +531,7 @@ parseXChainOwnedClaimID(
         return Unexpected(seq.error());
     }
 
-    STXChainBridge bridge_spec(
-        *lockingChainDoor,
-        lockingChainIssue,
-        *issuingChainDoor,
-        issuingChainIssue);
-    Keylet keylet = keylet::xChainClaimID(bridge_spec, *seq);
+    Keylet keylet = keylet::xChainClaimID(*bridge_spec, *seq);
     return keylet.key;
 }
 
@@ -621,44 +545,9 @@ parseXChainOwnedCreateAccountClaimID(
         return parseIndex(claim_id, fieldName);
     }
 
-    if (auto const value = hasRequired(
-            claim_id,
-            {jss::IssuingChainDoor,
-             jss::LockingChainDoor,
-             jss::IssuingChainIssue,
-             jss::LockingChainIssue,
-             jss::xchain_owned_create_account_claim_id});
-        !value)
-    {
-        return Unexpected(value.error());
-    }
-
-    // if not specified with a node id, a create account claim_id is
-    // specified by four strings defining the bridge
-    // (locking_chain_door, locking_chain_issue, issuing_chain_door,
-    // issuing_chain_issue) and the create account claim id sequence
-    // number.
-    auto const lockingChainDoor =
-        parse<AccountID>(claim_id[jss::LockingChainDoor]);
-    auto const issuingChainDoor =
-        parse<AccountID>(claim_id[jss::IssuingChainDoor]);
-
-    if (!(lockingChainDoor && issuingChainDoor))
-    {
-        return malformedError("malformedRequest", "");
-    }
-
-    Issue lockingChainIssue, issuingChainIssue;
-
-    try
-    {
-        lockingChainIssue = issueFromJson(claim_id[jss::LockingChainIssue]);
-        issuingChainIssue = issueFromJson(claim_id[jss::IssuingChainIssue]);
-    }
-    catch (std::runtime_error const& ex)
-    {
-        return malformedError("malformedRequest", "");
-    }
+    auto const bridge_spec = parseBridgeFields(claim_id);
+    if (!bridge_spec)
+        return Unexpected(bridge_spec.error());
 
     auto const seq = requiredUInt32(
         claim_id,
@@ -669,12 +558,7 @@ parseXChainOwnedCreateAccountClaimID(
         return Unexpected(seq.error());
     }
 
-    STXChainBridge bridge_spec(
-        *lockingChainDoor,
-        lockingChainIssue,
-        *issuingChainDoor,
-        issuingChainIssue);
-    Keylet keylet = keylet::xChainCreateAccountClaimID(bridge_spec, *seq);
+    Keylet keylet = keylet::xChainCreateAccountClaimID(*bridge_spec, *seq);
     return keylet.key;
 }
 
