@@ -163,24 +163,25 @@ parse(Json::Value const& param)
     return std::nullopt;
 }
 
-Expected<std::uint32_t, Json::Value>
+Expected<std::uint32_t, std::uint32_t>
 requiredUInt32(
     Json::Value const& params,
     Json::StaticString const& fieldName,
     std::string err)
 {
-    if (!params.isMember(fieldName))
-    {
-        return Unexpected<Json::Value>(missingFieldError(fieldName));
-    }
+    return Expected(1);
+    // if (!params.isMember(fieldName))
+    // {
+    //     return Unexpected(missingFieldError(fieldName));
+    // }
 
-    if (auto number = parse<std::uint32_t>(params[fieldName]))
-    {
-        std::uint32_t copy = number.value();
-        return 1;
-    }
+    // if (auto number = parse<std::uint32_t>(params[fieldName]))
+    // {
+    //     std::uint32_t copy = number.value();
+    //     return 1;
+    // }
 
-    return Unexpected(invalidFieldError(err, fieldName, "number"));
+    // return Unexpected(invalidFieldError(err, fieldName, "number"));
 }
 
 template <>
