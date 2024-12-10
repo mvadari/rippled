@@ -82,21 +82,32 @@ parse(Json::Value const& param)
     return account;
 }
 
+template <class T>
+Expected<T, Json::Value>
+required(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err,
+    std::string expectedType)
+{
+    if (!params.isMember(fieldName))
+    {
+        return Unexpected(missingFieldError(fieldName));
+    }
+    if (auto obj = parse<T>(params[fieldName]))
+    {
+        return *obj;
+    }
+    return Unexpected(invalidFieldError(err, fieldName, expectedType));
+}
+
 Expected<AccountID, Json::Value>
 requiredAccountID(
     Json::Value const& params,
     Json::StaticString const& fieldName,
     std::string err)
 {
-    if (!params.isMember(fieldName))
-    {
-        return Unexpected(missingFieldError(fieldName));
-    }
-    if (auto account = parse<AccountID>(params[fieldName]))
-    {
-        return *account;
-    }
-    return Unexpected(invalidFieldError(err, fieldName, "AccountID"));
+    return required<AccountID>(params, fieldName, err, "AccountID");
 }
 
 std::optional<Blob>
@@ -169,18 +180,7 @@ requiredUInt32(
     Json::StaticString const& fieldName,
     std::string err)
 {
-    if (!params.isMember(fieldName))
-    {
-        return Unexpected<Json::Value>(missingFieldError(fieldName));
-    }
-
-    if (auto number = parse<std::uint32_t>(params[fieldName]))
-    {
-        std::uint32_t copy = number.value();
-        return 1;
-    }
-
-    return Unexpected(invalidFieldError(err, fieldName, "number"));
+    return required<std::uint32_t>(params, fieldName, err, "number");
 }
 
 template <>
@@ -202,15 +202,7 @@ requiredUInt256(
     Json::StaticString const& fieldName,
     std::string err)
 {
-    if (!params.isMember(fieldName))
-    {
-        return Unexpected(missingFieldError(fieldName));
-    }
-    if (auto value = parse<uint256>(params[fieldName]))
-    {
-        return *value;
-    }
-    return Unexpected(invalidFieldError(err, fieldName, "hex string"));
+    return required<uint256>(params, fieldName, err, "hex string");
 }
 
 Expected<uint256, Json::Value>
