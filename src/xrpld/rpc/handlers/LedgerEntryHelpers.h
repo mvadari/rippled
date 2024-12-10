@@ -1,0 +1,213 @@
+//------------------------------------------------------------------------------
+/*
+    This file is part of rippled: https://github.com/ripple/rippled
+    Copyright (c) 2012-2024 Ripple Labs Inc.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose  with  or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE  SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH  REGARD  TO  THIS  SOFTWARE  INCLUDING  ALL  IMPLIED  WARRANTIES  OF
+    MERCHANTABILITY  AND  FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY  SPECIAL ,  DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER  RESULTING  FROM  LOSS  OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION  OF  CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
+//==============================================================================
+
+#include <xrpld/rpc/detail/RPCHelpers.h>
+#include <xrpl/basics/StringUtilities.h>
+#include <xrpl/basics/strHex.h>
+#include <xrpl/beast/core/LexicalCast.h>
+#include <xrpl/json/json_errors.h>
+#include <xrpl/protocol/ErrorCodes.h>
+#include <xrpl/protocol/Indexes.h>
+#include <xrpl/protocol/RPCErr.h>
+#include <xrpl/protocol/STXChainBridge.h>
+#include <xrpl/protocol/jss.h>
+#include <functional>
+
+namespace ripple {
+
+Unexpected<Json::Value>
+missingFieldError(Json::StaticString field)
+{
+    Json::Value json = Json::objectValue;
+    auto const& error = RPC::missing_field_message(std::string(field.c_str()));
+    json[jss::error] = "malformedRequest";
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = error;
+    return Unexpected(json);
+}
+
+Unexpected<Json::Value>
+invalidFieldError(
+    std::string err,
+    Json::StaticString field,
+    std::string const& type)
+{
+    Json::Value json = Json::objectValue;
+    auto const& error =
+        RPC::expected_field_message(std::string(field.c_str()), type);
+    json[jss::error] = err;
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = error;
+    return Unexpected(json);
+}
+
+Unexpected<Json::Value>
+malformedError(std::string err, std::string message)
+{
+    Json::Value json = Json::objectValue;
+    json[jss::error] = err;
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = message;
+    return Unexpected(json);
+}
+
+bool
+hasRequired(
+    const Json::Value& params,
+    std::initializer_list<Json::StaticString> fields)
+{
+    for (const auto& field : fields)
+    {
+        if (!params.isMember(field))
+        {
+            // TODO: use `missingFieldError`
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T>
+std::optional<T>
+parse(Json::Value const& param);
+
+template <class T>
+Expected<T, Json::Value>
+required(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err,
+    std::string expectedType)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(fieldName);
+    }
+    if (auto obj = parse<T>(params[fieldName]))
+    {
+        return *obj;
+    }
+    return invalidFieldError(err, fieldName, expectedType);
+}
+
+template <>
+std::optional<AccountID>
+parse(Json::Value const& param)
+{
+    if (!param.isString())
+        return std::nullopt;
+
+    auto const account = parseBase58<AccountID>(param.asString());
+    if (!account || account->isZero())
+    {
+        return std::nullopt;
+    }
+
+    return account;
+}
+
+Expected<AccountID, Json::Value>
+requiredAccountID(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err)
+{
+    return required<AccountID>(params, fieldName, err, "AccountID");
+}
+
+std::optional<Blob>
+parseHexBlob(Json::Value const& param, std::size_t maxLength)
+{
+    if (!param.isString())
+        return std::nullopt;
+
+    auto const blob = strUnHex(param.asString());
+    if (!blob || blob->empty() || blob->size() > maxLength)
+        return std::nullopt;
+
+    return blob;
+}
+
+Expected<Blob, Json::Value>
+requiredHexBlob(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::size_t maxLength,
+    std::string err)
+{
+    if (!params.isMember(fieldName))
+    {
+        return missingFieldError(fieldName);
+    }
+    if (auto blob = parseHexBlob(params[fieldName], maxLength))
+    {
+        return *blob;
+    }
+    return invalidFieldError(err, fieldName, "hex string");
+}
+
+template <>
+std::optional<std::uint32_t>
+parse(Json::Value const& param)
+{
+    if (param.isUInt() || (param.isInt() && param.asInt() >= 0))
+        return param.asUInt();
+
+    if (param.isString())
+    {
+        std::uint32_t v;
+        if (beast::lexicalCastChecked(v, param.asString()))
+            return v;
+    }
+
+    return std::nullopt;
+}
+
+Expected<std::uint32_t, Json::Value>
+requiredUInt32(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err)
+{
+    return required<std::uint32_t>(params, fieldName, err, "number");
+}
+
+template <>
+std::optional<uint256>
+parse(Json::Value const& param)
+{
+    uint256 uNodeIndex;
+    if (!param.isString() || !uNodeIndex.parseHex(param.asString()))
+    {
+        return std::nullopt;
+    }
+
+    return uNodeIndex;
+}
+
+Expected<uint256, Json::Value>
+requiredUInt256(
+    Json::Value const& params,
+    Json::StaticString const& fieldName,
+    std::string err)
+{
+    return required<uint256>(params, fieldName, err, "hex string");
+}
+
+}  // namespace ripple
