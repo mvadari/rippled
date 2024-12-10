@@ -3132,7 +3132,7 @@ class LedgerEntry_test : public beast::unit_test::suite
         std::string malfAccount = to_string(owner.id());
         malfAccount.replace(10, 1, 1, '!');
         res = Oracle::ledgerEntry(env, malfAccount, 1);
-        BEAST_EXPECT(res[jss::error].asString() == "malformedAddress");
+        BEAST_EXPECT(res[jss::error].asString() == "malformedAccount");
     }
 
     void

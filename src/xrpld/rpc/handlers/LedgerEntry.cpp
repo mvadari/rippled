@@ -62,6 +62,16 @@ invalidFieldError(
     return json;
 }
 
+Json::Value
+malformedError(std::string err, std::string message)
+{
+    Json::Value json = Json::objectValue;
+    json[jss::error] = err;
+    json[jss::error_code] = rpcINVALID_PARAMS;
+    json[jss::error_message] = message;
+    return json;
+}
+
 template <class T>
 std::optional<T>
 parse(Json::Value const& param);
@@ -394,13 +404,14 @@ parseEscrow(
         return parseIndex(params, fieldName, jvResult);
     }
 
-    if (auto const id = requiredAccountID(params, jss::owner, "malformedOwner"))
-        if (auto const seq = requiredUInt32(params, jss::seq, "malformedSeq"))
-        {
-            return keylet::escrow(*id, *seq).key;
-        }
+    auto const id = requiredAccountID(params, jss::owner, "malformedOwner");
+    if (!id)
+        return Unexpected(id.error());
+    auto const seq = requiredUInt32(params, jss::seq, "malformedSeq");
+    if (!seq)
+        return Unexpected(seq.error());
 
-    return Unexpected(jvResult);
+    return keylet::escrow(*id, *seq).key;
 }
 
 Expected<uint256, Json::Value>
@@ -459,14 +470,14 @@ parseOffer(
         return parseIndex(params, fieldName, jvResult);
     }
 
-    if (auto const id =
-            requiredAccountID(params, jss::account, "malformedAccount"))
-        if (auto const seq = requiredUInt32(params, jss::seq, "malformedSeq"))
-        {
-            return keylet::offer(*id, *seq).key;
-        }
+    auto const id = requiredAccountID(params, jss::account, "malformedAccount");
+    if (!id)
+        return Unexpected(id.error());
+    auto const seq = requiredUInt32(params, jss::seq, "malformedSeq");
+    if (!seq)
+        return Unexpected(seq.error());
 
-    return Unexpected(jvResult);
+    return keylet::offer(*id, *seq).key;
 }
 
 Expected<uint256, Json::Value>
@@ -538,15 +549,15 @@ parseTicket(
         return parseIndex(params, fieldName, jvResult);
     }
 
-    if (auto const id =
-            requiredAccountID(params, jss::account, "malformedAccount"))
-        if (auto const seq =
-                requiredUInt32(params, jss::ticket_seq, "malformedTicketSeq"))
-        {
-            return getTicketIndex(*id, *seq);
-        }
+    auto const id = requiredAccountID(params, jss::account, "malformedAccount");
+    if (!id)
+        return Unexpected(id.error());
+    auto const seq =
+        requiredUInt32(params, jss::ticket_seq, "malformedTicketSeq");
+    if (!seq)
+        return Unexpected(seq.error());
 
-    return Unexpected(jvResult);
+    return getTicketIndex(*id, *seq);
 }
 
 Expected<uint256, Json::Value>
@@ -813,15 +824,15 @@ parseOracle(
         return Unexpected(jvResult);
     }
 
-    if (auto const id =
-            requiredAccountID(params, jss::account, "malformedAddress"))
-        if (auto const seq = requiredUInt32(
-                params, jss::oracle_document_id, "malformedDocumentID"))
-        {
-            return keylet::oracle(*id, *seq).key;
-        }
+    auto const id = requiredAccountID(params, jss::account, "malformedAccount");
+    if (!id)
+        return Unexpected(id.error());
+    auto const seq =
+        requiredUInt32(params, jss::oracle_document_id, "malformedDocumentID");
+    if (!seq)
+        return Unexpected(seq.error());
 
-    return Unexpected(jvResult);
+    return keylet::oracle(*id, *seq).key;
 }
 
 Expected<uint256, Json::Value>
@@ -841,25 +852,26 @@ parseCredential(
         return Unexpected(jvResult);
     }
 
-    if (auto const subject =
-            requiredAccountID(cred, jss::subject, "malformedSubject"))
+    auto const subject =
+        requiredAccountID(cred, jss::subject, "malformedSubject");
+    if (!subject)
+        return Unexpected(subject.error());
 
-        if (auto const issuer =
-                requiredAccountID(cred, jss::issuer, "malformedIssuer"))
-            if (auto const credType = requiredHexBlob(
-                    cred,
-                    jss::credential_type,
-                    maxCredentialTypeLength,
-                    "malformedCredentialType"))
-            {
-                return keylet::credential(
-                           *subject,
-                           *issuer,
-                           Slice(credType->data(), credType->size()))
-                    .key;
-            }
+    auto const issuer = requiredAccountID(cred, jss::issuer, "malformedIssuer");
+    if (!issuer)
+        return Unexpected(issuer.error());
 
-    return Unexpected(jvResult);
+    auto const credType = requiredHexBlob(
+        cred,
+        jss::credential_type,
+        maxCredentialTypeLength,
+        "malformedCredentialType");
+    if (!credType)
+        return Unexpected(credType.error());
+
+    return keylet::credential(
+               *subject, *issuer, Slice(credType->data(), credType->size()))
+        .key;
 }
 
 Expected<uint256, Json::Value>
