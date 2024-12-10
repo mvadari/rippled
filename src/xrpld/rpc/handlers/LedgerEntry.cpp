@@ -101,7 +101,7 @@ parseBridge(Json::Value const& params, Json::StaticString const& fieldName)
 
     if (params[jss::bridge].isString())
     {
-        return return parseIndex(params, fieldName);
+        return parseIndex(params, fieldName);
     }
 
     auto const bridge = parseBridgeFields(params[jss::bridge]);
