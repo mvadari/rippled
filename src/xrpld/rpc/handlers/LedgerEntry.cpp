@@ -94,21 +94,27 @@ parseAMM(Json::Value const& params, Json::StaticString const& fieldName)
 Expected<uint256, Json::Value>
 parseBridge(Json::Value const& params, Json::StaticString const& fieldName)
 {
+    if (!params.isMember(jss::bridge))
+    {
+        return Unexpected(missingFieldError(jss::bridge));
+    }
+
+    if (params[jss::bridge].isString())
+    {
+        return return parseIndex(params, fieldName);
+    }
+
+    auto const bridge = parseBridgeFields(params[jss::bridge]);
+    if (!bridge)
+        return Unexpected(bridge.error());
+
     auto const account = requiredAccountID(
         params, jss::bridge_account, "malformedBridgeAccount");
     if (!account)
         return Unexpected(account.error());
 
-    if (!params.isMember(jss::bridge))
-    {
-        return Unexpected(missingFieldError(jss::bridge));
-    }
-    auto const bridge = parseBridgeFields(params[jss::bridge]);
-    if (!bridge)
-        return Unexpected(bridge.error());
     STXChainBridge::ChainType const chainType =
         STXChainBridge::srcChain(account.value() == bridge->lockingChainDoor());
-
     if (account.value() != bridge->door(chainType))
         return malformedError("malformedRequest", "");
 
@@ -761,16 +767,14 @@ doLedgerEntryGrpc(
             grpc::StatusCode::NOT_FOUND, "object not found"};
         return {response, errorStatus};
     }
-    else
-    {
-        Serializer s;
-        sleNode->add(s);
 
-        auto& stateObject = *response.mutable_ledger_object();
-        stateObject.set_data(s.peekData().data(), s.getLength());
-        stateObject.set_key(request.key());
-        *(response.mutable_ledger()) = request.ledger();
-        return {response, status};
-    }
+    Serializer s;
+    sleNode->add(s);
+
+    auto& stateObject = *response.mutable_ledger_object();
+    stateObject.set_data(s.peekData().data(), s.getLength());
+    stateObject.set_key(request.key());
+    *(response.mutable_ledger()) = request.ledger();
+    return {response, status};
 }
 }  // namespace ripple
