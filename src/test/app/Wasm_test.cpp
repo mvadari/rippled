@@ -18,17 +18,20 @@
 //==============================================================================
 
 #include <test/jtx.h>
+#include <xrpld/app/misc/WasmVM.h>
 #include <iterator>
 #include <wasmedge/wasmedge.h>
-#include <xrpld/app/misc/WasmVM.h>
 
 namespace ripple {
 namespace test {
 
 /* Host function body definition. */
-WasmEdge_Result Add(void *Data,
-                    const WasmEdge_CallingFrameContext *CallFrameCxt,
-                    const WasmEdge_Value *In, WasmEdge_Value *Out) {
+WasmEdge_Result
+Add(void* Data,
+    const WasmEdge_CallingFrameContext* CallFrameCxt,
+    const WasmEdge_Value* In,
+    WasmEdge_Value* Out)
+{
     int32_t Val1 = WasmEdge_ValueGetI32(In[0]);
     int32_t Val2 = WasmEdge_ValueGetI32(In[1]);
     printf("Host function \"Add\": %d + %d\n", Val1, Val2);
@@ -36,10 +39,13 @@ WasmEdge_Result Add(void *Data,
     return WasmEdge_Result_Success;
 }
 
-void invokeAdd() {
+void
+invokeAdd()
+{
     /* Create the VM context. */
-    WasmEdge_VMContext *VMCxt = WasmEdge_VMCreate(NULL, NULL);
+    WasmEdge_VMContext* VMCxt = WasmEdge_VMCreate(NULL, NULL);
 
+    // clang-format off
     /* The WASM module buffer. */
     uint8_t WASM[] = {/* WASM header */
                     0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00,
@@ -67,6 +73,7 @@ void invokeAdd() {
                     0x0A, 0x0A, 0x01,
                     /* code body */
                     0x08, 0x00, 0x20, 0x00, 0x20, 0x01, 0x10, 0x00, 0x0B};
+    // clang-format on
 
     /* Create the module instance. */
     WasmEdge_String ExportName = WasmEdge_StringCreateByCString("extern");
