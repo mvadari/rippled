@@ -215,9 +215,9 @@ Transactor::checkFee(PreclaimContext const& ctx, XRPAmount baseFee)
 
     if (balance < feePaid)
     {
-        JLOG(ctx.j.trace()) << "Insufficient balance:"
-                            << " balance=" << to_string(balance)
-                            << " paid=" << to_string(feePaid);
+        JLOG(ctx.j.trace())
+            << "Insufficient balance:" << " balance=" << to_string(balance)
+            << " paid=" << to_string(feePaid);
 
         if ((balance > beast::zero) && !ctx.view.open())
         {
@@ -357,17 +357,19 @@ Transactor::checkPriorTxAndLastLedger(PreclaimContext const& ctx)
 TER
 Transactor::consumeSeqProxy(SLE::pointer const& sleAccount)
 {
-    assert(sleAccount);
-
-    auto const seqProx = ctx_.tx.getSeqProxy();
-
-    if (!seqProx.isSeq())
-        return ticketDelete(view(), account_, getTicketIndex(account_, seqProx), j_);
-
-    // Note that if this transaction is a TicketCreate, then the transaction will modify
-    // the account root sfSequence yet again.
-    sleAccount->setFieldU32(sfSequence, seqProx.value() + 1);
-    return tesSUCCESS;
+    XRPL_ASSERT(
+        sleAccount, "ripple::Transactor::consumeSeqProxy : non-null account");
+    SeqProxy const seqProx = ctx_.tx.getSeqProxy();
+    if (seqProx.isSeq())
+    {
+        // Note that if this transaction is a TicketCreate, then
+        // the transaction will modify the account root sfSequence
+        // yet again.
+        sleAccount->setFieldU32(sfSequence, seqProx.value() + 1);
+        return tesSUCCESS;
+    }
+    return ticketDelete(
+        view(), account_, getTicketIndex(account_, seqProx), j_);
 }
 
 // Remove a single Ticket from the ledger.
@@ -428,7 +430,9 @@ Transactor::ticketDelete(
 void
 Transactor::preCompute()
 {
-    assert(account_ != beast::zero);
+    XRPL_ASSERT(
+        account_ != beast::zero,
+        "ripple::Transactor::preCompute : nonzero account");
 }
 
 TER
@@ -440,9 +444,11 @@ Transactor::apply()
     // list one, preflight will have already a flagged a failure.
     auto const sle = view().peek(keylet::account(account_));
 
-    // sle must exist except for transactions that allow the zero account as
-    // the source (system-generated pseudo-transactions).
-    assert(sle != nullptr || account_ == beast::zero);
+    // sle must exist except for transactions
+    // that allow zero account.
+    XRPL_ASSERT(
+        sle != nullptr || account_ == beast::zero,
+        "ripple::Transactor::apply : non-null SLE or zero account");
 
     if (sle)
     {
@@ -617,8 +623,12 @@ Transactor::checkMultiSign(
 
     // We have plans to support multiple SignerLists in the future.  The
     // presence and defaulted value of the SignerListID field will enable that.
-    assert(sleAccountSigners->isFieldPresent(sfSignerListID));
-    assert(sleAccountSigners->getFieldU32(sfSignerListID) == 0);
+    XRPL_ASSERT(
+        sleAccountSigners->isFieldPresent(sfSignerListID),
+        "ripple::Transactor::checkMultiSign : has signer list ID");
+    XRPL_ASSERT(
+        sleAccountSigners->getFieldU32(sfSignerListID) == 0,
+        "ripple::Transactor::checkMultiSign : signer list ID is 0");
 
     auto accountSigners =
         SignerEntries::deserialize(*sleAccountSigners, j, "ledger");
@@ -858,7 +868,9 @@ Transactor::reset(XRPAmount fee)
     auto const balance = txnAcct->getFieldAmount(sfBalance).xrp();
 
     // balance should have already been checked in checkFee / preFlight.
-    assert(balance != beast::zero && (!view().open() || balance >= fee));
+    XRPL_ASSERT(
+        balance != beast::zero && (!view().open() || balance >= fee),
+        "ripple::Transactor::reset : valid balance");
 
     // We retry/reject the transaction if the account balance is zero or we're
     // applying against an open ledger and the balance is less than the fee
@@ -873,7 +885,8 @@ Transactor::reset(XRPAmount fee)
     // reject the transaction.
     txnAcct->setFieldAmount(sfBalance, balance - fee);
     TER const ter{consumeSeqProxy(txnAcct)};
-    assert(isTesSuccess(ter));
+    XRPL_ASSERT(
+        isTesSuccess(ter), "ripple::Transactor::reset : result is tesSUCCESS");
 
     if (isTesSuccess(ter))
         view().update(txnAcct);
@@ -911,7 +924,8 @@ Transactor::operator()()
             JLOG(j_.fatal()) << "Transaction serdes mismatch";
             JLOG(j_.info()) << to_string(ctx_.tx.getJson(JsonOptions::none));
             JLOG(j_.fatal()) << s2.getJson(JsonOptions::none);
-            assert(false);
+            UNREACHABLE(
+                "ripple::Transactor::operator() : transaction serdes mismatch");
         }
     }
 #endif
@@ -925,7 +939,9 @@ Transactor::operator()()
 
     // No transaction can return temUNKNOWN from apply,
     // and it can't be passed in from a preclaim.
-    assert(result != temUNKNOWN);
+    XRPL_ASSERT(
+        result != temUNKNOWN,
+        "ripple::Transactor::operator() : result is not temUNKNOWN");
 
     if (auto stream = j_.trace())
         stream << "preclaim result: " << transToken(result);
@@ -980,7 +996,10 @@ Transactor::operator()()
                            std::shared_ptr<SLE const> const& after) {
                 if (isDelete)
                 {
-                    assert(before && after);
+                    XRPL_ASSERT(
+                        before && after,
+                        "ripple::Transactor::operator()::visit : non-null SLE "
+                        "inputs");
                     if (doOffers && before && after &&
                         (before->getType() == ltOFFER) &&
                         (before->getFieldAmount(sfTakerPays) ==
