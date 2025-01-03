@@ -123,8 +123,6 @@ OpenLedger::accept(
         auto const& tx = txpair.first;
         auto const txId = tx->getTransactionID();
 
-        assert(txpair.second);
-
         // skip batch txns
         if (tx->isFlag(tfInnerBatchTxn))
         {
