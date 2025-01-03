@@ -153,7 +153,6 @@ public:
         The tx list starts empty and will contain
         all newly inserted tx.
     */
-    /** @{ */
     OpenView(
         open_ledger_t,
         ReadView const* base,
@@ -167,7 +166,6 @@ public:
         : OpenView(open_ledger, &*base, rules, base)
     {
     }
-    /** @} */
 
     OpenView(batch_view_t, OpenView& base)
         : OpenView(std::addressof(base))

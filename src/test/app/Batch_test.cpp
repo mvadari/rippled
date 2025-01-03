@@ -147,6 +147,16 @@ class Batch_test : public beast::unit_test::suite
         return jv;
     }
 
+    XRPAmount
+    calcBatchFee(
+        test::jtx::Env const& env,
+        uint32_t const& signers,
+        uint32_t const& txns = 0)
+    {
+        XRPAmount const feeDrops = env.current()->fees().base;
+        return ((signers + 2) * feeDrops) + feeDrops * txns;
+    }
+
     void
     testEnable(FeatureBitset features)
     {
@@ -159,7 +169,6 @@ class Batch_test : public beast::unit_test::suite
         {
             auto const amend = withBatch ? features : features - featureBatch;
             test::jtx::Env env{*this, envconfig(), amend};
-            auto const feeDrops = env.current()->fees().base;
 
             auto const alice = Account("alice");
             auto const bob = Account("bob");
@@ -171,7 +180,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
 
             auto const seq = env.seq(alice);
-            auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 1;
+            auto const batchFee = calcBatchFee(env, 0, 1);
 
             auto const txResult =
                 withBatch ? ter(tesSUCCESS) : ter(temDISABLED);
@@ -196,7 +205,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -206,7 +214,7 @@ class Batch_test : public beast::unit_test::suite
         // temINVALID_FLAG: Batch: invalid flags.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 0);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 txflags(tfDisallowXRP),
                 ter(temINVALID_FLAG));
@@ -216,7 +224,7 @@ class Batch_test : public beast::unit_test::suite
         // temMALFORMED: Batch: too many flags.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 0);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 txflags(tfAllOrNothing | tfOnlyOne),
                 ter(temMALFORMED));
@@ -225,7 +233,7 @@ class Batch_test : public beast::unit_test::suite
 
         // temMALFORMED: Batch: hashes array size does not match txns.
         {
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             Json::Value jv =
                 batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
 
@@ -255,7 +263,7 @@ class Batch_test : public beast::unit_test::suite
         // temARRAY_EMPTY: Batch: txns array empty.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 0);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 ter(temARRAY_EMPTY));
             env.close();
@@ -264,7 +272,7 @@ class Batch_test : public beast::unit_test::suite
         // temARRAY_TOO_LARGE: Batch: txns array exceeds 8 entries.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 9);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
                 batch::add(pay(alice, bob, XRP(1)), seq + 2),
@@ -282,7 +290,7 @@ class Batch_test : public beast::unit_test::suite
         // temINVALID_BATCH: Batch: Duplicate signer found:
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 2, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
                 batch::add(pay(alice, bob, XRP(1)), seq + 2),
@@ -294,7 +302,7 @@ class Batch_test : public beast::unit_test::suite
         // temARRAY_TOO_LARGE: Batch: signers array exceeds 8 entries.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((9 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 9, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
                 batch::add(pay(alice, bob, XRP(1)), seq + 2),
@@ -319,8 +327,7 @@ class Batch_test : public beast::unit_test::suite
                 {0, bob},
             }};
 
-            auto const batchFee =
-                ((signers.size() + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             Json::Value jv =
                 batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
 
@@ -369,7 +376,7 @@ class Batch_test : public beast::unit_test::suite
 
         // temMALFORMED: Batch: duplicate TxID found.
         {
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             Json::Value jv =
                 batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
 
@@ -395,7 +402,7 @@ class Batch_test : public beast::unit_test::suite
         // temMALFORMED: Batch: order of inner transactions does not match
         // TxIDs.
         {
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             Json::Value jv =
                 batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
 
@@ -444,7 +451,7 @@ class Batch_test : public beast::unit_test::suite
         // temINVALID_BATCH: Batch: batch cannot have inner batch txn.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(
                     batch::batch(alice, seq, batchFee, tfAllOrNothing), seq),
@@ -456,7 +463,7 @@ class Batch_test : public beast::unit_test::suite
         // temINVALID_BATCH: Batch: batch cannot have inner account delete txn.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(acctdelete(alice, bob), seq + 1),
                 batch::add(pay(alice, bob, XRP(1)), seq + 2),
@@ -467,7 +474,7 @@ class Batch_test : public beast::unit_test::suite
         // temBAD_SIGNER: Batch: no account signature for inner txn.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -479,7 +486,7 @@ class Batch_test : public beast::unit_test::suite
         // temBAD_SIGNER: Batch: outer signature for inner txn.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -491,58 +498,13 @@ class Batch_test : public beast::unit_test::suite
         // temBAD_SIGNER: Batch: unique signers does not match batch signers.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 2, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
                 batch::sig(bob, carol),
                 ter(temBAD_SIGNER));
             env.close();
-        }
-    }
-
-    void
-    testNonTecInner(FeatureBitset features)
-    {
-        testcase("non tec in inner");
-
-        using namespace test::jtx;
-        using namespace std::literals;
-
-        test::jtx::Env env{*this, envconfig()};
-
-        auto const feeDrops = env.current()->fees().base;
-        auto const alice = Account("alice");
-        auto const bob = Account("bob");
-        auto const carol = Account("carol");
-        env.fund(XRP(1000), alice, bob, carol);
-        env.close();
-
-        // temBAD_FEE(tecINTERNAL): Batch: sfFee must be zero.
-        {
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
-
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            jv[jss::RawTransactions][0u][jss::RawTransaction][sfFee.jsonName] =
-                to_string(feeDrops);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
-
-            env(jv, ter(tecINTERNAL));
-            env.close();
-
-            Json::Value params;
-            params[jss::ledger_index] = env.current()->seq() - 1;
-            params[jss::transactions] = true;
-            params[jss::expand] = true;
-            auto const jrr = env.rpc("json", "ledger", to_string(params));
-            std::cout << "jrr: " << jrr << "\n";
         }
     }
 
@@ -556,7 +518,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const gw = Account("gw");
@@ -581,7 +542,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preBobUSD = env.balance(bob, USD.issue());
 
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
                 batch::add(pay(bob, alice, XRP(5)), preBobSeq + 10),
@@ -621,7 +582,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preBobUSD = env.balance(bob, USD.issue());
 
-            auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 1, 2);
             env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), preAliceSeq),
                 batch::add(pay(bob, alice, XRP(5)), preBobSeq),
@@ -653,103 +614,155 @@ class Batch_test : public beast::unit_test::suite
     }
 
     void
-    testBadFeeNoSigner(FeatureBitset features)
+    testBadFeeOuterBatch(FeatureBitset features)
     {
-        testcase("bad fee no signer");
+        testcase("bad fee outer batch");
 
         using namespace test::jtx;
         using namespace std::literals;
 
-        test::jtx::Env env{*this, envconfig()};
+        // Bad Fee Without Signer
+        {
+            test::jtx::Env env{*this, envconfig()};
+            XRPAmount const feeDrops = env.current()->fees().base;
 
-        auto const feeDrops = env.current()->fees().base;
-        auto const alice = Account("alice");
-        auto const bob = Account("bob");
-        auto const gw = Account("gw");
-        auto const USD = gw["USD"];
+            auto const alice = Account("alice");
+            auto const bob = Account("bob");
+            auto const gw = Account("gw");
+            auto const USD = gw["USD"];
 
-        env.fund(XRP(1000), alice, bob, gw);
-        env.close();
-        env.trust(USD(1000), alice, bob);
-        env(pay(gw, alice, USD(100)));
-        env(pay(gw, bob, USD(100)));
-        env.close();
+            env.fund(XRP(1000), alice, bob, gw);
+            env.close();
+            env.trust(USD(1000), alice, bob);
+            env(pay(gw, alice, USD(100)));
+            env(pay(gw, bob, USD(100)));
+            env.close();
 
-        env(noop(bob), ter(tesSUCCESS));
-        env.close();
+            env(noop(bob), ter(tesSUCCESS));
+            env.close();
 
-        auto const preAliceSeq = env.seq(alice);
-        auto const preAlice = env.balance(alice);
-        auto const preAliceUSD = env.balance(alice, USD.issue());
-        auto const preBobSeq = env.seq(bob);
-        auto const preBob = env.balance(bob);
-        auto const preBobUSD = env.balance(bob, USD.issue());
+            auto const preAliceSeq = env.seq(alice);
+            auto const preAlice = env.balance(alice);
+            auto const preAliceUSD = env.balance(alice, USD.issue());
+            auto const preBobSeq = env.seq(bob);
+            auto const preBob = env.balance(bob);
+            auto const preBobUSD = env.balance(bob, USD.issue());
 
-        auto const batchFee = feeDrops * 2;
-        env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
-            batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
-            batch::add(pay(bob, alice, XRP(5)), preBobSeq),
-            batch::sig(bob),
-            ter(telINSUF_FEE_P));
-        env.close();
+            auto const batchFee = (0 + 1) * feeDrops;
+            env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
+                batch::add(pay(bob, alice, XRP(5)), preBobSeq),
+                ter(telINSUF_FEE_P));
+            env.close();
 
-        // Alice & Bob should not be affected.
-        BEAST_EXPECT(env.seq(alice) == preAliceSeq);
-        BEAST_EXPECT(env.balance(alice) == preAlice);
-        BEAST_EXPECT(env.balance(alice, USD.issue()) == preAliceUSD);
-        BEAST_EXPECT(env.seq(bob) == preBobSeq);
-        BEAST_EXPECT(env.balance(bob) == preBob);
-        BEAST_EXPECT(env.balance(bob, USD.issue()) == preBobUSD);
-    }
+            // Alice & Bob should not be affected.
+            BEAST_EXPECT(env.seq(alice) == preAliceSeq);
+            BEAST_EXPECT(env.balance(alice) == preAlice);
+            BEAST_EXPECT(env.balance(alice, USD.issue()) == preAliceUSD);
+            BEAST_EXPECT(env.seq(bob) == preBobSeq);
+            BEAST_EXPECT(env.balance(bob) == preBob);
+            BEAST_EXPECT(env.balance(bob, USD.issue()) == preBobUSD);
+        }
 
-    void
-    testBadFeeSigner(FeatureBitset features)
-    {
-        testcase("bad fee signer");
+        // Bad Fee With Signer
+        {
+            test::jtx::Env env{*this, envconfig()};
 
-        using namespace test::jtx;
-        using namespace std::literals;
+            auto const alice = Account("alice");
+            auto const bob = Account("bob");
+            auto const gw = Account("gw");
+            auto const USD = gw["USD"];
 
-        test::jtx::Env env{*this, envconfig()};
+            env.fund(XRP(1000), alice, bob, gw);
+            env.close();
+            env.trust(USD(1000), alice, bob);
+            env(pay(gw, alice, USD(100)));
+            env(pay(gw, bob, USD(100)));
+            env.close();
 
-        auto const feeDrops = env.current()->fees().base;
-        auto const alice = Account("alice");
-        auto const bob = Account("bob");
-        auto const gw = Account("gw");
-        auto const USD = gw["USD"];
+            env(noop(bob), ter(tesSUCCESS));
+            env.close();
 
-        env.fund(XRP(1000), alice, bob, gw);
-        env.close();
-        env.trust(USD(1000), alice, bob);
-        env(pay(gw, alice, USD(100)));
-        env(pay(gw, bob, USD(100)));
-        env.close();
+            auto const preAliceSeq = env.seq(alice);
+            auto const preAlice = env.balance(alice);
+            auto const preAliceUSD = env.balance(alice, USD.issue());
+            auto const preBobSeq = env.seq(bob);
+            auto const preBob = env.balance(bob);
+            auto const preBobUSD = env.balance(bob, USD.issue());
 
-        env(noop(bob), ter(tesSUCCESS));
-        env.close();
+            // Bad Fee: Should be (1 + 2) * feeDrops
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
+                batch::add(pay(bob, alice, XRP(5)), preBobSeq),
+                batch::sig(bob),
+                ter(telINSUF_FEE_P));
+            env.close();
 
-        auto const preAliceSeq = env.seq(alice);
-        auto const preAlice = env.balance(alice);
-        auto const preAliceUSD = env.balance(alice, USD.issue());
-        auto const preBobSeq = env.seq(bob);
-        auto const preBob = env.balance(bob);
-        auto const preBobUSD = env.balance(bob, USD.issue());
+            Json::Value params;
+            params[jss::ledger_index] = env.current()->seq() - 1;
+            params[jss::transactions] = true;
+            params[jss::expand] = true;
+            auto const jrr = env.rpc("json", "ledger", to_string(params));
 
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
-        env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
-            batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
-            batch::add(pay(bob, alice, XRP(5)), preBobSeq),
-            batch::sig(bob),
-            ter(telINSUF_FEE_P));
-        env.close();
+            // Alice & Bob should not be affected.
+            BEAST_EXPECT(env.seq(alice) == preAliceSeq);
+            BEAST_EXPECT(env.balance(alice) == preAlice);
+            BEAST_EXPECT(env.balance(alice, USD.issue()) == preAliceUSD);
+            BEAST_EXPECT(env.seq(bob) == preBobSeq);
+            BEAST_EXPECT(env.balance(bob) == preBob);
+            BEAST_EXPECT(env.balance(bob, USD.issue()) == preBobUSD);
+        }
 
-        // Alice & Bob should not be affected.
-        BEAST_EXPECT(env.seq(alice) == preAliceSeq);
-        BEAST_EXPECT(env.balance(alice) == preAlice);
-        BEAST_EXPECT(env.balance(alice, USD.issue()) == preAliceUSD);
-        BEAST_EXPECT(env.seq(bob) == preBobSeq);
-        BEAST_EXPECT(env.balance(bob) == preBob);
-        BEAST_EXPECT(env.balance(bob, USD.issue()) == preBobUSD);
+        // Bad Fee Dynamic Fee Calculation
+        {
+            test::jtx::Env env{*this, envconfig()};
+
+            auto const alice = Account("alice");
+            auto const bob = Account("bob");
+            auto const carol = Account("carol");
+            auto const gw = Account("gw");
+            auto const USD = gw["USD"];
+
+            env.fund(XRP(1000), alice, bob, carol, gw);
+            env.close();
+            env.trust(USD(1000), alice, bob);
+            env(pay(gw, alice, USD(100)));
+            env(pay(gw, bob, USD(100)));
+            env.close();
+
+            auto const preAlice = env.balance(alice);
+            auto const preBob = env.balance(bob);
+
+            auto const seq = env.seq(alice);
+            auto const ammCreate = [&alice](STAmount const& amount, STAmount const& amount2) {
+                Json::Value jv;
+                jv[jss::Account] = alice.human();
+                jv[jss::Amount] = amount.getJson(JsonOptions::none);
+                jv[jss::Amount2] = amount2.getJson(JsonOptions::none);
+                jv[jss::TradingFee] = 0;
+                jv[jss::TransactionType] = jss::AMMCreate;
+                return jv;
+            };
+
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(ammCreate(XRP(10), USD(10)), seq + 1),
+                batch::add(pay(alice, bob, XRP(10)), seq + 2),
+                ter(telINSUF_FEE_P));
+            env.close();
+
+            Json::Value params;
+            params[jss::ledger_index] = env.current()->seq() - 1;
+            params[jss::transactions] = true;
+            params[jss::expand] = true;
+            auto const jrr = env.rpc("json", "ledger", to_string(params));
+            auto const txn = getTxByIndex(jrr, 0);
+
+            BEAST_EXPECT(env.seq(alice) == 6);
+            BEAST_EXPECT(env.balance(alice) == preAlice - batchFee);
+            BEAST_EXPECT(env.balance(bob) == preBob);
+        }
     }
 
     void
@@ -771,17 +784,13 @@ class Batch_test : public beast::unit_test::suite
         auto const preAlice = env.balance(alice);
         auto const preBob = env.balance(bob);
 
+        // Using 1 XRP to create insufficient reserve result
         auto const batchFee = XRP(1);
         auto const seq = env.seq(alice);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(10)), seq + 1),
             batch::add(pay(alice, bob, XRP(10)), seq + 2),
-            ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
-        std::vector<TestBatchData> testCases = {
-            {"tesSUCCESS", to_string(txIDs[0])},
-            {"tecUNFUNDED_PAYMENT", to_string(txIDs[1])},
-        };
+            ter(tecINTERNAL));
         env.close();
 
         Json::Value params;
@@ -790,8 +799,6 @@ class Batch_test : public beast::unit_test::suite
         params[jss::expand] = true;
         auto const jrr = env.rpc("json", "ledger", to_string(params));
         auto const txn = getTxByIndex(jrr, 0);
-        validateBatchTxns(txn[jss::metaData], 2, testCases);
-        validateBatchPreMeta(txn[jss::metaData], preAlice, seq);
 
         BEAST_EXPECT(env.seq(alice) == 5);
         BEAST_EXPECT(env.balance(alice) == preAlice - batchFee);
@@ -806,9 +813,9 @@ class Batch_test : public beast::unit_test::suite
         using namespace test::jtx;
         using namespace std::literals;
 
-        test::jtx::Env env{*this, envconfig(), nullptr, beast::severities::kTrace};
+        test::jtx::Env env{*this, envconfig()};
+        XRPAmount const feeDrops = env.current()->fees().base;
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -826,26 +833,13 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const ammCreate = [&env, &alice](STAmount const& amount, STAmount const& amount2) {
-            Json::Value jv;
-            jv[jss::Account] = alice.human();
-            jv[jss::Amount] = amount.getJson(JsonOptions::none);
-            jv[jss::Amount2] = amount2.getJson(JsonOptions::none);
-            jv[jss::TradingFee] = 0;
-            jv[jss::TransactionType] = jss::AMMCreate;
-            return jv;
-        };
-
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 0, 2);
+        auto tx = pay(alice, bob, XRP(1000));
+        tx[jss::Fee] = to_string(feeDrops);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-            batch::add(ammCreate(XRP(10), USD(10)), seq + 1),
-            batch::add(pay(alice, bob, XRP(10)), seq + 2),
-            ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
-        std::vector<TestBatchData> testCases = {
-            {"tesSUCCESS", to_string(txIDs[0])},
-            {"tecUNFUNDED_PAYMENT", to_string(txIDs[1])},
-        };
+            batch::add(pay(alice, bob, XRP(10)), seq + 1),
+            batch::add(tx, seq + 2),
+            ter(tecINTERNAL));
         env.close();
 
         Json::Value params;
@@ -853,16 +847,9 @@ class Batch_test : public beast::unit_test::suite
         params[jss::transactions] = true;
         params[jss::expand] = true;
         auto const jrr = env.rpc("json", "ledger", to_string(params));
-        std::cout << "jrr: " << jrr << "\n";
         auto const txn = getTxByIndex(jrr, 0);
-        validateBatchTxns(txn[jss::metaData], 2, testCases);
-        validateBatchPreMeta(txn[jss::metaData], preAlice, seq);
 
-        std::cout << "env.seq(alice): " << env.seq(alice) << "\n";
-        std::cout << "env.balance(alice): " << env.balance(alice) << "\n";
-        std::cout << "env.balance(bob): " << env.balance(bob) << "\n";
-
-        BEAST_EXPECT(env.seq(alice) == 8);
+        BEAST_EXPECT(env.seq(alice) == 6);
         BEAST_EXPECT(env.balance(alice) == preAlice - batchFee);
         BEAST_EXPECT(env.balance(bob) == preBob);
     }
@@ -879,7 +866,6 @@ class Batch_test : public beast::unit_test::suite
         {
             test::jtx::Env env{*this, envconfig()};
 
-            auto const feeDrops = env.current()->fees().base;
             auto const alice = Account("alice");
             auto const bob = Account("bob");
             auto const carol = Account("carol");
@@ -889,7 +875,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
 
-            auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             auto const seq = env.seq(alice);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
@@ -920,7 +906,6 @@ class Batch_test : public beast::unit_test::suite
         {
             test::jtx::Env env{*this, envconfig()};
 
-            auto const feeDrops = env.current()->fees().base;
             auto const alice = Account("alice");
             auto const bob = Account("bob");
             auto const carol = Account("carol");
@@ -930,7 +915,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
 
-            auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             auto const seq = env.seq(alice);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
@@ -968,7 +953,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -978,7 +962,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preAlice = env.balance(alice);
         auto const preBob = env.balance(bob);
 
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 3;
+        auto const batchFee = calcBatchFee(env, 0, 3);
         auto const seq = env.seq(alice);
         env(batch::batch(alice, seq, batchFee, tfOnlyOne),
             batch::add(pay(alice, bob, XRP(999)), seq + 1),
@@ -1016,7 +1000,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1026,7 +1009,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preAlice = env.balance(alice);
         auto const preBob = env.balance(bob);
 
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 4;
+        auto const batchFee = calcBatchFee(env, 0, 4);
         auto const seq = env.seq(alice);
         env(batch::batch(alice, seq, batchFee, tfUntilFailure),
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
@@ -1066,7 +1049,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1076,7 +1058,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preAlice = env.balance(alice);
         auto const preBob = env.balance(bob);
 
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 4;
+        auto const batchFee = calcBatchFee(env, 0, 4);
         auto const seq = env.seq(alice);
         env(batch::batch(alice, seq, batchFee, tfIndependent),
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
@@ -1116,7 +1098,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
@@ -1130,7 +1111,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 1, 2);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(10)), seq + 1),
             batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -1167,7 +1148,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1181,7 +1161,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 6;
+        auto const batchFee = calcBatchFee(env, 2, 2);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
             batch::add(pay(alice, bob, XRP(1)), seq + 2),
@@ -1217,7 +1197,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1233,7 +1212,7 @@ class Batch_test : public beast::unit_test::suite
         // tefBAD_QUORUM
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 2, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -1245,7 +1224,7 @@ class Batch_test : public beast::unit_test::suite
         // tefBAD_SIGNATURE
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 2, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -1258,7 +1237,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 2, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
@@ -1296,7 +1275,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1313,7 +1291,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2));
@@ -1331,7 +1309,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(747681)), seq + 2));
@@ -1349,7 +1327,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 3);
             env(batch::batch(alice, seq, batchFee, tfIndependent),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2),
@@ -1368,7 +1346,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
-            auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 4);
             env(batch::batch(alice, seq, batchFee, tfUntilFailure),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2),
@@ -1388,7 +1366,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
-            auto const batchFee = (8 * feeDrops) + feeDrops * 2;
+            auto const batchFee = calcBatchFee(env, 0, 6);
             env(batch::batch(alice, seq, batchFee, tfOnlyOne),
                 batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 1),
                 batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 2),
@@ -1474,7 +1452,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         env.fund(XRP(10000), alice);
@@ -1489,7 +1466,7 @@ class Batch_test : public beast::unit_test::suite
 
         auto const ledSeq = env.current()->seq();
         auto const seq = env.seq(alice);
-        auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 1, 2);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1000)), seq + 1),
             batch::add(tx1, ledSeq),
@@ -1526,7 +1503,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1542,7 +1518,7 @@ class Batch_test : public beast::unit_test::suite
         tx1[sfDomain.fieldName] = strHex(domain);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 0, 2);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(tx1, seq + 1),
             batch::add(pay(alice, bob, XRP(1)), seq + 2));
@@ -1588,7 +1564,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const gw = Account("gw");
@@ -1608,7 +1583,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBobUSD = env.balance(bob, USD.issue());
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 1, 2);
         uint256 const chkId{getCheckIndex(bob, env.seq(bob))};
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(check::create(bob, alice, USD(10)), env.seq(bob)),
@@ -1648,7 +1623,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const gw = Account("gw");
@@ -1672,7 +1646,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBobUSD = env.balance(bob, USD.issue());
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((1 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 1, 2);
         uint256 const chkId{getCheckIndex(bob, bobTicketSeq)};
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(check::create(bob, alice, USD(10)), 0, bobTicketSeq),
@@ -1712,7 +1686,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
         auto const carol = Account("carol");
@@ -1734,7 +1707,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBobUSD = env.balance(bob, USD.issue());
 
         auto const seq = env.seq(carol);
-        auto const batchFee = ((2 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 2, 2);
         uint256 const chkId{getCheckIndex(bob, env.seq(bob))};
         env(batch::batch(carol, seq, batchFee, tfAllOrNothing),
             batch::add(check::create(bob, alice, USD(10)), env.seq(bob)),
@@ -1776,7 +1749,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
@@ -1791,7 +1763,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 0, 2);
         env(batch::batch(alice, 0, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1)), seq + 0),
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
@@ -1832,7 +1804,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
@@ -1847,7 +1818,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 0, 2);
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq),
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq + 1));
@@ -1887,7 +1858,6 @@ class Batch_test : public beast::unit_test::suite
 
         test::jtx::Env env{*this, envconfig()};
 
-        auto const feeDrops = env.current()->fees().base;
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
@@ -1902,7 +1872,7 @@ class Batch_test : public beast::unit_test::suite
         auto const preBob = env.balance(bob);
 
         auto const seq = env.seq(alice);
-        auto const batchFee = ((0 + 2) * feeDrops) + feeDrops * 2;
+        auto const batchFee = calcBatchFee(env, 0, 2);
         env(batch::batch(alice, 0, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq + 1),
             batch::add(pay(alice, bob, XRP(1)), seq + 0),
@@ -1936,31 +1906,49 @@ class Batch_test : public beast::unit_test::suite
     void
     testWithFeats(FeatureBitset features)
     {
-        // testEnable(features);
-        // testPreflight(features);
-        // testNonTecInner(features);
+        testEnable(features);
+        testPreflight(features);
         // testBadSequence(features);
-        // testBadFeeNoSigner(features);
-        // testBadFeeSigner(features);
+        // testBadFeeOuterBatch(features);
         // testChangesBetweenViews(features);
-        testBadInnerFee(features);
-        // testAllOrNothing(features);
-        // testOnlyOne(features);
-        // testUntilFailure(features);
-        // testIndependent(features);
-        // testMultiParty(features);
-        // testMultisign(features);
-        // testMultisignMultiParty(features);
-        // testBatchType(features);
-        // testSubmit(features);
-        // testNoAccount(features);
-        // testAccountSet(features);
-        // testObjectCreateSequence(features);
-        // testObjectCreateTicket(features);
-        // testObjectCreate3rdParty(features);
-        // testTicketsOuter(features);
-        // testTicketsInner(features);
-        // testTicketsOuterInner(features);
+        // testBadInnerFee(features);
+        testAllOrNothing(features);
+        testOnlyOne(features);
+        testUntilFailure(features);
+        testIndependent(features);
+        testMultiParty(features);
+        testMultisign(features);
+        testMultisignMultiParty(features);
+        testBatchType(features);
+        testSubmit(features);
+        testNoAccount(features);
+        testAccountSet(features);
+        testObjectCreateSequence(features);
+        testObjectCreateTicket(features);
+        testObjectCreate3rdParty(features);
+        testTicketsOuter(features);
+        testTicketsInner(features);
+        testTicketsOuterInner(features);
+
+        // Is it possible that the batch and inner txns are on 2 ledgers.
+        // Transaction outside of the batch with different sequences and tickets.
+        // Test multiple batches and self submitted txns.
+        // Try to submit a payment with a newly activated account.
+        // 1. Payment to non existing account -> Create Account
+        // 2. Submit payment txn from (non existing) account -> Should occur in next ledger
+
+        // There will be issues when a transaction is submitted that was intended to interact with a transaction in the batch.
+        // Is there a place where the inner transaction could retry when they should not.
+        // Test a ter retry in the inner transaction.
+
+        // Could you sneak in transactions in the middle.
+        // Check to make sure that the failure cannot be ter.
+        // No matter what the result is, the inner transaction should not be retried.
+
+        // If an inner batch is ter then we need to retry the entire batch.
+        // Should be a last round flag.
+
+        // Fees are on outer batch.
     }
 
 public:

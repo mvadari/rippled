@@ -186,9 +186,20 @@ Transactor::checkFee(PreclaimContext const& ctx, XRPAmount baseFee)
         return temBAD_FEE;
 
     auto const feePaid = ctx.tx[sfFee].xrp();
+
+    if (ctx.flags & tapBATCH)
+    {
+        if (feePaid == beast::zero)
+            return tesSUCCESS;
+
+        JLOG(ctx.j.warn()) << "Batch: sfFee must be zero.";
+        return temBAD_FEE;
+    }
+
     if (!isLegalAmount(feePaid) || feePaid < beast::zero)
         return temBAD_FEE;
 
+    // Only check fee is sufficient when the ledger is open.
     if (ctx.view.open())
     {
         auto const feeDue =
@@ -234,20 +245,19 @@ Transactor::checkFee(PreclaimContext const& ctx, XRPAmount baseFee)
 TER
 Transactor::payFee()
 {
-    if (auto const feePaid = ctx_.tx[sfFee].xrp())
-    { // Deduct the fee amount so it's not available during the transaction.
-        auto const sle = view().peek(keylet::account(account_));
+    auto const feePaid = ctx_.tx[sfFee].xrp();
 
-        if (!sle)
-            return tefINTERNAL;
+    auto const sle = view().peek(keylet::account(account_));
+    if (!sle)
+        return tefINTERNAL;
 
-        // Will only write the account back if the transaction succeeds.
+    // Deduct the fee, so it's not available during the transaction.
+    // Will only write the account back if the transaction succeeds.
 
-        mSourceBalance -= feePaid;
-        sle->setFieldAmount(sfBalance, mSourceBalance);
+    mSourceBalance -= feePaid;
+    sle->setFieldAmount(sfBalance, mSourceBalance);
 
-        // VFALCO Should we call view().rawDestroyXRP() here as well?
-    }
+    // VFALCO Should we call view().rawDestroyXRP() here as well?
 
     return tesSUCCESS;
 }
@@ -270,8 +280,8 @@ Transactor::checkSeqProxy(
         return terNO_ACCOUNT;
     }
 
-    auto const t_seqProx = tx.getSeqProxy();
-    auto const a_seq = SeqProxy::sequence((*sle)[sfSequence]);
+    SeqProxy const t_seqProx = tx.getSeqProxy();
+    SeqProxy const a_seq = SeqProxy::sequence((*sle)[sfSequence]);
 
     if (t_seqProx.isSeq())
     {
@@ -455,10 +465,12 @@ Transactor::apply()
         mPriorBalance = STAmount{(*sle)[sfBalance]}.xrp();
         mSourceBalance = mPriorBalance;
 
-        if (auto const result = consumeSeqProxy(sle); result != tesSUCCESS)
+        TER result = consumeSeqProxy(sle);
+        if (result != tesSUCCESS)
             return result;
 
-        if (auto const result = payFee(); result != tesSUCCESS)
+        result = payFee();
+        if (result != tesSUCCESS)
             return result;
 
         if (sle->isFieldPresent(sfAccountTxnID))

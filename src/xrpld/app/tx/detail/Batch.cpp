@@ -32,12 +32,27 @@ namespace ripple {
 XRPAmount
 Batch::calculateBaseFee(ReadView const& view, STTx const& tx)
 {
+    // Calculate the Inner Txn Fees
+    XRPAmount txnFees{0};
+
+    if (tx.isFieldPresent(sfRawTransactions))
+    {
+        XRPAmount txFees{0};
+        auto const& txns = tx.getFieldArray(sfRawTransactions);
+        for (STObject txn : txns)
+        {
+            STTx const stx = STTx{std::move(txn)};
+            txFees += ripple::calculateBaseFee(view, stx);
+        }
+        txnFees += txFees;
+    }
+
     // Calculate the BatchSigners Fees
     std::int32_t signerCount = tx.isFieldPresent(sfBatchSigners)
         ? tx.getFieldArray(sfBatchSigners).size()
         : 0;
 
-    return ((signerCount + 2) * view.fees().base);
+    return ((signerCount + 2) * view.fees().base) + txnFees;
 }
 
 NotTEC
