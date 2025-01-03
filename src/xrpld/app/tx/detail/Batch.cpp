@@ -190,6 +190,15 @@ Batch::preflight(PreflightContext const& ctx)
             return temINVALID_BATCH;
         }
 
+        if (auto const preflightResult =
+                ripple::preflight(ctx.app, ctx.rules, stx, tapFAIL_HARD, ctx.j);
+            preflightResult.ter != tesSUCCESS)
+        {
+            JLOG(ctx.j.trace()) << "Batch: inner txn preflight failed."
+                                << "index: " << i;
+            return preflightResult.ter;
+        }
+
         // If the inner account is the same as the outer account, continue.
         // 1. We do not add it to the unique signers set.
         // 2. We do check a signature for the inner account does not exist.
