@@ -128,7 +128,9 @@ OpenLedger::accept(
         // skip batch txns
         if (tx->isFlag(tfInnerBatchTxn))
         {
-            assert(txpair.second && txpair.second->isFieldPresent(sfBatchTransactionID));
+            assert(
+                txpair.second &&
+                txpair.second->isFieldPresent(sfBatchTransactionID));
             continue;
         }
 

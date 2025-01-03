@@ -1230,12 +1230,9 @@ NetworkOPsImp::processTransaction(
         app_.getHashRouter().setFlags(transaction->getID(), SF_BAD);
         return;
     }
-  
-    auto const [validity, reason] = checkValidity(
-        app_.getHashRouter(),
-        tx,
-        view->rules(),
-        app_.config());
+
+    auto const [validity, reason] =
+        checkValidity(app_.getHashRouter(), tx, view->rules(), app_.config());
     XRPL_ASSERT(
         validity == Validity::Valid,
         "ripple::NetworkOPsImp::processTransaction : valid validity");

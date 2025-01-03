@@ -159,15 +159,16 @@ apply(
     });
 }
 
-static
-bool
+static bool
 applyBatchTransactions(
     Application& app,
     OpenView& batchView,
     STTx const& txn,
     beast::Journal j)
 {
-    assert(txn.getTxnType() == ttBATCH && !txn.getFieldArray(sfRawTransactions).empty());
+    assert(
+        txn.getTxnType() == ttBATCH &&
+        !txn.getFieldArray(sfRawTransactions).empty());
 
     auto const batchId = txn.getTransactionID();
     auto const mode = txn.getFlags();
@@ -179,7 +180,8 @@ applyBatchTransactions(
                         << batchId << ")";
 
         auto const ret = apply(app, perTxBatchView, batchId, tx, tapBATCH, j);
-        assert(ret.second == (isTesSuccess(ret.first) || isTecClaim(ret.first)));
+        assert(
+            ret.second == (isTesSuccess(ret.first) || isTecClaim(ret.first)));
 
         JLOG(j.debug()) << "Transaction "
                         << (ret.second ? "applied" : "failure") << ": "
@@ -198,7 +200,9 @@ applyBatchTransactions(
     for (STObject rb : txn.getFieldArray(sfRawTransactions))
     {
         auto const result = applyOneTransaction(STTx{std::move(rb)});
-        assert(result.second == (isTesSuccess(result.first) || isTecClaim(result.first)));
+        assert(
+            result.second ==
+            (isTesSuccess(result.first) || isTecClaim(result.first)));
 
         if (result.second)
             ++applied;
@@ -232,7 +236,8 @@ applyTransaction(
     if (retryAssured)
         flags = flags | tapRETRY;
 
-    JLOG(j.debug()) << "TXN " << txn.getTransactionID() << (retryAssured ? "/retry" : "/final");
+    JLOG(j.debug()) << "TXN " << txn.getTransactionID()
+                    << (retryAssured ? "/retry" : "/final");
 
     try
     {

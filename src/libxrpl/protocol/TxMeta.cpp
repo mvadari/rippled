@@ -78,7 +78,10 @@ TxMeta::TxMeta(
 {
 }
 
-TxMeta::TxMeta(uint256 const& transactionID, std::uint32_t ledger, std::optional<uint256> batchId)
+TxMeta::TxMeta(
+    uint256 const& transactionID,
+    std::uint32_t ledger,
+    std::optional<uint256> batchId)
     : mTransactionID(transactionID)
     , mLedger(ledger)
     , mIndex(static_cast<std::uint32_t>(-1))
@@ -216,7 +219,7 @@ TxMeta::getAsObject() const
     XRPL_ASSERT(mResult != 255, "ripple::TxMeta::getAsObject : result is set");
     if (mBatchId)
         metaData.setFieldH256(sfBatchTransactionID, mBatchId.value());
-  metaData.setFieldU8(sfTransactionResult, mResult);
+    metaData.setFieldU8(sfTransactionResult, mResult);
     metaData.setFieldU32(sfTransactionIndex, mIndex);
     metaData.emplace_back(mNodes);
     if (hasDeliveredAmount())

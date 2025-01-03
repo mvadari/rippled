@@ -149,7 +149,8 @@ to_uint64(std::string const& s);
     domain, as this function may reject domains that are otherwise valid and
     doesn't check whether the TLD is valid.
  */
-bool isProperlyFormedTomlDomain(std::string_view domain);
+bool
+isProperlyFormedTomlDomain(std::string_view domain);
 
 template <
     typename T,

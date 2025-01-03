@@ -167,8 +167,7 @@ public:
     {
     }
 
-    OpenView(batch_view_t, OpenView& base)
-        : OpenView(std::addressof(base))
+    OpenView(batch_view_t, OpenView& base) : OpenView(std::addressof(base))
     {
         baseTxCount_ = base.txCount();
     }

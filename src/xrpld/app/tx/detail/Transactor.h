@@ -45,7 +45,12 @@ public:
         Rules const& rules_,
         ApplyFlags flags_,
         beast::Journal j_ = beast::Journal{beast::Journal::getNullSink()})
-        : app(app_), tx(tx_), rules(rules_), flags(flags_), batchId(batchId_), j(j_)
+        : app(app_)
+        , tx(tx_)
+        , rules(rules_)
+        , flags(flags_)
+        , batchId(batchId_)
+        , j(j_)
     {
         assert((flags_ & tapBATCH) == tapBATCH);
     }
@@ -252,7 +257,8 @@ private:
 
     /// The sole purpose of this function is to provide a convenient, named
     /// location to set a breakpoint, to be used when replaying transactions.
-    void trapTransaction(uint256 const&) const noexcept;
+    void
+    trapTransaction(uint256 const&) const noexcept;
 };
 
 /** Performs early sanity checks on the txid */

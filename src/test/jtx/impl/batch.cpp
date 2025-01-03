@@ -85,7 +85,8 @@ add::operator()(Env& env, JTx& jt) const
         std::optional<STObject> st =
             parse(jt.jv[jss::RawTransactions][index][jss::RawTransaction]);
         STTx const stx = STTx{std::move(*st)};
-        jt.jv[sfTransactionIDs.jsonName][index] = to_string(stx.getTransactionID());
+        jt.jv[sfTransactionIDs.jsonName][index] =
+            to_string(stx.getTransactionID());
     }
     catch (parse_error const&)
     {

@@ -243,7 +243,8 @@ class Batch_test : public beast::unit_test::suite
             auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
 
             // Tx 2
             Json::Value const tx2 = pay(bob, alice, XRP(5));
@@ -251,10 +252,12 @@ class Batch_test : public beast::unit_test::suite
             auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
             STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
             STTx const stx2 = STTx{std::move(parsed2.object.value())};
-            jv[sfTransactionIDs.jsonName].append(to_string(stx2.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx2.getTransactionID()));
 
             // Add another txn hash to the TxIDs array
-            jv[sfTransactionIDs.jsonName].append(to_string(stx2.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx2.getTransactionID()));
 
             env(jv, batch::sig(bob), ter(temMALFORMED));
             env.close();
@@ -337,7 +340,8 @@ class Batch_test : public beast::unit_test::suite
             auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
 
             // Tx 2
             Json::Value const tx2 = pay(bob, alice, XRP(5));
@@ -345,7 +349,8 @@ class Batch_test : public beast::unit_test::suite
             auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
             STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
             STTx const stx2 = STTx{std::move(parsed2.object.value())};
-            jv[sfTransactionIDs.jsonName].append(to_string(stx2.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx2.getTransactionID()));
 
             for (auto const& signer : signers)
             {
@@ -392,8 +397,10 @@ class Batch_test : public beast::unit_test::suite
             jv = addBatchTx(jv, tx2, env.seq(bob));
 
             // Add a duplicate hash
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
 
             env(jv, batch::sig(bob), ter(temMALFORMED));
             env.close();
@@ -421,8 +428,10 @@ class Batch_test : public beast::unit_test::suite
             STTx const stx2 = STTx{std::move(parsed2.object.value())};
 
             // Add the hashes out of order
-            jv[sfTransactionIDs.jsonName].append(to_string(stx2.getTransactionID()));
-            jv[sfTransactionIDs.jsonName].append(to_string(stx1.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx2.getTransactionID()));
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
 
             env(jv, batch::sig(bob), ter(temMALFORMED));
             env.close();
@@ -735,15 +744,16 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
 
             auto const seq = env.seq(alice);
-            auto const ammCreate = [&alice](STAmount const& amount, STAmount const& amount2) {
-                Json::Value jv;
-                jv[jss::Account] = alice.human();
-                jv[jss::Amount] = amount.getJson(JsonOptions::none);
-                jv[jss::Amount2] = amount2.getJson(JsonOptions::none);
-                jv[jss::TradingFee] = 0;
-                jv[jss::TransactionType] = jss::AMMCreate;
-                return jv;
-            };
+            auto const ammCreate =
+                [&alice](STAmount const& amount, STAmount const& amount2) {
+                    Json::Value jv;
+                    jv[jss::Account] = alice.human();
+                    jv[jss::Amount] = amount.getJson(JsonOptions::none);
+                    jv[jss::Amount2] = amount2.getJson(JsonOptions::none);
+                    jv[jss::TradingFee] = 0;
+                    jv[jss::TransactionType] = jss::AMMCreate;
+                    return jv;
+                };
 
             auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
@@ -1283,10 +1293,11 @@ class Batch_test : public beast::unit_test::suite
         env.close();
 
         // auto dumpCL = [this,&env]() {
-        //     log << "Full Ledger:\n" << env.rpc("ledger", "closed", "tx")[jss::result].toStyledString() << "\n";
+        //     log << "Full Ledger:\n" << env.rpc("ledger", "closed",
+        //     "tx")[jss::result].toStyledString() << "\n";
         // };
 
-        { // All or Nothing: all succeed
+        {  // All or Nothing: all succeed
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
@@ -1304,7 +1315,7 @@ class Batch_test : public beast::unit_test::suite
             BEAST_EXPECT(env.balance(carol) == preCarol + XRP(100));
         }
 
-        { // All or Nothing: one fails
+        {  // All or Nothing: one fails
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
@@ -1322,7 +1333,7 @@ class Batch_test : public beast::unit_test::suite
             BEAST_EXPECT(env.balance(carol) == preCarol);
         }
 
-        { // Independent (one fails)
+        {  // Independent (one fails)
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
@@ -1331,7 +1342,13 @@ class Batch_test : public beast::unit_test::suite
             env(batch::batch(alice, seq, batchFee, tfIndependent),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2),
-                batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 3));
+                batch::add(
+                    offer(
+                        alice,
+                        alice["USD"](100),
+                        XRP(100),
+                        tfImmediateOrCancel),
+                    seq + 3));
             env.close();
 
             // dumpCL();
@@ -1341,7 +1358,7 @@ class Batch_test : public beast::unit_test::suite
             BEAST_EXPECT(env.balance(carol) == preCarol + XRP(100));
         }
 
-        { // Until Failure: one fails, one is not executed
+        {  // Until Failure: one fails, one is not executed
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
@@ -1350,7 +1367,13 @@ class Batch_test : public beast::unit_test::suite
             env(batch::batch(alice, seq, batchFee, tfUntilFailure),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2),
-                batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 3),
+                batch::add(
+                    offer(
+                        alice,
+                        alice["USD"](100),
+                        XRP(100),
+                        tfImmediateOrCancel),
+                    seq + 3),
                 batch::add(pay(alice, eve, XRP(100)), seq + 4));
             env.close();
 
@@ -1361,16 +1384,34 @@ class Batch_test : public beast::unit_test::suite
             BEAST_EXPECT(env.balance(carol) == preCarol + XRP(100));
         }
 
-        { // Only one: the fourth succeeds
+        {  // Only one: the fourth succeeds
             auto const preAlice = env.balance(alice);
             auto const preBob = env.balance(bob);
             auto const preCarol = env.balance(carol);
             auto const seq = env.seq(alice);
             auto const batchFee = calcBatchFee(env, 0, 6);
             env(batch::batch(alice, seq, batchFee, tfOnlyOne),
-                batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 1),
-                batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 2),
-                batch::add(offer(alice, alice["USD"](100), XRP(100),tfImmediateOrCancel), seq + 3),
+                batch::add(
+                    offer(
+                        alice,
+                        alice["USD"](100),
+                        XRP(100),
+                        tfImmediateOrCancel),
+                    seq + 1),
+                batch::add(
+                    offer(
+                        alice,
+                        alice["USD"](100),
+                        XRP(100),
+                        tfImmediateOrCancel),
+                    seq + 2),
+                batch::add(
+                    offer(
+                        alice,
+                        alice["USD"](100),
+                        XRP(100),
+                        tfImmediateOrCancel),
+                    seq + 3),
                 batch::add(pay(alice, bob, XRP(100)), seq + 4),
                 batch::add(pay(alice, carol, XRP(100)), seq + 5),
                 batch::add(pay(alice, eve, XRP(100)), seq + 6));

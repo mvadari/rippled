@@ -73,7 +73,9 @@ Batch::preflight(PreflightContext const& ctx)
         return temINVALID_FLAG;
     }
 
-    if (std::popcount(flags & (tfAllOrNothing | tfOnlyOne | tfUntilFailure | tfIndependent)) != 1)
+    if (std::popcount(
+            flags &
+            (tfAllOrNothing | tfOnlyOne | tfUntilFailure | tfIndependent)) != 1)
     {
         JLOG(ctx.j.trace()) << "Batch: too many flags.";
         return temMALFORMED;
@@ -198,9 +200,8 @@ Batch::preflight(PreflightContext const& ctx)
             if (ctx.tx.isFieldPresent(sfBatchSigners) &&
                 batchSignersSet.find(innerAccount) != batchSignersSet.end())
             {
-                JLOG(ctx.j.trace())
-                    << "Batch: outer signature for inner txn."
-                    << "index: " << i;
+                JLOG(ctx.j.trace()) << "Batch: outer signature for inner txn."
+                                    << "index: " << i;
                 return temBAD_SIGNER;
             }
             continue;

@@ -44,12 +44,16 @@ private:
         CtorHelper);
 
 public:
-    TxMeta(uint256 const& transactionID, std::uint32_t ledger, std::optional<uint256> batchId = std::nullopt);
+    TxMeta(
+        uint256 const& transactionID,
+        std::uint32_t ledger,
+        std::optional<uint256> batchId = std::nullopt);
     TxMeta(uint256 const& txID, std::uint32_t ledger, Blob const&);
     TxMeta(uint256 const& txID, std::uint32_t ledger, std::string const&);
     TxMeta(uint256 const& txID, std::uint32_t ledger, STObject const&);
 
-    std::optional<uint256 const> const& getBatchId() const
+    std::optional<uint256 const> const&
+    getBatchId() const
     {
         return mBatchId;
     }

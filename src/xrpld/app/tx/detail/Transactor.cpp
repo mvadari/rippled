@@ -858,7 +858,6 @@ removeDeletedTrustLines(
     }
 }
 
-
 /** Reset the context, discarding any changes made and adjust the fee.
 
     @param fee The transaction fee to be charged.
