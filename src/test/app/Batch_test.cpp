@@ -1929,26 +1929,6 @@ class Batch_test : public beast::unit_test::suite
         testTicketsOuter(features);
         testTicketsInner(features);
         testTicketsOuterInner(features);
-
-        // Is it possible that the batch and inner txns are on 2 ledgers.
-        // Transaction outside of the batch with different sequences and tickets.
-        // Test multiple batches and self submitted txns.
-        // Try to submit a payment with a newly activated account.
-        // 1. Payment to non existing account -> Create Account
-        // 2. Submit payment txn from (non existing) account -> Should occur in next ledger
-
-        // There will be issues when a transaction is submitted that was intended to interact with a transaction in the batch.
-        // Is there a place where the inner transaction could retry when they should not.
-        // Test a ter retry in the inner transaction.
-
-        // Could you sneak in transactions in the middle.
-        // Check to make sure that the failure cannot be ter.
-        // No matter what the result is, the inner transaction should not be retried.
-
-        // If an inner batch is ter then we need to retry the entire batch.
-        // Should be a last round flag.
-
-        // Fees are on outer batch.
     }
 
 public:
