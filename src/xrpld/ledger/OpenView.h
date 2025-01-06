@@ -51,8 +51,8 @@ inline constexpr struct open_ledger_t
  */
 inline constexpr struct batch_view_t
 {
-    constexpr batch_view_t() {};
-} batch_view;
+    constexpr batch_view_t() = default;
+} batch_view{};
 
 //------------------------------------------------------------------------------
 
