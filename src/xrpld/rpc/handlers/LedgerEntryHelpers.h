@@ -74,7 +74,7 @@ hasRequired(
 {
     for (const auto& field : fields)
     {
-        if (!params.isMember(field))
+        if (!params.isMember(field) || params[field].isNull())
         {
             return missingFieldError(field);
         }

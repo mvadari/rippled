@@ -265,9 +265,12 @@ parseDirectoryNode(
         return parseIndex(params, fieldName);
     }
 
-    if (params.isMember(jss::sub_index) && !params[jss::sub_index].isIntegral())
+    if (params.isMember(jss::sub_index) &&
+        (!params[jss::sub_index].isConvertibleTo(Json::uintValue) ||
+         params[jss::sub_index].isBool()))
     {
-        return invalidFieldError("malformedSubIndex", jss::sub_index, "number");
+        return invalidFieldError(
+            "malformedSubIndex", jss::sub_index, "integer");
     }
 
     if (params.isMember(jss::owner) == params.isMember(jss::dir_root))
@@ -474,6 +477,7 @@ parseRippleState(
     }
 
     if (!jvRippleState[jss::currency].isString() ||
+        jvRippleState[jss::currency] == "" ||
         !to_currency(uCurrency, jvRippleState[jss::currency].asString()))
     {
         return invalidFieldError(
