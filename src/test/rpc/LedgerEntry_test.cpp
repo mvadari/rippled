@@ -64,155 +64,66 @@ class LedgerEntry_test : public beast::unit_test::suite
         //     BEAST_EXPECT(jv[jss::error_message] == msg);
     }
 
-    // Corrupt a valid address by replacing the 10th character with '!'.
-    // '!' is not part of the ripple alphabet.
-    std::string
-    makeBadAddress(std::string good)
-    {
-        std::string ret = std::move(good);
-        ret.replace(10, 1, 1, '!');
-        return ret;
-    }
-
-    std::initializer_list<Json::Value>
+    std::vector<Json::Value>
     getBadValues(SerializedTypeID typeID)
     {
+        static const std::initializer_list<Json::Value>& allBadValues = {
+            "",                                                      // 0
+            true,                                                    // 1
+            1,                                                       // 2
+            "1",                                                     // 3
+            -1,                                                      // 4
+            1.1,                                                     // 5
+            "-1",                                                    // 6
+            "abcdef",                                                // 7
+            "ABCDEF",                                                // 8
+            "12KK",                                                  // 9
+            "0123456789ABCDEFGH",                                    // 10
+            "rJxKV9e9p6wiPw!!!!xrJ4X1n98LosPL1sgcJW",                // 11
+            "rPSTrR5yEr11uMkfsz1kHCp9jK4aoa3Avv",                    // 12
+            "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",  // 13
+            "USD",                                                   // 14
+            "USDollars",                                             // 15
+            Json::arrayValue,                                        // 16
+            Json::objectValue};                                      // 17
+        auto remove = [&](std::initializer_list<std::uint8_t> indices)
+            -> std::vector<Json::Value> {
+            std::vector<Json::Value> values;
+            for (int i = 0; i < allBadValues.size(); i++)
+            {
+                if (std::find(indices.begin(), indices.end(), i) ==
+                    indices.end())
+                {
+                    values.push_back(allBadValues.begin()[i]);
+                }
+            }
+            return values;
+        };
         switch (typeID)
         {
             case STI_UINT32:
-                static const std::initializer_list<Json::Value>&
-                    badUInt32Values = {
-                        "",
-                        true,
-                        -1,
-                        "-1",
-                        "abcdef",
-                        "ABCDEF",
-                        1.1,
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badUInt32Values = remove({2, 3});
                 return badUInt32Values;
             case STI_UINT64:
-                static const std::initializer_list<Json::Value>&
-                    badUInt64Values = {
-                        "",
-                        true,
-                        -1,
-                        "-1",
-                        1.1,
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badUInt64Values = remove({2, 3});
                 return badUInt64Values;
             case STI_UINT256:
-                static const std::initializer_list<Json::Value>&
-                    badUInt256Values = {
-                        "",
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        true,
-                        -1,
-                        "-1",
-                        "abcdef",
-                        "ABCDEF",
-                        1.1,
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badUInt256Values = remove({2, 3, 7, 8});
                 return badUInt256Values;
             case STI_ACCOUNT:
-                static const std::initializer_list<Json::Value>&
-                    badAccountValues = {
-                        to_string(xrpAccount()),
-                        "",
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        1,
-                        true,
-                        -1,
-                        "-1",
-                        "abcdef",
-                        "ABCDEF",
-                        1.1,
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badAccountValues = remove({12});
                 return badAccountValues;
             case STI_VL:
-                static const std::initializer_list<Json::Value>& badBlobValues =
-                    {"",
-                     "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                     "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                     "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                     1,
-                     true,
-                     -1,
-                     "-1",
-                     1.1,
-                     "12KK",
-                     Json::arrayValue,
-                     Json::objectValue};
+                static auto const& badBlobValues = remove({3, 7, 8});
                 return badBlobValues;
             case STI_CURRENCY:
-                static const std::initializer_list<Json::Value>&
-                    badCurrencyValues = {
-                        "",
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        "USDollars",
-                        "ABCDEF",
-                        1,
-                        true,
-                        -1,
-                        "-1",
-                        1.1,
-                        "12KK",
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badCurrencyValues = remove({14});
                 return badCurrencyValues;
             case STI_ARRAY:
-                static Json::Value obj = Json::objectValue;
-                obj[jss::accounts] = 2;
-                obj[jss::currency] = "USD";
-                static const std::initializer_list<Json::Value>&
-                    badArrayValues = {
-                        "",
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        "0123456789ABCDEFG",
-                        1,
-                        true,
-                        -1,
-                        "-1",
-                        1.1,
-                        "12KK",
-                        "ABCDEF",
-                        obj,
-                        Json::objectValue};
+                static auto const& badArrayValues = remove({16});
                 return badArrayValues;
             case STI_UNKNOWN:  // placeholder for not-UInt256-or-object
-                static const std::initializer_list<Json::Value>&
-                    badIndexValues = {
-                        "",
-                        "rJxKV9e9p6wiPw!xrJ4X1n98LosPL1sgcJW",
-                        "rJxKV9e9p6wiPwxrJ4X1n98LosPL1sgcJW",
-                        "n9K2isxwTxcSHJKxMkJznDoWXAUs7NNy49H9Fknz1pC7oHAH3kH9",
-                        "0123456789ABCDEFG",
-                        1,
-                        true,
-                        -1,
-                        "-1",
-                        1.1,
-                        "12KK",
-                        "ABCDEF",
-                        Json::arrayValue,
-                        Json::objectValue};
+                static auto const& badIndexValues = remove({2, 3, 7, 8, 12});
                 return badIndexValues;
             default:
                 Throw<std::runtime_error>(
@@ -1189,7 +1100,6 @@ class LedgerEntry_test : public beast::unit_test::suite
             Json::Value jvParams;
             jvParams[jss::escrow] = Json::objectValue;
 
-            std::string const badAddress = makeBadAddress(alice.human());
             jvParams[jss::escrow][jss::seq] = env.seq(alice) - 1;
             jvParams[jss::ledger_hash] = ledgerHash;
             testMalformedSubfield(
