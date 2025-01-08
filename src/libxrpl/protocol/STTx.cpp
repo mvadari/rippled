@@ -440,7 +440,7 @@ multiSignHelper(
                     fullyCanonical);
             }
         }
-        catch (std::exception const& e)
+        catch (std::exception const&)
         {
             // We assume any problem lies with the signature.
             validSig = false;
