@@ -139,12 +139,8 @@ Batch::preflight(PreflightContext const& ctx)
         }
 
         // Check the batch signers signatures.
-        auto const requireCanonicalSig =
-            ctx.rules.enabled(featureRequireFullyCanonicalSig)
-            ? STTx::RequireFullyCanonicalSig::yes
-            : STTx::RequireFullyCanonicalSig::no;
-        auto const sigResult =
-            ctx.tx.checkBatchSign(requireCanonicalSig, ctx.rules);
+        auto const sigResult = ctx.tx.checkBatchSign(
+            STTx::RequireFullyCanonicalSig::yes, ctx.rules);
 
         if (!sigResult)
         {
