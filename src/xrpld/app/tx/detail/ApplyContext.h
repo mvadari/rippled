@@ -132,12 +132,6 @@ public:
     TER
     checkInvariants(TER const result, XRPAmount const fee);
 
-    std::optional<uint256 const> const&
-    getBatchId() const
-    {
-        return batchId_;
-    }
-
 private:
     TER
     failInvariantCheck(TER const result);

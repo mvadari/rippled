@@ -52,12 +52,6 @@ public:
     TxMeta(uint256 const& txID, std::uint32_t ledger, std::string const&);
     TxMeta(uint256 const& txID, std::uint32_t ledger, STObject const&);
 
-    std::optional<uint256 const> const&
-    getBatchId() const
-    {
-        return mBatchId;
-    }
-
     uint256 const&
     getTxID() const
     {
