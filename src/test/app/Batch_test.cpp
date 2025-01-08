@@ -471,6 +471,17 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
+        // temINVALID_BATCH: Batch: inner txn preflight failed.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(acctdelete(alice, bob), seq + 1),
+                batch::add(pay(alice, bob, XRP(-1)), seq + 2),
+                ter(temINVALID_BATCH));
+            env.close();
+        }
+
         // temBAD_SIGNER: Batch: no account signature for inner txn.
         {
             auto const seq = env.seq(alice);
