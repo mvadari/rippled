@@ -176,14 +176,12 @@ applyBatchTransactions(
     auto applyOneTransaction = [&app, &j, &batchId, &batchView](STTx&& tx) {
         OpenView perTxBatchView(batch_view, batchView);
 
-        JLOG(j.debug()) << "TXN " << tx.getTransactionID() << " (BATCH "
-                        << batchId << ")";
-
         auto const ret = apply(app, perTxBatchView, batchId, tx, tapBATCH, j);
         assert(
             ret.second == (isTesSuccess(ret.first) || isTecClaim(ret.first)));
 
-        JLOG(j.debug()) << "Transaction "
+        JLOG(j.trace()) << "BatchTrace[" << batchId
+                        << "]: " << tx.getTransactionID() << " "
                         << (ret.second ? "applied" : "failure") << ": "
                         << transToken(ret.first);
 
