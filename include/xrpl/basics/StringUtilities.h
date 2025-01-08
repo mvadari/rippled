@@ -152,26 +152,6 @@ to_uint64(std::string const& s);
 bool
 isProperlyFormedTomlDomain(std::string_view domain);
 
-template <
-    typename T,
-    typename = std::void_t<
-        std::enable_if_t<!std::is_convertible_v<T, std::string_view>>,
-        std::enable_if_t<std::is_convertible_v<
-            decltype(std::declval<T const&>().data()),
-            std::string_view::const_pointer>>,
-        std::enable_if_t<std::is_convertible_v<
-            decltype(std::declval<T const&>().size()),
-            std::string_view::size_type>>>>
-bool
-isProperlyFormedTomlDomain(T const& domain)
-{
-    if (domain.data() == nullptr || domain.size() == 0)
-        return false;
-
-    return isProperlyFormedTomlDomain(
-        std::string_view{domain.data(), domain.size()});
-}
-
 }  // namespace ripple
 
 #endif
