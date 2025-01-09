@@ -255,10 +255,7 @@ private:
         STArray const& txSigners,
         beast::Journal j);
 
-    /// The sole purpose of this function is to provide a convenient, named
-    /// location to set a breakpoint, to be used when replaying transactions.
-    void
-    trapTransaction(uint256 const&) const noexcept;
+    void trapTransaction(uint256) const;
 };
 
 /** Performs early sanity checks on the txid */

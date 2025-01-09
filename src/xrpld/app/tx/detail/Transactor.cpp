@@ -905,8 +905,10 @@ Transactor::reset(XRPAmount fee)
     return {ter, fee};
 }
 
+// The sole purpose of this function is to provide a convenient, named
+// location to set a breakpoint, to be used when replaying transactions.
 void
-Transactor::trapTransaction(uint256 const& txHash) const noexcept
+Transactor::trapTransaction(uint256 txHash) const
 {
     JLOG(j_.debug()) << "Transaction trapped: " << txHash;
 }
@@ -941,8 +943,11 @@ Transactor::operator()()
     }
 #endif
 
-    if (ctx_.app.trapTxID() == ctx_.tx.getTransactionID()) [[unlikely]]
-        trapTransaction(ctx_.tx.getTransactionID());
+    if (auto const& trap = ctx_.app.trapTxID();
+        trap && *trap == ctx_.tx.getTransactionID())
+    {
+        trapTransaction(*trap);
+    }
 
     auto result = ctx_.preclaimResult;
     if (result == tesSUCCESS)
