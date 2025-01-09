@@ -189,17 +189,6 @@ Batch::preflight(PreflightContext const& ctx)
         }
 
         auto const innerAccount = stx.getAccountID(sfAccount);
-        if (stx.getFieldU16(sfTransactionType) == ttACCOUNT_DELETE &&
-            innerAccount == outerAccount)
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId << "]:"
-                << "inner txn cannot be account delete when inner and "
-                   "outer accounts are the same."
-                << "index: " << i;
-            return temINVALID_BATCH;
-        }
-
         if (auto const preflightResult =
                 ripple::preflight(ctx.app, ctx.rules, stx, tapFAIL_HARD, ctx.j);
             preflightResult.ter != tesSUCCESS)
