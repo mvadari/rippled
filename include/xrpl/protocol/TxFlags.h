@@ -223,7 +223,7 @@ constexpr std::uint32_t tfOnlyOne                      = 0x00020000;
 constexpr std::uint32_t tfUntilFailure                 = 0x00040000;
 constexpr std::uint32_t tfIndependent                  = 0x00080000;
 constexpr std::uint32_t const tfBatchMask =
-    ~(tfUniversal | tfAllOrNothing | tfOnlyOne | tfUntilFailure | tfIndependent | tfInnerBatchTxn);
+    ~(tfUniversal | tfAllOrNothing | tfOnlyOne | tfUntilFailure | tfIndependent) | tfInnerBatchTxn;
 
 // clang-format on
 
