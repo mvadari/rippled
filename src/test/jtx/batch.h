@@ -20,12 +20,12 @@
 #ifndef RIPPLE_TEST_JTX_BATCH_H_INCLUDED
 #define RIPPLE_TEST_JTX_BATCH_H_INCLUDED
 
-#include "test/jtx/SignerUtils.h"
 #include <test/jtx/Account.h>
 #include <test/jtx/Env.h>
 #include <test/jtx/amount.h>
 #include <test/jtx/owners.h>
 #include <test/jtx/tags.h>
+#include "test/jtx/SignerUtils.h"
 #include <concepts>
 #include <cstdint>
 #include <optional>
@@ -72,21 +72,21 @@ class sig
 public:
     std::vector<Reg> signers;
 
-    sig(std::vector<Reg> signers_)
-        : signers(std::move(signers_))
+    sig(std::vector<Reg> signers_) : signers(std::move(signers_))
     {
         sortSigners(signers);
     }
 
     template <class AccountType, class... Accounts>
-    requires std::convertible_to<AccountType, Reg>
+        requires std::convertible_to<AccountType, Reg>
     explicit sig(AccountType&& a0, Accounts&&... aN)
         : signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
     {
         sortSigners(signers);
     }
 
-    void operator()(Env&, JTx& jt) const;
+    void
+    operator()(Env&, JTx& jt) const;
 };
 
 /** Set a batch nested multi-signature on a JTx. */
@@ -103,17 +103,20 @@ public:
     }
 
     template <class AccountType, class... Accounts>
-    requires std::convertible_to<AccountType, Reg>
-    explicit msig(Account const& masterAccount, AccountType&& a0, Accounts&&... aN)
-        : master(masterAccount),
-          signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
+        requires std::convertible_to<AccountType, Reg>
+    explicit msig(
+        Account const& masterAccount,
+        AccountType&& a0,
+        Accounts&&... aN)
+        : master(masterAccount)
+        , signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
     {
         sortSigners(signers);
     }
 
-    void operator()(Env&, JTx& jt) const;
+    void
+    operator()(Env&, JTx& jt) const;
 };
-
 
 }  // namespace batch
 

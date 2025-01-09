@@ -66,9 +66,10 @@ class Batch_test : public beast::unit_test::suite
         params[jss::expand] = true;
         auto const jrr = env.rpc("json", "ledger", to_string(params));
         // std::cout << "jrr: " << jrr << std::endl;
-        
+
         // Validate the number of transactions in the ledger
-        auto const transactions = jrr[jss::result][jss::ledger][jss::transactions];
+        auto const transactions =
+            jrr[jss::result][jss::ledger][jss::transactions];
         BEAST_EXPECT(transactions.size() == batchResults.size() + 1);
 
         // Validate ttBatch is correct index
@@ -85,9 +86,13 @@ class Batch_test : public beast::unit_test::suite
             jsonTx[jss::binary] = false;
             jsonTx[jss::transaction] = batchResult.txHash;
             jsonTx[jss::id] = 1;
-            Json::Value const jrr = env.rpc("json", "tx", to_string(jsonTx))[jss::result];
-            BEAST_EXPECT(jrr[jss::meta][sfTransactionResult.jsonName] == batchResult.result);
-            // BEAST_EXPECT(jrr[jss::meta][sfBatchTransactionID.jsonName] == batchId);
+            Json::Value const jrr =
+                env.rpc("json", "tx", to_string(jsonTx))[jss::result];
+            BEAST_EXPECT(
+                jrr[jss::meta][sfTransactionResult.jsonName] ==
+                batchResult.result);
+            // BEAST_EXPECT(jrr[jss::meta][sfBatchTransactionID.jsonName] ==
+            // batchId);
         }
     }
 
@@ -896,7 +901,7 @@ class Batch_test : public beast::unit_test::suite
                 ter(tesSUCCESS));
             auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
             TxID const batchId = env.tx()->getTransactionID();
-            std::vector<TestBatchData> testCases = {}; 
+            std::vector<TestBatchData> testCases = {};
             env.close();
             validateBatch(env, batchId, testCases);
 
@@ -942,7 +947,7 @@ class Batch_test : public beast::unit_test::suite
         std::vector<TestBatchData> testCases = {
             {"tecUNFUNDED_PAYMENT", to_string(txIDs[0])},
             {"tesSUCCESS", to_string(txIDs[1])},
-        }; 
+        };
         env.close();
         validateBatch(env, batchId, testCases);
 
@@ -1381,7 +1386,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, bob, XRP(100)), seq + 4),
                 batch::add(pay(alice, carol, XRP(100)), seq + 5),
                 batch::add(pay(alice, eve, XRP(100)), seq + 6));
-            
+
             auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {

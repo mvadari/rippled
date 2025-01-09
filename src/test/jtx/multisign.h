@@ -67,21 +67,21 @@ class msig
 public:
     std::vector<Reg> signers;
 
-    msig(std::vector<Reg> signers_)
-        : signers(std::move(signers_))
+    msig(std::vector<Reg> signers_) : signers(std::move(signers_))
     {
         sortSigners(signers);
     }
 
     template <class AccountType, class... Accounts>
-    requires std::convertible_to<AccountType, Reg>
+        requires std::convertible_to<AccountType, Reg>
     explicit msig(AccountType&& a0, Accounts&&... aN)
         : signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
     {
         sortSigners(signers);
     }
 
-    void operator()(Env&, JTx& jt) const;
+    void
+    operator()(Env&, JTx& jt) const;
 };
 
 //------------------------------------------------------------------------------
