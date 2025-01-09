@@ -20,6 +20,7 @@
 #ifndef RIPPLE_TEST_JTX_BATCH_H_INCLUDED
 #define RIPPLE_TEST_JTX_BATCH_H_INCLUDED
 
+#include "test/jtx/SignerUtils.h"
 #include <test/jtx/Account.h>
 #include <test/jtx/Env.h>
 #include <test/jtx/amount.h>
@@ -69,111 +70,50 @@ public:
 class sig
 {
 public:
-    struct Reg
-    {
-        Account acct;
-        Account sig;
-
-        Reg(Account const& masterSig) : acct(masterSig), sig(masterSig)
-        {
-        }
-
-        Reg(Account const& acct_, Account const& regularSig)
-            : acct(acct_), sig(regularSig)
-        {
-        }
-
-        Reg(char const* masterSig) : acct(masterSig), sig(masterSig)
-        {
-        }
-
-        Reg(char const* acct_, char const* regularSig)
-            : acct(acct_), sig(regularSig)
-        {
-        }
-
-        bool
-        operator<(Reg const& rhs) const
-        {
-            return acct < rhs.acct;
-        }
-    };
-
     std::vector<Reg> signers;
 
-public:
-    sig(std::vector<Reg> signers_);
-
-    template <class AccountType, class... Accounts>
-        requires std::convertible_to<AccountType, Reg>
-    explicit sig(AccountType&& a0, Accounts&&... aN)
-        : sig{std::vector<Reg>{
-              std::forward<AccountType>(a0),
-              std::forward<Accounts>(aN)...}}
+    sig(std::vector<Reg> signers_)
+        : signers(std::move(signers_))
     {
+        sortSigners(signers);
     }
 
-    void
-    operator()(Env&, JTx& jt) const;
+    template <class AccountType, class... Accounts>
+    requires std::convertible_to<AccountType, Reg>
+    explicit sig(AccountType&& a0, Accounts&&... aN)
+        : signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
+    {
+        sortSigners(signers);
+    }
+
+    void operator()(Env&, JTx& jt) const;
 };
 
-/** Set a batch multi signature on a JTx. */
+/** Set a batch nested multi-signature on a JTx. */
 class msig
 {
 public:
-    struct Reg
-    {
-        Account acct;
-        Account sig;
-
-        Reg(Account const& masterSig) : acct(masterSig), sig(masterSig)
-        {
-        }
-
-        Reg(Account const& acct_, Account const& regularSig)
-            : acct(acct_), sig(regularSig)
-        {
-        }
-
-        Reg(char const* masterSig) : acct(masterSig), sig(masterSig)
-        {
-        }
-
-        Reg(char const* acct_, char const* regularSig)
-            : acct(acct_), sig(regularSig)
-        {
-        }
-
-        bool
-        operator<(Reg const& rhs) const
-        {
-            return acct < rhs.acct;
-        }
-    };
-
-    Account master;  // Add a member to hold the master account
+    Account master;
     std::vector<Reg> signers;
 
-public:
-    msig(Account const& masterAccount, std::vector<Reg> signers_);
-
-    template <class AccountType, class... Accounts>
-        requires std::convertible_to<AccountType, Reg>
-    explicit msig(
-        Account const& masterAccount,
-        AccountType&& a0,
-        Accounts&&... aN)
-        : master(masterAccount)
-        ,  // Initialize master account
-        signers{std::vector<Reg>{
-            std::forward<AccountType>(a0),
-            std::forward<Accounts>(aN)...}}
+    msig(Account const& masterAccount, std::vector<Reg> signers_)
+        : master(masterAccount), signers(std::move(signers_))
     {
+        sortSigners(signers);
     }
 
-    void
-    operator()(Env&, JTx& jt) const;
+    template <class AccountType, class... Accounts>
+    requires std::convertible_to<AccountType, Reg>
+    explicit msig(Account const& masterAccount, AccountType&& a0, Accounts&&... aN)
+        : master(masterAccount),
+          signers{std::forward<AccountType>(a0), std::forward<Accounts>(aN)...}
+    {
+        sortSigners(signers);
+    }
+
+    void operator()(Env&, JTx& jt) const;
 };
+
 
 }  // namespace batch
 

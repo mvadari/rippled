@@ -95,17 +95,6 @@ add::operator()(Env& env, JTx& jt) const
     }
 }
 
-sig::sig(std::vector<sig::Reg> signers_) : signers(std::move(signers_))
-{
-    // Signatures must be applied in sorted order.
-    std::sort(
-        signers.begin(),
-        signers.end(),
-        [](sig::Reg const& lhs, sig::Reg const& rhs) {
-            return lhs.acct.id() < rhs.acct.id();
-        });
-}
-
 void
 sig::operator()(Env& env, JTx& jt) const
 {
@@ -135,17 +124,6 @@ sig::operator()(Env& env, JTx& jt) const
         jo[sfTxnSignature.getJsonName()] =
             strHex(Slice{sig.data(), sig.size()});
     }
-}
-
-msig::msig(Account const& masterAccount, std::vector<msig::Reg> signers_)
-    : master(masterAccount), signers(std::move(signers_))
-{
-    std::sort(
-        signers.begin(),
-        signers.end(),
-        [](msig::Reg const& lhs, msig::Reg const& rhs) {
-            return lhs.acct.id() < rhs.acct.id();
-        });
 }
 
 void
