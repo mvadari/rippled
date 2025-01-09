@@ -486,7 +486,9 @@ NotTEC
 Transactor::checkSign(PreclaimContext const& ctx)
 {
     // do not check signature of inner batch txn
-    if (ctx.tx.isFlag(tfInnerBatchTxn))
+    if (ctx.tx.isFlag(tfInnerBatchTxn) && ctx.tx.getSigningPubKey().empty() &&
+        !ctx.tx.isFieldPresent(sfTxnSignature) &&
+        !ctx.tx.isFieldPresent(sfSigners))
         return tesSUCCESS;
 
     auto const idAccount = ctx.tx.getAccountID(sfAccount);
