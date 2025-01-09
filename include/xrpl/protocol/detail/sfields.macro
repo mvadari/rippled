@@ -190,7 +190,7 @@ TYPED_SFIELD(sfHookStateKey,             UINT256,   30)
 TYPED_SFIELD(sfHookHash,                 UINT256,   31)
 TYPED_SFIELD(sfHookNamespace,            UINT256,   32)
 TYPED_SFIELD(sfHookSetTxnID,             UINT256,   33)
-TYPED_SFIELD(sfBatchTransactionID,       UINT256,   34)
+TYPED_SFIELD(sfParentBatchID,            UINT256,   34)
 
 // number (common)
 TYPED_SFIELD(sfNumber,                   NUMBER,     1)

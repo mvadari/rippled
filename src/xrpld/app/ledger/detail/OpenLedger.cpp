@@ -128,7 +128,7 @@ OpenLedger::accept(
         {
             assert(
                 txpair.second &&
-                txpair.second->isFieldPresent(sfBatchTransactionID));
+                txpair.second->isFieldPresent(sfParentBatchID));
             continue;
         }
 
