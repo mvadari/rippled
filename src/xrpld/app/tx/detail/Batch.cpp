@@ -258,6 +258,7 @@ Batch::preflight(PreflightContext const& ctx)
 TER
 Batch::doApply()
 {
+    // Inner txns are applied in `applyBatchTransactions`, after the outer batch txn is applied
     return tesSUCCESS;
 }
 
