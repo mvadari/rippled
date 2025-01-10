@@ -1144,6 +1144,105 @@ class Batch_test : public beast::unit_test::suite
     }
 
     void
+    testRegularKey(FeatureBitset features)
+    {
+        testcase("regular key");
+
+        using namespace test::jtx;
+        using namespace std::literals;
+
+        test::jtx::Env env{*this, envconfig()};
+
+        auto const alice = Account("alice");
+        auto const bob = Account("bob");
+        auto const carol = Account("carol");
+        env.fund(XRP(1000), alice, bob, carol);
+        env.close();
+
+        env(regkey(alice, carol));
+        env.close();
+
+        auto const preAlice = env.balance(alice);
+        auto const preBob = env.balance(bob);
+
+        auto const seq = env.seq(alice);
+        auto const batchFee = calcBatchFee(env, 0, 2);
+        env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+            batch::add(pay(alice, bob, XRP(1)), seq + 1),
+            batch::add(pay(alice, bob, XRP(1)), seq + 2),
+            sig(carol));
+
+        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        TxID const batchId = env.tx()->getTransactionID();
+        std::vector<TestBatchData> testCases = {
+            {"tesSUCCESS", to_string(txIDs[0])},
+            {"tesSUCCESS", to_string(txIDs[1])},
+        };
+        env.close();
+        validateBatch(env, batchId, testCases);
+
+        // Alice consumes sequences (# of txns)
+        BEAST_EXPECT(env.seq(alice) == seq + 3);
+
+        // Alice pays XRP & Fee; Bob receives XRP
+        BEAST_EXPECT(env.balance(alice) == preAlice - XRP(2) - batchFee);
+        BEAST_EXPECT(env.balance(bob) == preBob + XRP(2));
+    }
+
+    void
+    testRegularKeyMultiParty(FeatureBitset features)
+    {
+        testcase("regular key multi party");
+
+        using namespace test::jtx;
+        using namespace std::literals;
+
+        test::jtx::Env env{*this, envconfig()};
+
+        auto const alice = Account("alice");
+        auto const bob = Account("bob");
+        auto const carol = Account("carol");
+        auto const dave = Account("dave");
+        auto const elsa = Account("elsa");
+
+        env.fund(XRP(1000), alice, bob, carol, dave, elsa);
+        env.close();
+
+        env(regkey(bob, carol));
+        env.close();
+
+        {
+            auto const preAlice = env.balance(alice);
+            auto const preBob = env.balance(bob);
+            auto const bobSeq = env.seq(bob);
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 1, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1),
+                batch::add(pay(bob, alice, XRP(5)), bobSeq),
+                batch::sig(Reg{bob, carol}));
+            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            TxID const batchId = env.tx()->getTransactionID();
+            std::vector<TestBatchData> testCases = {
+                {"tesSUCCESS", to_string(txIDs[0])},
+                {"tesSUCCESS", to_string(txIDs[1])},
+            };
+            env.close();
+            validateBatch(env, batchId, testCases);
+
+            // Alice consumes sequences (# of txns)
+            BEAST_EXPECT(env.seq(alice) == seq + 2);
+
+            // Alice consumes sequences (# of txns)
+            BEAST_EXPECT(env.seq(bob) == bobSeq + 1);
+
+            // Alice pays XRP & Fee; Bob receives XRP
+            BEAST_EXPECT(env.balance(alice) == preAlice - XRP(5) - batchFee);
+            BEAST_EXPECT(env.balance(bob) == preBob + XRP(5));
+        }
+    }
+
+    void
     testMultisign(FeatureBitset features)
     {
         testcase("multisign");
@@ -2046,6 +2145,8 @@ class Batch_test : public beast::unit_test::suite
         testUntilFailure(features);
         testIndependent(features);
         testMultiParty(features);
+        testRegularKey(features);
+        testRegularKeyMultiParty(features);
         testMultisign(features);
         testMultisignMultiParty(features);
         testBatchType(features);
