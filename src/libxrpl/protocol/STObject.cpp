@@ -898,7 +898,6 @@ STObject::getSortedFields(STObject const& objToSort, WhichFields whichFields)
     return sf;
 }
 
-
 /**
  * @brief Retrieves a batch of transaction IDs from the STObject.
  *

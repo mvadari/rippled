@@ -157,8 +157,8 @@ Batch::preflight(PreflightContext const& ctx)
         auto const hash = stx.getTransactionID();
         if (!uniqueHashes.emplace(hash).second)
         {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId << "]:" << "duplicate TxID found." << hash;
+            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
+                                << "]:" << "duplicate TxID found." << hash;
             return temMALFORMED;
         }
 
