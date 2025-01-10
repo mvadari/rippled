@@ -117,6 +117,7 @@ public:
               std::nullopt,
               j_)
     {
+        assert((flags_ & tapBATCH) == 0);
     }
 
     PreclaimContext&

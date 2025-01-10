@@ -37,7 +37,7 @@ class ApplyContext
 public:
     explicit ApplyContext(
         Application& app_,
-        OpenView& base,
+        OpenView& base_,
         std::optional<uint256 const> const& batchId,
         STTx const& tx_,
         TER preclaimResult_,
@@ -48,7 +48,7 @@ public:
 
     explicit ApplyContext(
         Application& app_,
-        OpenView& base,
+        OpenView& base_,
         STTx const& tx_,
         TER preclaimResult_,
         XRPAmount baseFee_,
@@ -56,7 +56,7 @@ public:
         beast::Journal journal = beast::Journal{beast::Journal::getNullSink()})
         : ApplyContext(
               app_,
-              base,
+              base_,
               std::nullopt,
               tx_,
               preclaimResult_,

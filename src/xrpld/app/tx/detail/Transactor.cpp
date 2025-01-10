@@ -728,7 +728,7 @@ Transactor::checkMultiSign(
 
         // In any of these cases we need to know whether the account is in
         // the ledger.  Determine that now.
-        auto sleTxSignerRoot = view.read(keylet::account(txSignerAcctID));
+        auto const sleTxSignerRoot = view.read(keylet::account(txSignerAcctID));
 
         if (signingAcctIDFromPubKey == txSignerAcctID)
         {

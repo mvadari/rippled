@@ -1214,9 +1214,6 @@ NetworkOPsImp::processTransaction(
         return;
     }
 
-    // NOTE eahennis - I think this check is redundant,
-    // but I'm not 100% sure yet.
-    // If so, only cost is looking up HashRouter flags.
     auto const view = m_ledgerMaster.getCurrentLedger();
 
     // This function is called by several different parts of the codebase
@@ -1231,6 +1228,9 @@ NetworkOPsImp::processTransaction(
         return;
     }
 
+    // NOTE eahennis - I think this check is redundant,
+    // but I'm not 100% sure yet.
+    // If so, only cost is looking up HashRouter flags.
     auto const [validity, reason] =
         checkValidity(app_.getHashRouter(), tx, view->rules(), app_.config());
     XRPL_ASSERT(
