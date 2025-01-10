@@ -467,6 +467,55 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
+        // temINVALID_BATCH: Batch: inner txn cannot include TxnSignature.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            auto tx1 = pay(alice, bob, XRP(1));
+            tx1[jss::TxnSignature] = "DEADBEEF";
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(tx1, seq + 1),
+                ter(temINVALID_BATCH));
+            env.close();
+        }
+
+        // temINVALID_BATCH: Batch: inner txn must include empty SigningPubKey.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            Json::Value jv = batch::batch(alice, seq, batchFee, tfAllOrNothing);
+            Json::Value tx1 = pay(alice, bob, XRP(10));
+            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
+            jv[jss::RawTransactions][0u][jss::RawTransaction][jss::SigningPubKey] =
+                strHex(alice.pk());
+            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
+            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
+            STTx const stx1 = STTx{std::move(parsed1.object.value())};
+            jv[sfTransactionIDs.jsonName].append(
+                to_string(stx1.getTransactionID()));
+            env(jv, ter(temINVALID_BATCH));
+            env.close();
+        }
+
+        // temINVALID_BATCH: Batch: inner txn cannot include Signers.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 0, 2);
+            auto tx1 = pay(alice, bob, XRP(1));
+            tx1[sfSigners.jsonName] = Json::arrayValue;
+            tx1[sfSigners.jsonName][0U][sfSigner.jsonName] = Json::objectValue;
+            tx1[sfSigners.jsonName][0U][sfSigner.jsonName][sfAccount.jsonName] =
+                alice.human();
+            tx1[sfSigners.jsonName][0U][sfSigner.jsonName]
+               [sfSigningPubKey.jsonName] = strHex(alice.pk());
+            tx1[sfSigners.jsonName][0U][sfSigner.jsonName]
+               [sfTxnSignature.jsonName] = "DEADBEEF";
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(tx1, seq + 1),
+                ter(temINVALID_BATCH));
+            env.close();
+        }
+
         // temINVALID_BATCH: Batch: inner txn preflight failed.
         {
             auto const seq = env.seq(alice);
@@ -1394,9 +1443,9 @@ class Batch_test : public beast::unit_test::suite
     }
 
     void
-    testSubmit(FeatureBitset features)
+    testInnerSubmitRPC(FeatureBitset features)
     {
-        testcase("submit");
+        testcase("inner submit rpc");
 
         using namespace test::jtx;
         using namespace std::literals;
@@ -1416,25 +1465,32 @@ class Batch_test : public beast::unit_test::suite
         env(pay(gw, bob, USD(100)));
         env.close();
 
-        // Invalid: txn has `tfInnerBatchTxn` flag and signature
+        // Invalid RPC Submission: TxnSignature
+        // - has `TxnSignature` field
+        // - has no `SigningPubKey` field
+        // - has no `Signers` field
+        // - has `tfInnerBatchTxn` flag
         {
             auto jv = pay(alice, bob, USD(1));
             jv[sfFlags.fieldName] = tfInnerBatchTxn;
-
             Serializer s;
             auto jt = env.jt(jv);
-            jv.removeMember(sfTxnSignature.jsonName);
-            s.erase();
             jt.stx->add(s);
             auto const jrr = env.rpc("submit", strHex(s.slice()))[jss::result];
             BEAST_EXPECT(
                 jrr[jss::status] == "error" &&
-                jrr[jss::error] == "invalidTransaction");
+                jrr[jss::error] == "invalidTransaction" &&
+                jrr[jss::error_exception] ==
+                    "fails local checks: Malformed: Invalid inner batch transaction.");
 
             env.close();
         }
 
-        // Invalid: txn has `tfInnerBatchTxn` flag and no signature
+        // Invalid RPC Submission: SigningPubKey
+        // - has no `TxnSignature` field
+        // - has `SigningPubKey` field
+        // - has no `Signers` field
+        // - has `tfInnerBatchTxn` flag
         {
             std::string txBlob =
                 "1200002240000000240000000561D4838D7EA4C68000000000000000000000"
@@ -1442,6 +1498,57 @@ class Batch_test : public beast::unit_test::suite
                 "68400000000000000A73210388935426E0D08083314842EDFBB2D517BD4769"
                 "9F9A4527318A8E10468C97C0528114AE123A8556F3CF91154711376AFB0F89"
                 "4F832B3D8314F51DFC2A09D62CBBA1DFBDD4691DAC96AD98B90F";
+            auto const jrr = env.rpc("submit", txBlob)[jss::result];
+            BEAST_EXPECT(
+                jrr[jss::status] == "error" &&
+                jrr[jss::error] == "invalidTransaction" &&
+                jrr[jss::error_exception] ==
+                    "fails local checks: Malformed: Invalid inner batch transaction.");
+
+            env.close();
+        }
+
+        // Invalid RPC Submission: Signers
+        // - has no `TxnSignature` field
+        // - has empty `SigningPubKey` field
+        // - has `Signers` field
+        // - has `tfInnerBatchTxn` flag
+        {
+            std::string txBlob =
+                "1200002240000000240000000561D4838D7EA4C68000000000000000000000"
+                "0000005553440000000000A407AF5856CCF3C42619DAA925813FC955C72983"
+                "68400000000000000A73008114AE123A8556F3CF91154711376AFB0F894F83"
+                "2B3D8314F51DFC2A09D62CBBA1DFBDD4691DAC96AD98B90FF3E01073210289"
+                "49021029D5CC87E78BCF053AFEC0CAFD15108EC119EAAFEC466F5C095407BF"
+                "74473045022100EC791DC3306E1784B813CBE275C9A0E2F467EF795E3571AA"
+                "DB295862F2F316350220668716954E02AF714F119F34D869891C8704A7989B"
+                "DB0DBA029A7580430BB7138114B389FBCED0AF9DCDFF62900BFAEFA3EB872D"
+                "8A96E1E010732102691AC5AE1C4C333AE5DF8A93BDC495F0EEBFC6DB0DA7EB"
+                "6EF808F3AFC006E3FE74473045022100B93117804900BE1E83E5E2B5846642"
+                "7BBFE2138CDEF5F31F566B4AC49A947C300220463AFD847028A76F3FEC997B"
+                "56FA4C4E6514A57E77D38AC854A6A2A54DD4DB478114F51DFC2A09D62CBBA1"
+                "DFBDD4691DAC96AD98B90FE1F1";
+            auto const jrr = env.rpc("submit", txBlob)[jss::result];
+            BEAST_EXPECT(
+                jrr[jss::status] == "error" &&
+                jrr[jss::error] == "invalidTransaction" &&
+                jrr[jss::error_exception] ==
+                    "fails local checks: Malformed: Invalid inner batch transaction.");
+
+            env.close();
+        }
+
+        // Invalid RPC Submission: tfInnerBatchTxn
+        // - has no `TxnSignature` field
+        // - has empty `SigningPubKey` field
+        // - has no `Signers` field
+        // - has `tfInnerBatchTxn` flag
+        {
+            std::string txBlob =
+                "1200002240000000240000000561D4838D7EA4C68000000000000000000000"
+                "0000005553440000000000A407AF5856CCF3C42619DAA925813FC955C72983"
+                "68400000000000000A73008114AE123A8556F3CF91154711376AFB0F894F83"
+                "2B3D8314F51DFC2A09D62CBBA1DFBDD4691DAC96AD98B90F";
             auto const jrr = env.rpc("submit", txBlob)[jss::result];
             BEAST_EXPECT(
                 jrr[jss::status] == "success" &&
@@ -1928,30 +2035,30 @@ class Batch_test : public beast::unit_test::suite
     void
     testWithFeats(FeatureBitset features)
     {
-        // testEnable(features);
-        // testPreflight(features);
-        // testBadSequence(features);
-        // testBadFeeOuterBatch(features);
-        // testChangesBetweenViews(features);
-        // testBadInnerFee(features);
-        // testAllOrNothing(features);
-        // testOnlyOne(features);
-        // testUntilFailure(features);
-        // testIndependent(features);
-        // testMultiParty(features);
-        // testMultisign(features);
-        // testMultisignMultiParty(features);
-        // testBatchType(features);
-        // testSubmit(features);
-        // testNoAccount(features);
-        // testAccountSet(features);
+        testEnable(features);
+        testPreflight(features);
+        testBadSequence(features);
+        testBadFeeOuterBatch(features);
+        testChangesBetweenViews(features);
+        testBadInnerFee(features);
+        testAllOrNothing(features);
+        testOnlyOne(features);
+        testUntilFailure(features);
+        testIndependent(features);
+        testMultiParty(features);
+        testMultisign(features);
+        testMultisignMultiParty(features);
+        testBatchType(features);
+        testInnerSubmitRPC(features);
+        testNoAccount(features);
+        testAccountSet(features);
         testAccountDelete(features);
-        // testObjectCreateSequence(features);
-        // testObjectCreateTicket(features);
-        // testObjectCreate3rdParty(features);
-        // testTicketsOuter(features);
-        // testTicketsInner(features);
-        // testTicketsOuterInner(features);
+        testObjectCreateSequence(features);
+        testObjectCreateTicket(features);
+        testObjectCreate3rdParty(features);
+        testTicketsOuter(features);
+        testTicketsInner(features);
+        testTicketsOuterInner(features);
     }
 
 public:

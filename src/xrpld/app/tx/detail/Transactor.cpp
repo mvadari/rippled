@@ -485,11 +485,18 @@ Transactor::apply()
 NotTEC
 Transactor::checkSign(PreclaimContext const& ctx)
 {
-    // do not check signature of inner batch txn
-    if (ctx.tx.isFlag(tfInnerBatchTxn) && ctx.tx.getSigningPubKey().empty() &&
-        !ctx.tx.isFieldPresent(sfTxnSignature) &&
-        !ctx.tx.isFieldPresent(sfSigners))
+    // Ignore signature check on batch inner transactions
+    if (ctx.tx.isFlag(tfInnerBatchTxn))
+    {
+        // Defensive Check: These values are also checked in Batch::preflight
+        if (ctx.tx.isFieldPresent(sfTxnSignature) ||
+            !ctx.tx.getSigningPubKey().empty() ||
+            ctx.tx.isFieldPresent(sfSigners))
+        {
+            return temINVALID_BATCH;
+        }
         return tesSUCCESS;
+    }
 
     auto const idAccount = ctx.tx.getAccountID(sfAccount);
 

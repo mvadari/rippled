@@ -188,6 +188,32 @@ Batch::preflight(PreflightContext const& ctx)
             return temINVALID_BATCH;
         }
 
+        if (stx.isFieldPresent(sfTxnSignature))
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId
+                << "]:" << "inner txn cannot include TxnSignature."
+                << "index: " << i;
+            return temINVALID_BATCH;
+        }
+
+        if (!stx.getSigningPubKey().empty())
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId
+                << "]:" << "inner txn must include empty SigningPubKey."
+                << "index: " << i;
+            return temINVALID_BATCH;
+        }
+
+        if (stx.isFieldPresent(sfSigners))
+        {
+            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
+                                << "]:" << "inner txn cannot include Signers."
+                                << "index: " << i;
+            return temINVALID_BATCH;
+        }
+
         auto const innerAccount = stx.getAccountID(sfAccount);
         if (auto const preflightResult =
                 ripple::preflight(ctx.app, ctx.rules, stx, tapFAIL_HARD, ctx.j);

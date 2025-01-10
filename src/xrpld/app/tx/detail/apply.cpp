@@ -44,12 +44,15 @@ checkValidity(
     auto const id = tx.getTransactionID();
     auto const flags = router.getFlags(id);
 
-    // Validate tfInnerBatchTxn
+    // Ignore signature check on batch inner transactions
     if (rules.enabled(featureBatch) && tx.isFlag(tfInnerBatchTxn))
     {
-        // batched transactions do not contain signatures
-        if (tx.isFieldPresent(sfTxnSignature))
-            return {Validity::SigBad, "Batch txn contains signature."};
+        // Defensive Check: These values are also checked in Batch::preflight
+        if (tx.isFieldPresent(sfTxnSignature) ||
+            !tx.getSigningPubKey().empty() || tx.isFieldPresent(sfSigners))
+            return {
+                Validity::SigBad,
+                "Malformed: Invalid inner batch transaction."};
 
         std::string reason;
         if (!passesLocalChecks(tx, reason))
