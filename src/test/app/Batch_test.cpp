@@ -486,8 +486,8 @@ class Batch_test : public beast::unit_test::suite
             Json::Value jv = batch::batch(alice, seq, batchFee, tfAllOrNothing);
             Json::Value tx1 = pay(alice, bob, XRP(10));
             jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            jv[jss::RawTransactions][0u][jss::RawTransaction][jss::SigningPubKey] =
-                strHex(alice.pk());
+            jv[jss::RawTransactions][0u][jss::RawTransaction]
+              [jss::SigningPubKey] = strHex(alice.pk());
             auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
@@ -1580,7 +1580,8 @@ class Batch_test : public beast::unit_test::suite
                 jrr[jss::status] == "error" &&
                 jrr[jss::error] == "invalidTransaction" &&
                 jrr[jss::error_exception] ==
-                    "fails local checks: Malformed: Invalid inner batch transaction.");
+                    "fails local checks: Malformed: Invalid inner batch "
+                    "transaction.");
 
             env.close();
         }
@@ -1602,7 +1603,8 @@ class Batch_test : public beast::unit_test::suite
                 jrr[jss::status] == "error" &&
                 jrr[jss::error] == "invalidTransaction" &&
                 jrr[jss::error_exception] ==
-                    "fails local checks: Malformed: Invalid inner batch transaction.");
+                    "fails local checks: Malformed: Invalid inner batch "
+                    "transaction.");
 
             env.close();
         }
@@ -1632,7 +1634,8 @@ class Batch_test : public beast::unit_test::suite
                 jrr[jss::status] == "error" &&
                 jrr[jss::error] == "invalidTransaction" &&
                 jrr[jss::error_exception] ==
-                    "fails local checks: Malformed: Invalid inner batch transaction.");
+                    "fails local checks: Malformed: Invalid inner batch "
+                    "transaction.");
 
             env.close();
         }
