@@ -388,7 +388,7 @@ STTx::checkBatchSingleSign(
     RequireFullyCanonicalSig requireCanonicalSig) const
 {
     Serializer msg;
-    serializeBatch(msg, getFlags(), getFieldV256(sfTransactionIDs));
+    serializeBatch(msg, getFlags(), getBatchTransactionIDs());
     return singleSignHelper(
         batchSigner, msg.slice(), requireCanonicalSig, getFlags());
 }
@@ -485,7 +485,7 @@ STTx::checkBatchMultiSign(
         (requireCanonicalSig == RequireFullyCanonicalSig::yes);
 
     Serializer msg;
-    serializeBatch(msg, getFlags(), getFieldV256(sfTransactionIDs));
+    serializeBatch(msg, getFlags(), getBatchTransactionIDs());
 
     return multiSignHelper(
         signers,

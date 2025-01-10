@@ -457,7 +457,6 @@ TRANSACTION(ttNFTOKEN_MODIFY, 61, NFTokenModify, ({
 /** This transaction type wraps inner transactions for batch. */
 TRANSACTION(ttBATCH, 62, Batch, ({
     {sfRawTransactions, soeREQUIRED},
-    {sfTransactionIDs, soeREQUIRED},
     {sfBatchSigners, soeOPTIONAL},
 }))
 

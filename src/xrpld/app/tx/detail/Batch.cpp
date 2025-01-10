@@ -84,29 +84,28 @@ Batch::preflight(PreflightContext const& ctx)
         return temMALFORMED;
     }
 
-    auto const& txns = ctx.tx.getFieldArray(sfRawTransactions);
-
-    if (txns.size() == 0)
+    auto rawTxns = ctx.tx.getFieldArray(sfRawTransactions);
+    if (rawTxns.size() == 0)
     {
         JLOG(ctx.j.trace())
             << "BatchTrace[" << batchId << "]:" << "txns array is empty.";
         return temARRAY_EMPTY;
     }
 
-    if (txns.size() > maxBatchTxCount)
+    if (rawTxns.size() > maxBatchTxCount)
     {
         JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                             << "]:" << "txns array exceeds 8 entries.";
         return temARRAY_TOO_LARGE;
     }
 
-    auto const& hashes = ctx.tx.getFieldV256(sfTransactionIDs);
+    auto const& hashes = ctx.tx.getBatchTransactionIDs();
 
-    if (hashes.size() != txns.size())
+    if (hashes.size() != rawTxns.size())
     {
         JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                             << "]:" << "hashes array size does not match txns.";
-        return temMALFORMED;
+        return temMALFORMED;  // LCOV_EXCL_LINE
     }
 
     if (auto const ret = preflight2(ctx); !isTesSuccess(ret))
@@ -152,21 +151,14 @@ Batch::preflight(PreflightContext const& ctx)
 
     std::unordered_set<AccountID> uniqueSigners;
     std::unordered_set<uint256, beast::uhash<>> uniqueHashes;
-    for (int i = 0; i < txns.size(); ++i)
+    for (STObject rb : rawTxns)
     {
-        if (!uniqueHashes.emplace(hashes[i]).second)
+        STTx const stx = STTx{std::move(rb)};
+        auto const hash = stx.getTransactionID();
+        if (!uniqueHashes.emplace(hash).second)
         {
             JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId << "]:" << "duplicate TxID found.";
-            return temMALFORMED;
-        }
-
-        STTx const stx = STTx{STObject(txns[i])};
-        if (stx.getTransactionID() != hashes[i])
-        {
-            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                << "]:" << "txn hash does not match TxIDs hash."
-                                << "index: " << i;
+                << "BatchTrace[" << batchId << "]:" << "duplicate TxID found." << hash;
             return temMALFORMED;
         }
 
@@ -175,7 +167,7 @@ Batch::preflight(PreflightContext const& ctx)
             JLOG(ctx.j.trace())
                 << "BatchTrace[" << batchId
                 << "]:" << "TransactionType missing in inner txn."
-                << "index: " << i;
+                << "index: " << hash;
             return temINVALID_BATCH;  // LCOV_EXCL_LINE
         }
 
@@ -184,7 +176,7 @@ Batch::preflight(PreflightContext const& ctx)
             JLOG(ctx.j.trace())
                 << "BatchTrace[" << batchId
                 << "]:" << "batch cannot have an inner batch txn."
-                << "index: " << i;
+                << "index: " << hash;
             return temINVALID_BATCH;
         }
 
@@ -193,7 +185,7 @@ Batch::preflight(PreflightContext const& ctx)
             JLOG(ctx.j.trace())
                 << "BatchTrace[" << batchId
                 << "]:" << "inner txn cannot include TxnSignature."
-                << "index: " << i;
+                << "index: " << hash;
             return temINVALID_BATCH;
         }
 
@@ -202,7 +194,7 @@ Batch::preflight(PreflightContext const& ctx)
             JLOG(ctx.j.trace())
                 << "BatchTrace[" << batchId
                 << "]:" << "inner txn must include empty SigningPubKey."
-                << "index: " << i;
+                << "index: " << hash;
             return temINVALID_BATCH;
         }
 
@@ -210,7 +202,7 @@ Batch::preflight(PreflightContext const& ctx)
         {
             JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                 << "]:" << "inner txn cannot include Signers."
-                                << "index: " << i;
+                                << "index: " << hash;
             return temINVALID_BATCH;
         }
 
@@ -221,7 +213,7 @@ Batch::preflight(PreflightContext const& ctx)
         {
             JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                 << "]:" << "inner txn preflight failed."
-                                << "index: " << i;
+                                << "index: " << hash;
             return temINVALID_BATCH;
         }
 
@@ -237,7 +229,7 @@ Batch::preflight(PreflightContext const& ctx)
             {
                 JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                     << "]:" << "outer signature for inner txn."
-                                    << "index: " << i;
+                                    << "index: " << hash;
                 return temBAD_SIGNER;
             }
             continue;
@@ -253,7 +245,7 @@ Batch::preflight(PreflightContext const& ctx)
         {
             JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                 << "]:" << "no account signature for inner txn."
-                                << "index: " << i;
+                                << "index: " << hash;
             return temBAD_SIGNER;
         }
     }

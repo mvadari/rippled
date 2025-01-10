@@ -25,7 +25,7 @@ inline void
 serializeBatch(
     Serializer& msg,
     std::uint32_t const& flags,
-    STVector256 const& txids)
+    std::vector<uint256> const& txids)
 {
     msg.add32(HashPrefix::batch);
     msg.add32(flags);

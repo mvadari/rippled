@@ -45,7 +45,6 @@ batch(
     jv[jss::TransactionType] = jss::Batch;
     jv[jss::Account] = account.human();
     jv[jss::RawTransactions] = Json::Value{Json::arrayValue};
-    jv[sfTransactionIDs.jsonName] = Json::Value{Json::arrayValue};
     jv[jss::Sequence] = seq;
     jv[jss::Flags] = flags;
     jv[jss::Fee] = to_string(fee);
@@ -75,21 +74,6 @@ add::operator()(Env& env, JTx& jt) const
         batchTransaction[jss::RawTransaction][sfTicketSequence.jsonName] =
             *ticket_;
     }
-
-    // Set the hash of the transaction
-    try
-    {
-        std::optional<STObject> st =
-            parse(jt.jv[jss::RawTransactions][index][jss::RawTransaction]);
-        STTx const stx = STTx{std::move(*st)};
-        jt.jv[sfTransactionIDs.jsonName][index] =
-            to_string(stx.getTransactionID());
-    }
-    catch (parse_error const&)
-    {
-        env.test.log << pretty(jt.jv) << std::endl;
-        Rethrow();
-    }
 }
 
 void
@@ -115,7 +99,7 @@ sig::operator()(Env& env, JTx& jt) const
         jo[jss::SigningPubKey] = strHex(e.sig.pk().slice());
 
         Serializer msg;
-        serializeBatch(msg, st->getFlags(), st->getFieldV256(sfTransactionIDs));
+        serializeBatch(msg, st->getFlags(), st->getBatchTransactionIDs());
         auto const sig = ripple::sign(
             *publicKeyType(e.sig.pk().slice()), e.sig.sk(), msg.slice());
         jo[sfTxnSignature.getJsonName()] =
@@ -151,7 +135,7 @@ msig::operator()(Env& env, JTx& jt) const
         iso[jss::SigningPubKey] = strHex(e.sig.pk().slice());
 
         Serializer msg;
-        serializeBatch(msg, st->getFlags(), st->getFieldV256(sfTransactionIDs));
+        serializeBatch(msg, st->getFlags(), st->getBatchTransactionIDs());
         auto const sig = ripple::sign(
             *publicKeyType(e.sig.pk().slice()), e.sig.sk(), msg.slice());
         iso[sfTxnSignature.getJsonName()] =

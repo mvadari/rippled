@@ -229,38 +229,6 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
-        // temMALFORMED: Batch: hashes array size does not match txns.
-        {
-            auto const batchFee = calcBatchFee(env, 1, 2);
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
-
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
-
-            // Tx 2
-            Json::Value const tx2 = pay(bob, alice, XRP(5));
-            jv = addBatchTx(jv, tx2, env.seq(bob));
-            auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
-            STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
-            STTx const stx2 = STTx{std::move(parsed2.object.value())};
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx2.getTransactionID()));
-
-            // Add another txn hash to the TxIDs array
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx2.getTransactionID()));
-
-            env(jv, batch::sig(bob), ter(temMALFORMED));
-            env.close();
-        }
-
         // temARRAY_EMPTY: Batch: txns array empty.
         {
             auto const seq = env.seq(alice);
@@ -338,8 +306,6 @@ class Batch_test : public beast::unit_test::suite
             auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
 
             // Tx 2
             Json::Value const tx2 = pay(bob, alice, XRP(5));
@@ -347,8 +313,6 @@ class Batch_test : public beast::unit_test::suite
             auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
             STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
             STTx const stx2 = STTx{std::move(parsed2.object.value())};
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx2.getTransactionID()));
 
             for (auto const& signer : signers)
             {
@@ -356,8 +320,7 @@ class Batch_test : public beast::unit_test::suite
                 serializeBatch(
                     msg,
                     tfAllOrNothing,
-                    STVector256(
-                        {stx1.getTransactionID(), stx2.getTransactionID()}));
+                    {stx1.getTransactionID(), stx2.getTransactionID()});
                 auto const sig = ripple::sign(
                     signer.account.pk(), signer.account.sk(), msg.slice());
                 jv[sfBatchSigners.jsonName][signer.index]
@@ -390,46 +353,8 @@ class Batch_test : public beast::unit_test::suite
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
 
-            // Tx 2
-            Json::Value const tx2 = pay(bob, alice, XRP(5));
-            jv = addBatchTx(jv, tx2, env.seq(bob));
-
-            // Add a duplicate hash
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
-
-            env(jv, batch::sig(bob), ter(temMALFORMED));
-            env.close();
-        }
-
-        // temMALFORMED: Batch: order of inner transactions does not match
-        // TxIDs.
-        {
-            auto const batchFee = calcBatchFee(env, 1, 2);
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
-
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
+            // Add a duplicate txn
             jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-
-            // Tx 2
-            Json::Value const tx2 = pay(bob, alice, XRP(5));
-            jv = addBatchTx(jv, tx2, env.seq(bob));
-            auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
-            STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
-            STTx const stx2 = STTx{std::move(parsed2.object.value())};
-
-            // Add the hashes out of order
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx2.getTransactionID()));
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
 
             env(jv, batch::sig(bob), ter(temMALFORMED));
             env.close();
@@ -491,8 +416,6 @@ class Batch_test : public beast::unit_test::suite
             auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
             STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
             STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            jv[sfTransactionIDs.jsonName].append(
-                to_string(stx1.getTransactionID()));
             env(jv, ter(temINVALID_BATCH));
             env.close();
         }
@@ -860,7 +783,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(10)), seq + 1),
             batch::add(tx, seq + 2),
             ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {};
         env.close();
@@ -899,7 +822,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
                 batch::add(pay(alice, bob, XRP(1)), seq + 2),
                 ter(tesSUCCESS));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -937,7 +860,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, bob, XRP(1)), seq + 1),
                 batch::add(pay(alice, bob, XRP(999)), seq + 2),
                 ter(tesSUCCESS));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {};
             env.close();
@@ -980,7 +903,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), seq + 2),
             batch::add(pay(alice, bob, XRP(1)), seq + 3),
             ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tecUNFUNDED_PAYMENT", to_string(txIDs[0])},
@@ -1024,7 +947,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(999)), seq + 3),
             batch::add(pay(alice, bob, XRP(1)), seq + 4),
             ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1071,7 +994,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(999)), seq + 3),
             batch::add(pay(alice, bob, XRP(1)), seq + 4),
             ter(tesSUCCESS));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1121,7 +1044,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(10)), seq + 1),
             batch::add(pay(bob, alice, XRP(5)), bobSeq),
             batch::sig(bob));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1172,7 +1095,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), seq + 2),
             sig(carol));
 
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1221,7 +1144,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), bobSeq),
                 batch::sig(Reg{bob, carol}));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -1271,7 +1194,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), seq + 2),
             msig(bob, carol));
 
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1346,7 +1269,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), bobSeq),
                 batch::msig(bob, {dave, carol}));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -1395,7 +1318,7 @@ class Batch_test : public beast::unit_test::suite
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(100)), seq + 2));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -1418,7 +1341,7 @@ class Batch_test : public beast::unit_test::suite
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(100)), seq + 1),
                 batch::add(pay(alice, carol, XRP(747681)), seq + 2));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {};
             env.close();
@@ -1445,7 +1368,7 @@ class Batch_test : public beast::unit_test::suite
                         XRP(100),
                         tfImmediateOrCancel),
                     seq + 3));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -1477,7 +1400,7 @@ class Batch_test : public beast::unit_test::suite
                         tfImmediateOrCancel),
                     seq + 3),
                 batch::add(pay(alice, eve, XRP(100)), seq + 4));
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tesSUCCESS", to_string(txIDs[0])},
@@ -1524,7 +1447,7 @@ class Batch_test : public beast::unit_test::suite
                 batch::add(pay(alice, carol, XRP(100)), seq + 5),
                 batch::add(pay(alice, eve, XRP(100)), seq + 6));
 
-            auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+            auto const txIDs = env.tx()->getBatchTransactionIDs();
             TxID const batchId = env.tx()->getTransactionID();
             std::vector<TestBatchData> testCases = {
                 {"tecKILLED", to_string(txIDs[0])},
@@ -1689,7 +1612,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1000)), seq + 1),
             batch::add(tx1, ledSeq),
             batch::sig(bob));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1740,7 +1663,7 @@ class Batch_test : public beast::unit_test::suite
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(tx1, seq + 1),
             batch::add(pay(alice, bob, XRP(1)), seq + 2));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1796,7 +1719,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
             batch::add(acctdelete(alice, bob), seq + 2),
             batch::add(pay(alice, bob, XRP(1)), seq + 3));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1853,7 +1776,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(check::create(bob, alice, USD(10)), env.seq(bob)),
             batch::add(check::cash(alice, chkId, USD(10)), seq + 1),
             batch::sig(bob));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1918,7 +1841,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(check::create(bob, alice, USD(10)), 0, bobTicketSeq),
             batch::add(check::cash(alice, chkId, USD(10)), seq + 1),
             batch::sig(bob));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -1972,7 +1895,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(check::create(bob, alice, USD(10)), env.seq(bob)),
             batch::add(check::cash(alice, chkId, USD(10)), env.seq(alice)),
             batch::sig(alice, bob));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -2020,7 +1943,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), seq + 0),
             batch::add(pay(alice, bob, XRP(1)), seq + 1),
             ticket::use(aliceTicketSeq++));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -2067,7 +1990,7 @@ class Batch_test : public beast::unit_test::suite
         env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq),
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq + 1));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},
@@ -2115,7 +2038,7 @@ class Batch_test : public beast::unit_test::suite
             batch::add(pay(alice, bob, XRP(1)), 0, aliceTicketSeq + 1),
             batch::add(pay(alice, bob, XRP(1)), seq + 0),
             ticket::use(aliceTicketSeq));
-        auto const txIDs = env.tx()->getFieldV256(sfTransactionIDs);
+        auto const txIDs = env.tx()->getBatchTransactionIDs();
         TxID const batchId = env.tx()->getTransactionID();
         std::vector<TestBatchData> testCases = {
             {"tesSUCCESS", to_string(txIDs[0])},

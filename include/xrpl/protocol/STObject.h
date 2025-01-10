@@ -247,6 +247,8 @@ public:
     getFieldCurrency(SField const& field) const;
     STNumber const&
     getFieldNumber(SField const& field) const;
+    std::vector<uint256>
+    getBatchTransactionIDs() const;
 
     /** Get the value of a field.
         @param A TypedField built from an SField value representing the desired
@@ -475,6 +477,7 @@ private:
     move(std::size_t n, void* buf) override;
 
     friend class detail::STVar;
+    mutable std::vector<uint256> batch_txn_ids_;
 };
 
 //------------------------------------------------------------------------------
