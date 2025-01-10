@@ -34,7 +34,6 @@ Batch::calculateBaseFee(ReadView const& view, STTx const& tx)
 {
     // Calculate the Inner Txn Fees
     XRPAmount txnFees{0};
-
     if (tx.isFieldPresent(sfRawTransactions))
     {
         XRPAmount txFees{0};
@@ -52,6 +51,7 @@ Batch::calculateBaseFee(ReadView const& view, STTx const& tx)
         ? tx.getFieldArray(sfBatchSigners).size()
         : 0;
 
+    // sum of inner tx fees + 10 drops per signature + 20 drops for processing
     return ((signerCount + 2) * view.fees().base) + txnFees;
 }
 
