@@ -493,7 +493,7 @@ Transactor::checkSign(PreclaimContext const& ctx)
             !ctx.tx.getSigningPubKey().empty() ||
             ctx.tx.isFieldPresent(sfSigners))
         {
-            return temINVALID_BATCH;
+            return temINVALID_FLAG;
         }
         return tesSUCCESS;
     }

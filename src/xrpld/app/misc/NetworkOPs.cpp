@@ -1223,7 +1223,7 @@ NetworkOPsImp::processTransaction(
     if (view->rules().enabled(featureBatch) && tx.isFlag(tfInnerBatchTxn))
     {
         transaction->setStatus(INVALID);
-        transaction->setResult(temINVALID_BATCH);
+        transaction->setResult(temINVALID_FLAG);
         app_.getHashRouter().setFlags(transaction->getID(), SF_BAD);
         return;
     }

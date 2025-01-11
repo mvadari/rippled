@@ -19,6 +19,7 @@
 
 #include <test/jtx.h>
 #include <test/jtx/utility.h>
+#include <xrpld/app/tx/apply.h>
 #include <xrpl/protocol/Batch.h>
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/STParsedJSON.h>
@@ -174,18 +175,28 @@ class Batch_test : public beast::unit_test::suite
             env.fund(XRP(1000), alice, bob, carol);
             env.close();
 
-            auto const preAlice = env.balance(alice);
-            auto const preBob = env.balance(bob);
+            // ttBatch
+            {
+                auto const seq = env.seq(alice);
+                auto const batchFee = calcBatchFee(env, 0, 1);
+                auto const txResult =
+                    withBatch ? ter(tesSUCCESS) : ter(temDISABLED);
+                env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                    batch::add(pay(alice, bob, XRP(1)), seq + 1),
+                    txResult);
+                env.close();
+            }
 
-            auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 0, 1);
+            // tfInnerBatchTxn
+            {
+                auto const txResult =
+                    withBatch ? ter(telENV_RPC_FAILED) : ter(temINVALID_FLAG);
+                env(pay(alice, bob, XRP(1)),
+                    txflags(tfInnerBatchTxn),
+                    txResult);
+                env.close();
+            }
 
-            auto const txResult =
-                withBatch ? ter(tesSUCCESS) : ter(temDISABLED);
-
-            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-                batch::add(pay(alice, bob, XRP(1)), seq + 1),
-                txResult);
             env.close();
         }
     }
@@ -1577,7 +1588,7 @@ class Batch_test : public beast::unit_test::suite
             auto const jrr = env.rpc("submit", txBlob)[jss::result];
             BEAST_EXPECT(
                 jrr[jss::status] == "success" &&
-                jrr[jss::engine_result] == "temINVALID_BATCH");
+                jrr[jss::engine_result] == "temINVALID_FLAG");
 
             env.close();
         }
