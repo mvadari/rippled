@@ -2069,6 +2069,41 @@ class Batch_test : public beast::unit_test::suite
     }
 
     void
+    testPseudoTxn(FeatureBitset features)
+    {
+        testcase("pseudo txn");
+
+        using namespace test::jtx;
+        using namespace std::literals;
+
+        test::jtx::Env env{*this, envconfig()};
+
+        auto const alice = Account("alice");
+        auto const bob = Account("bob");
+
+        env.fund(XRP(1000), alice, bob);
+        env.close();
+
+        STTx const stx = STTx(ttAMENDMENT, [&](auto& obj) {
+            obj.setAccountID(sfAccount, AccountID());
+            obj.setFieldH256(sfAmendment, uint256(2));
+            obj.setFieldU32(sfLedgerSequence, env.seq(alice));
+            obj.setFieldU32(sfFlags, tfInnerBatchTxn);
+        });
+        
+        std::string reason;
+        BEAST_EXPECT(isPseudoTx(stx));
+        BEAST_EXPECT(!passesLocalChecks(stx, reason));
+        BEAST_EXPECT(reason == "Cannot submit pseudo transactions.");
+        env.app().openLedger().modify(
+            [&](OpenView& view, beast::Journal j) {
+                auto const result = ripple::apply(env.app(), view, stx, tapNONE, j);
+                BEAST_EXPECT(!result.second && result.first == temINVALID_FLAG);
+                return result.second;
+            });
+    }
+
+    void
     testWithFeats(FeatureBitset features)
     {
         testEnable(features);
@@ -2097,6 +2132,7 @@ class Batch_test : public beast::unit_test::suite
         testTicketsOuter(features);
         testTicketsInner(features);
         testTicketsOuterInner(features);
+        testPseudoTxn(features);
     }
 
 public:

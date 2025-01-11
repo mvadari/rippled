@@ -42,6 +42,16 @@ namespace ripple {
 NotTEC
 preflight0(PreflightContext const& ctx)
 {
+    if (ctx.tx.isFlag(tfInnerBatchTxn) && !ctx.rules.enabled(featureBatch))
+        return temINVALID_FLAG;
+
+    if (isPseudoTx(ctx.tx) && ctx.tx.isFlag(tfInnerBatchTxn))
+    {
+        JLOG(ctx.j.warn()) << "Pseudo transactions cannot contain the "
+                              "tfInnerBatchTxn flag.";
+        return temINVALID_FLAG;
+    }
+
     if (!isPseudoTx(ctx.tx) || ctx.tx.isFieldPresent(sfNetworkID))
     {
         uint32_t nodeNID = ctx.app.config().NETWORK_ID;
