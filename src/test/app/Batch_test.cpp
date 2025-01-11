@@ -351,6 +351,18 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
+        // temBAD_SIGNER: Batch: invalid batch signer.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 2, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1),
+                batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
+                batch::sig(alice, bob),
+                ter(temBAD_SIGNER));
+            env.close();
+        }
+
         // temMALFORMED: Batch: duplicate TxID found.
         {
             auto const batchFee = calcBatchFee(env, 1, 2);
@@ -473,14 +485,13 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
-        // temBAD_SIGNER: Batch: outer signature for inner txn.
+        // temBAD_SIGNER: Batch: missing batch signers.
         {
             auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 1, 2);
+            auto const batchFee = calcBatchFee(env, 0, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
-                batch::sig(alice, bob),
                 ter(temBAD_SIGNER));
             env.close();
         }
@@ -621,6 +632,7 @@ class Batch_test : public beast::unit_test::suite
             env(batch::batch(alice, preAliceSeq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), preAliceSeq + 1),
                 batch::add(pay(bob, alice, XRP(5)), preBobSeq),
+                batch::sig(bob),
                 ter(telINSUF_FEE_P));
             env.close();
 

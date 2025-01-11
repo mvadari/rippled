@@ -110,9 +110,10 @@ Batch::preflight(PreflightContext const& ctx)
 
     if (auto const ret = preflight2(ctx); !isTesSuccess(ret))
         return ret;
-
+    
     std::set<AccountID> batchSignersSet;
-    if (ctx.tx.isFieldPresent(sfBatchSigners))
+    bool hasBatchSigners = ctx.tx.isFieldPresent(sfBatchSigners);
+    if (hasBatchSigners)
     {
         STArray const signers = ctx.tx.getFieldArray(sfBatchSigners);
 
@@ -127,12 +128,12 @@ Batch::preflight(PreflightContext const& ctx)
         // Add the batch signers to the set.
         for (auto const& signer : signers)
         {
-            AccountID const innerAccount = signer.getAccountID(sfAccount);
-            if (!batchSignersSet.insert(innerAccount).second)
+            AccountID const signerAccount = signer.getAccountID(sfAccount);
+            if (!batchSignersSet.insert(signerAccount).second)
             {
                 JLOG(ctx.j.trace())
                     << "BatchTrace[" << batchId
-                    << "]:" << "duplicate signer found: " << innerAccount;
+                    << "]:" << "duplicate signer found: " << signerAccount;
                 return temINVALID_BATCH;
             }
         }
@@ -149,7 +150,15 @@ Batch::preflight(PreflightContext const& ctx)
         }
     }
 
-    std::unordered_set<AccountID> uniqueSigners;
+    // Check that the outer account signature is not in the batch signers array.
+    if (batchSignersSet.find(outerAccount) != batchSignersSet.end())
+    {
+        JLOG(ctx.j.trace())
+            << "BatchTrace[" << batchId << "]:" << "invalid batch signer.";
+        return temBAD_SIGNER;
+    }
+
+    std::unordered_set<AccountID> requiredSigners;
     std::unordered_set<uint256, beast::uhash<>> uniqueHashes;
     for (STObject rb : rawTxns)
     {
@@ -221,27 +230,14 @@ Batch::preflight(PreflightContext const& ctx)
         // 1. We do not add it to the unique signers set.
         // 2. We do check a signature for the inner account does not exist.
         if (innerAccount == outerAccount)
-        {
-            // Validate that the outer account does not have a signature in the
-            // batch signers array.
-            if (ctx.tx.isFieldPresent(sfBatchSigners) &&
-                batchSignersSet.find(innerAccount) != batchSignersSet.end())
-            {
-                JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                    << "]:" << "outer signature for inner txn."
-                                    << "index: " << hash;
-                return temBAD_SIGNER;
-            }
             continue;
-        }
 
-        // Add the inner account to the unique signers set.
-        uniqueSigners.emplace(innerAccount);
+        // Add the inner account to the required signers set.
+        requiredSigners.emplace(innerAccount);
 
         // Validate that the account for this (inner) txn has a signature in the
         // batch signers array.
-        if (ctx.tx.isFieldPresent(sfBatchSigners) &&
-            batchSignersSet.find(innerAccount) == batchSignersSet.end())
+        if (batchSignersSet.find(innerAccount) == batchSignersSet.end())
         {
             JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                 << "]:" << "no account signature for inner txn."
@@ -250,15 +246,24 @@ Batch::preflight(PreflightContext const& ctx)
         }
     }
 
-    if (ctx.tx.isFieldPresent(sfBatchSigners) &&
-        uniqueSigners.size() != ctx.tx.getFieldArray(sfBatchSigners).size())
+    if (requiredSigners.size() > 0)
     {
-        JLOG(ctx.j.trace())
-            << "BatchTrace[" << batchId
-            << "]:" << "unique signers does not match batch signers.";
-        return temBAD_SIGNER;
-    }
+        if (!hasBatchSigners)
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId << "]:" << "missing batch signers.";
+            return temBAD_SIGNER;
+        }
 
+        if (requiredSigners.size() !=
+            ctx.tx.getFieldArray(sfBatchSigners).size())
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId
+                << "]:" << "unique signers does not match batch signers.";
+            return temBAD_SIGNER;
+        }
+    }
     return tesSUCCESS;
 }
 
