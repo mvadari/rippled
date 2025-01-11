@@ -2090,17 +2090,16 @@ class Batch_test : public beast::unit_test::suite
             obj.setFieldU32(sfLedgerSequence, env.seq(alice));
             obj.setFieldU32(sfFlags, tfInnerBatchTxn);
         });
-        
+
         std::string reason;
         BEAST_EXPECT(isPseudoTx(stx));
         BEAST_EXPECT(!passesLocalChecks(stx, reason));
         BEAST_EXPECT(reason == "Cannot submit pseudo transactions.");
-        env.app().openLedger().modify(
-            [&](OpenView& view, beast::Journal j) {
-                auto const result = ripple::apply(env.app(), view, stx, tapNONE, j);
-                BEAST_EXPECT(!result.second && result.first == temINVALID_FLAG);
-                return result.second;
-            });
+        env.app().openLedger().modify([&](OpenView& view, beast::Journal j) {
+            auto const result = ripple::apply(env.app(), view, stx, tapNONE, j);
+            BEAST_EXPECT(!result.second && result.first == temINVALID_FLAG);
+            return result.second;
+        });
     }
 
     void
