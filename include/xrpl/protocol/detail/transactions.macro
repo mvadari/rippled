@@ -454,6 +454,17 @@ TRANSACTION(ttNFTOKEN_MODIFY, 61, NFTokenModify, ({
     {sfURI, soeOPTIONAL},
 }))
 
+/** This transaction type creates or modifies a Permissioned Domain */
+TRANSACTION(ttPERMISSIONED_DOMAIN_SET, 62, PermissionedDomainSet, ({
+    {sfDomainID, soeOPTIONAL},
+    {sfAcceptedCredentials, soeREQUIRED},
+}))
+
+/** This transaction type deletes a Permissioned Domain */
+TRANSACTION(ttPERMISSIONED_DOMAIN_DELETE, 63, PermissionedDomainDelete, ({
+    {sfDomainID, soeREQUIRED},
+}))
+
 /** This transaction type wraps inner transactions for batch. */
 TRANSACTION(ttBATCH, 62, Batch, ({
     {sfRawTransactions, soeREQUIRED},
