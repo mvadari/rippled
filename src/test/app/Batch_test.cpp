@@ -267,101 +267,7 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
-        // temINVALID_BATCH: Batch: Duplicate signer found:
-        {
-            auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 2, 2);
-            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-                batch::add(pay(alice, bob, XRP(1)), seq + 1),
-                batch::add(pay(alice, bob, XRP(1)), seq + 2),
-                batch::sig(bob, bob),
-                ter(temINVALID_BATCH));
-            env.close();
-        }
-
-        // temARRAY_TOO_LARGE: Batch: signers array exceeds 8 entries.
-        {
-            auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 9, 2);
-            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-                batch::add(pay(alice, bob, XRP(1)), seq + 1),
-                batch::add(pay(alice, bob, XRP(1)), seq + 2),
-                batch::sig(
-                    bob,
-                    carol,
-                    alice,
-                    bob,
-                    carol,
-                    alice,
-                    bob,
-                    carol,
-                    alice,
-                    alice),
-                ter(temARRAY_TOO_LARGE));
-            env.close();
-        }
-
-        // temBAD_SIGNATURE: Batch: invalid batch txn signature.
-        {
-            std::vector<TestSignData> const signers = {{
-                {0, bob},
-            }};
-
-            auto const batchFee = calcBatchFee(env, 1, 2);
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
-
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-
-            // Tx 2
-            Json::Value const tx2 = pay(bob, alice, XRP(5));
-            jv = addBatchTx(jv, tx2, env.seq(bob));
-            auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
-            STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
-            STTx const stx2 = STTx{std::move(parsed2.object.value())};
-
-            for (auto const& signer : signers)
-            {
-                Serializer msg;
-                serializeBatch(
-                    msg,
-                    tfAllOrNothing,
-                    {stx1.getTransactionID(), stx2.getTransactionID()});
-                auto const sig = ripple::sign(
-                    signer.account.pk(), signer.account.sk(), msg.slice());
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfAccount.jsonName] =
-                      signer.account.human();
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfSigningPubKey.jsonName] =
-                      strHex(alice.pk());
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfTxnSignature.jsonName] =
-                      strHex(Slice{sig.data(), sig.size()});
-            }
-
-            jv = addBatchSignatures(jv, signers);
-
-            env(jv, ter(temBAD_SIGNATURE));
-            env.close();
-        }
-
-        // temBAD_SIGNER: Batch: invalid batch signer.
-        {
-            auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 2, 2);
-            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-                batch::add(pay(alice, bob, XRP(10)), seq + 1),
-                batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
-                batch::sig(alice, bob),
-                ter(temBAD_SIGNER));
-            env.close();
-        }
+        // temMALFORMED: // LCOV_EXCL_LINE
 
         // temMALFORMED: Batch: duplicate TxID found.
         {
@@ -473,6 +379,52 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
+        // temARRAY_TOO_LARGE: Batch: signers array exceeds 8 entries.
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 9, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(1)), seq + 1),
+                batch::add(pay(alice, bob, XRP(1)), seq + 2),
+                batch::sig(
+                    bob,
+                    carol,
+                    alice,
+                    bob,
+                    carol,
+                    alice,
+                    bob,
+                    carol,
+                    alice,
+                    alice),
+                ter(temARRAY_TOO_LARGE));
+            env.close();
+        }
+
+        // temBAD_SIGNER: Batch: signer cannot be the outer account
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 2, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1),
+                batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
+                batch::sig(alice, bob),
+                ter(temBAD_SIGNER));
+            env.close();
+        }
+
+        // temBAD_SIGNER: Batch: duplicate signer found
+        {
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 2, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(1)), seq + 1),
+                batch::add(pay(alice, bob, XRP(1)), seq + 2),
+                batch::sig(bob, bob),
+                ter(temBAD_SIGNER));
+            env.close();
+        }
+
         // temBAD_SIGNER: Batch: no account signature for inner txn.
         {
             auto const seq = env.seq(alice);
@@ -485,18 +437,57 @@ class Batch_test : public beast::unit_test::suite
             env.close();
         }
 
-        // temBAD_SIGNER: Batch: missing batch signers.
+        // temBAD_SIGNATURE: Batch: invalid batch txn signature.
         {
-            auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 0, 2);
-            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
-                batch::add(pay(alice, bob, XRP(10)), seq + 1),
-                batch::add(pay(bob, alice, XRP(5)), env.seq(bob)),
-                ter(temBAD_SIGNER));
+            std::vector<TestSignData> const signers = {{
+                {0, bob},
+            }};
+
+            auto const batchFee = calcBatchFee(env, 1, 2);
+            Json::Value jv =
+                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
+
+            // Tx 1
+            Json::Value tx1 = pay(alice, bob, XRP(10));
+            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
+            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
+            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
+            STTx const stx1 = STTx{std::move(parsed1.object.value())};
+
+            // Tx 2
+            Json::Value const tx2 = pay(bob, alice, XRP(5));
+            jv = addBatchTx(jv, tx2, env.seq(bob));
+            auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
+            STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
+            STTx const stx2 = STTx{std::move(parsed2.object.value())};
+
+            for (auto const& signer : signers)
+            {
+                Serializer msg;
+                serializeBatch(
+                    msg,
+                    tfAllOrNothing,
+                    {stx1.getTransactionID(), stx2.getTransactionID()});
+                auto const sig = ripple::sign(
+                    signer.account.pk(), signer.account.sk(), msg.slice());
+                jv[sfBatchSigners.jsonName][signer.index]
+                  [sfBatchSigner.jsonName][sfAccount.jsonName] =
+                      signer.account.human();
+                jv[sfBatchSigners.jsonName][signer.index]
+                  [sfBatchSigner.jsonName][sfSigningPubKey.jsonName] =
+                      strHex(alice.pk());
+                jv[sfBatchSigners.jsonName][signer.index]
+                  [sfBatchSigner.jsonName][sfTxnSignature.jsonName] =
+                      strHex(Slice{sig.data(), sig.size()});
+            }
+
+            jv = addBatchSignatures(jv, signers);
+
+            env(jv, ter(temBAD_SIGNATURE));
             env.close();
         }
 
-        // temBAD_SIGNER: Batch: unique signers does not match batch signers.
+        // temBAD_SIGNER: Batch: invalid batch signers.
         {
             auto const seq = env.seq(alice);
             auto const batchFee = calcBatchFee(env, 2, 2);

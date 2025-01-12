@@ -110,10 +110,74 @@ Batch::preflight(PreflightContext const& ctx)
 
     if (auto const ret = preflight2(ctx); !isTesSuccess(ret))
         return ret;
-    
-    std::set<AccountID> batchSignersSet;
-    bool hasBatchSigners = ctx.tx.isFieldPresent(sfBatchSigners);
-    if (hasBatchSigners)
+
+    // Validation Inner Batch Txns
+    std::set<AccountID> requiredSigners;
+    std::unordered_set<uint256, beast::uhash<>> uniqueHashes;
+    for (STObject rb : rawTxns)
+    {
+        STTx const stx = STTx{std::move(rb)};
+        auto const hash = stx.getTransactionID();
+        if (!uniqueHashes.emplace(hash).second)
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId << "]:" << "duplicate TxID found."
+                << "txID: " << hash;
+            return temMALFORMED;
+        }
+
+        if (!stx.isFieldPresent(sfTransactionType))
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId
+                << "]:" << "TransactionType missing in inner txn."
+                << "txID: " << hash;
+            return temINVALID_BATCH;  // LCOV_EXCL_LINE
+        }
+
+        if (stx.getFieldU16(sfTransactionType) == ttBATCH)
+        {
+            JLOG(ctx.j.trace())
+                << "BatchTrace[" << batchId
+                << "]:" << "batch cannot have an inner batch txn."
+                << "txID: " << hash;
+            return temINVALID_BATCH;
+        }
+
+        if (stx.isFieldPresent(sfTxnSignature) ||
+            stx.isFieldPresent(sfSigners) || !stx.getSigningPubKey().empty())
+        {
+            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId << "]:"
+                                << "inner txn cannot include TxnSignature or "
+                                   "Signers and SigningPubKey must be empty."
+                                << "txID: " << hash;
+            return temINVALID_BATCH;
+        }
+
+        auto const innerAccount = stx.getAccountID(sfAccount);
+        if (auto const preflightResult =
+                ripple::preflight(ctx.app, ctx.rules, stx, tapFAIL_HARD, ctx.j);
+            preflightResult.ter != tesSUCCESS)
+        {
+            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
+                                << "]:" << "inner txn preflight failed."
+                                << "txID: " << hash;
+            return temINVALID_BATCH;
+        }
+
+        // If the inner account is the same as the outer account, continue.
+        // 1. We do not add it to the required signers set.
+        // 2. We do check a signature for the inner account does not exist.
+        if (innerAccount == outerAccount)
+            continue;
+
+        // Add the inner account to the required signers set.
+        requiredSigners.insert(innerAccount);
+    }
+
+    // Validation Batch Signers
+    std::set<AccountID> batchSigners;
+    if (ctx.tx.isFieldPresent(sfBatchSigners))
     {
         STArray const signers = ctx.tx.getFieldArray(sfBatchSigners);
 
@@ -129,12 +193,29 @@ Batch::preflight(PreflightContext const& ctx)
         for (auto const& signer : signers)
         {
             AccountID const signerAccount = signer.getAccountID(sfAccount);
-            if (!batchSignersSet.insert(signerAccount).second)
+            if (signerAccount == outerAccount)
+            {
+                JLOG(ctx.j.trace())
+                    << "BatchTrace[" << batchId << "]:"
+                    << "signer cannot be the outer account: " << signerAccount;
+                return temBAD_SIGNER;
+            }
+
+            if (!batchSigners.insert(signerAccount).second)
             {
                 JLOG(ctx.j.trace())
                     << "BatchTrace[" << batchId
                     << "]:" << "duplicate signer found: " << signerAccount;
-                return temINVALID_BATCH;
+                return temBAD_SIGNER;
+            }
+
+            // Check that the batch signer is in the required signers set.
+            if (requiredSigners.erase(signerAccount) == 0)
+            {
+                JLOG(ctx.j.trace())
+                    << "BatchTrace[" << batchId
+                    << "]:" << "no account signature for inner txn.";
+                return temBAD_SIGNER;
             }
         }
 
@@ -150,119 +231,11 @@ Batch::preflight(PreflightContext const& ctx)
         }
     }
 
-    // Check that the outer account signature is not in the batch signers array.
-    if (batchSignersSet.find(outerAccount) != batchSignersSet.end())
+    if (!requiredSigners.empty())
     {
         JLOG(ctx.j.trace())
-            << "BatchTrace[" << batchId << "]:" << "invalid batch signer.";
+            << "BatchTrace[" << batchId << "]:" << "invalid batch signers.";
         return temBAD_SIGNER;
-    }
-
-    std::unordered_set<AccountID> requiredSigners;
-    std::unordered_set<uint256, beast::uhash<>> uniqueHashes;
-    for (STObject rb : rawTxns)
-    {
-        STTx const stx = STTx{std::move(rb)};
-        auto const hash = stx.getTransactionID();
-        if (!uniqueHashes.emplace(hash).second)
-        {
-            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                << "]:" << "duplicate TxID found." << hash;
-            return temMALFORMED;
-        }
-
-        if (!stx.isFieldPresent(sfTransactionType))
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId
-                << "]:" << "TransactionType missing in inner txn."
-                << "index: " << hash;
-            return temINVALID_BATCH;  // LCOV_EXCL_LINE
-        }
-
-        if (stx.getFieldU16(sfTransactionType) == ttBATCH)
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId
-                << "]:" << "batch cannot have an inner batch txn."
-                << "index: " << hash;
-            return temINVALID_BATCH;
-        }
-
-        if (stx.isFieldPresent(sfTxnSignature))
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId
-                << "]:" << "inner txn cannot include TxnSignature."
-                << "index: " << hash;
-            return temINVALID_BATCH;
-        }
-
-        if (!stx.getSigningPubKey().empty())
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId
-                << "]:" << "inner txn must include empty SigningPubKey."
-                << "index: " << hash;
-            return temINVALID_BATCH;
-        }
-
-        if (stx.isFieldPresent(sfSigners))
-        {
-            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                << "]:" << "inner txn cannot include Signers."
-                                << "index: " << hash;
-            return temINVALID_BATCH;
-        }
-
-        auto const innerAccount = stx.getAccountID(sfAccount);
-        if (auto const preflightResult =
-                ripple::preflight(ctx.app, ctx.rules, stx, tapFAIL_HARD, ctx.j);
-            preflightResult.ter != tesSUCCESS)
-        {
-            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                << "]:" << "inner txn preflight failed."
-                                << "index: " << hash;
-            return temINVALID_BATCH;
-        }
-
-        // If the inner account is the same as the outer account, continue.
-        // 1. We do not add it to the unique signers set.
-        // 2. We do check a signature for the inner account does not exist.
-        if (innerAccount == outerAccount)
-            continue;
-
-        // Add the inner account to the required signers set.
-        requiredSigners.emplace(innerAccount);
-
-        // Validate that the account for this (inner) txn has a signature in the
-        // batch signers array.
-        if (batchSignersSet.find(innerAccount) == batchSignersSet.end())
-        {
-            JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
-                                << "]:" << "no account signature for inner txn."
-                                << "index: " << hash;
-            return temBAD_SIGNER;
-        }
-    }
-
-    if (requiredSigners.size() > 0)
-    {
-        if (!hasBatchSigners)
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId << "]:" << "missing batch signers.";
-            return temBAD_SIGNER;
-        }
-
-        if (requiredSigners.size() !=
-            ctx.tx.getFieldArray(sfBatchSigners).size())
-        {
-            JLOG(ctx.j.trace())
-                << "BatchTrace[" << batchId
-                << "]:" << "unique signers does not match batch signers.";
-            return temBAD_SIGNER;
-        }
     }
     return tesSUCCESS;
 }
