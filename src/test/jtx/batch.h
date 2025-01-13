@@ -46,6 +46,22 @@ batch(
     std::uint32_t flags);
 
 /** Adds a new Batch Txn on a JTx. */
+class add_nofill
+{
+private:
+    Json::Value txn_;
+
+public:
+    add_nofill(Json::Value const& txn)
+        : txn_(txn)
+    {
+    }
+
+    void
+    operator()(Env&, JTx& jtx) const;
+};
+
+/** Adds a new Batch Txn on a JTx and autofills. */
 class add
 {
 private:

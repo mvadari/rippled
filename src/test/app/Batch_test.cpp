@@ -44,17 +44,6 @@ class Batch_test : public beast::unit_test::suite
         jtx::Account account;
     };
 
-    Json::Value
-    getTxByIndex(Json::Value jrr, std::uint8_t index)
-    {
-        for (auto const& txn : jrr[jss::result][jss::ledger][jss::transactions])
-        {
-            if (txn[jss::metaData][sfTransactionIndex.jsonName] == index)
-                return txn;
-        }
-        return {};
-    }
-
     void
     validateBatch(
         jtx::Env& env,
@@ -74,6 +63,16 @@ class Batch_test : public beast::unit_test::suite
         BEAST_EXPECT(transactions.size() == batchResults.size() + 1);
 
         // Validate ttBatch is correct index
+        auto getTxByIndex = [](Json::Value jrr,
+                               std::uint8_t index) -> Json::Value {
+            for (auto const& txn :
+                 jrr[jss::result][jss::ledger][jss::transactions])
+            {
+                if (txn[jss::metaData][sfTransactionIndex.jsonName] == index)
+                    return txn;
+            }
+            return {};
+        };
         auto const txn = getTxByIndex(jrr, 0);
         BEAST_EXPECT(txn.isMember(jss::metaData));
         Json::Value const meta = txn[jss::metaData];
@@ -95,55 +94,6 @@ class Batch_test : public beast::unit_test::suite
             // BEAST_EXPECT(jrr[jss::meta][sfParentBatchID.jsonName] ==
             // batchId);
         }
-    }
-
-    Json::Value
-    addBatchTx(
-        Json::Value jv,
-        Json::Value const& tx,
-        std::uint32_t sequence,
-        std::optional<std::uint32_t> ticket = std::nullopt)
-    {
-        std::uint32_t const index = jv[jss::RawTransactions].size();
-        Json::Value& batchTransaction = jv[jss::RawTransactions][index];
-
-        // Initialize the batch transaction
-        batchTransaction = Json::Value{};
-        batchTransaction[jss::RawTransaction] = tx;
-        batchTransaction[jss::RawTransaction][jss::SigningPubKey] = "";
-        batchTransaction[jss::RawTransaction][sfFee.jsonName] = 0;
-        batchTransaction[jss::RawTransaction][jss::Sequence] = sequence;
-        batchTransaction[jss::RawTransaction][jss::Flags] = tfInnerBatchTxn;
-
-        // Optionally set ticket sequence
-        if (ticket.has_value())
-        {
-            batchTransaction[jss::RawTransaction][jss::Sequence] = 0;
-            batchTransaction[jss::RawTransaction][sfTicketSequence.jsonName] =
-                *ticket;
-        }
-
-        return jv;
-    }
-
-    Json::Value
-    addBatchSignatures(Json::Value jv, std::vector<TestSignData> const& signers)
-    {
-        auto const ojv = jv;
-        for (auto const& signer : signers)
-        {
-            Serializer ss{
-                buildMultiSigningData(jtx::parse(ojv), signer.account.id())};
-            auto const sig = ripple::sign(
-                signer.account.pk(), signer.account.sk(), ss.slice());
-            jv[sfBatchSigners.jsonName][signer.index][sfBatchSigner.jsonName]
-              [sfAccount.jsonName] = signer.account.human();
-            jv[sfBatchSigners.jsonName][signer.index][sfBatchSigner.jsonName]
-              [sfSigningPubKey.jsonName] = strHex(signer.account.pk());
-            jv[sfBatchSigners.jsonName][signer.index][sfBatchSigner.jsonName]
-              [sfTxnSignature.jsonName] = strHex(Slice{sig.data(), sig.size()});
-        }
-        return jv;
     }
 
     XRPAmount
@@ -272,20 +222,13 @@ class Batch_test : public beast::unit_test::suite
         // temMALFORMED: Batch: duplicate TxID found.
         {
             auto const batchFee = calcBatchFee(env, 1, 2);
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
+            auto const seq = env.seq(alice);
+            auto jt = env.jtnofill(
+                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1));
 
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-
-            // Add a duplicate txn
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-
-            env(jv, batch::sig(bob), ter(temMALFORMED));
+            env(jt.jv, batch::sig(bob), ter(temMALFORMED));
             env.close();
         }
 
@@ -337,15 +280,16 @@ class Batch_test : public beast::unit_test::suite
         {
             auto const seq = env.seq(alice);
             auto const batchFee = calcBatchFee(env, 0, 2);
-            Json::Value jv = batch::batch(alice, seq, batchFee, tfAllOrNothing);
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            jv[jss::RawTransactions][0u][jss::RawTransaction]
-              [jss::SigningPubKey] = strHex(alice.pk());
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-            env(jv, ter(temINVALID_BATCH));
+            auto tx1 = pay(alice, bob, XRP(1));
+            tx1[jss::SigningPubKey] = strHex(alice.pk());
+            tx1[jss::Sequence] = seq + 1;
+            tx1[jss::Fee] = "0";
+            tx1[jss::Flags] = tx1[jss::Flags].asUInt() | tfInnerBatchTxn;
+            auto jt = env.jtnofill(
+                batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add_nofill(tx1));
+
+            env(jt.jv, ter(temINVALID_BATCH));
             env.close();
         }
 
@@ -443,47 +387,33 @@ class Batch_test : public beast::unit_test::suite
                 {0, bob},
             }};
 
+            auto const seq = env.seq(alice);
+            auto const bobSeq = env.seq(bob);
             auto const batchFee = calcBatchFee(env, 1, 2);
-            Json::Value jv =
-                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing);
-
-            // Tx 1
-            Json::Value tx1 = pay(alice, bob, XRP(10));
-            jv = addBatchTx(jv, tx1, env.seq(alice) + 1);
-            auto txn1 = jv[jss::RawTransactions][0u][jss::RawTransaction];
-            STParsedJSONObject parsed1(std::string(jss::tx_json), txn1);
-            STTx const stx1 = STTx{std::move(parsed1.object.value())};
-
-            // Tx 2
-            Json::Value const tx2 = pay(bob, alice, XRP(5));
-            jv = addBatchTx(jv, tx2, env.seq(bob));
-            auto txn2 = jv[jss::RawTransactions][1u][jss::RawTransaction];
-            STParsedJSONObject parsed2(std::string(jss::tx_json), txn2);
-            STTx const stx2 = STTx{std::move(parsed2.object.value())};
+            auto jt = env.jtnofill(
+                batch::batch(alice, env.seq(alice), batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(10)), seq + 1),
+                batch::add(pay(bob, alice, XRP(5)), bobSeq));
 
             for (auto const& signer : signers)
             {
                 Serializer msg;
                 serializeBatch(
-                    msg,
-                    tfAllOrNothing,
-                    {stx1.getTransactionID(), stx2.getTransactionID()});
+                    msg, tfAllOrNothing, jt.stx->getBatchTransactionIDs());
                 auto const sig = ripple::sign(
                     signer.account.pk(), signer.account.sk(), msg.slice());
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfAccount.jsonName] =
-                      signer.account.human();
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfSigningPubKey.jsonName] =
-                      strHex(alice.pk());
-                jv[sfBatchSigners.jsonName][signer.index]
-                  [sfBatchSigner.jsonName][sfTxnSignature.jsonName] =
-                      strHex(Slice{sig.data(), sig.size()});
+                jt.jv[sfBatchSigners.jsonName][signer.index]
+                     [sfBatchSigner.jsonName][sfAccount.jsonName] =
+                    signer.account.human();
+                jt.jv[sfBatchSigners.jsonName][signer.index]
+                     [sfBatchSigner.jsonName][sfSigningPubKey.jsonName] =
+                    strHex(alice.pk());
+                jt.jv[sfBatchSigners.jsonName][signer.index]
+                     [sfBatchSigner.jsonName][sfTxnSignature.jsonName] =
+                    strHex(Slice{sig.data(), sig.size()});
             }
 
-            jv = addBatchSignatures(jv, signers);
-
-            env(jv, ter(temBAD_SIGNATURE));
+            env(jt.jv, ter(temBAD_SIGNATURE));
             env.close();
         }
 
