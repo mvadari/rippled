@@ -92,6 +92,8 @@ sig::operator()(Env& env, JTx& jt) const
     std::optional<STObject> st;
     try
     {
+        // required to cast the STObject to STTx
+        jt.jv[jss::SigningPubKey] = "";
         st = parse(jt.jv);
     }
     catch (parse_error const&)
@@ -99,6 +101,7 @@ sig::operator()(Env& env, JTx& jt) const
         env.test.log << pretty(jt.jv) << std::endl;
         Rethrow();
     }
+    STTx const& stx = STTx{std::move(*st)};
     auto& js = jt[sfBatchSigners.getJsonName()];
     for (std::size_t i = 0; i < mySigners.size(); ++i)
     {
@@ -108,7 +111,7 @@ sig::operator()(Env& env, JTx& jt) const
         jo[jss::SigningPubKey] = strHex(e.sig.pk().slice());
 
         Serializer msg;
-        serializeBatch(msg, st->getFlags(), st->getBatchTransactionIDs());
+        serializeBatch(msg, stx.getFlags(), stx.getBatchTransactionIDs());
         auto const sig = ripple::sign(
             *publicKeyType(e.sig.pk().slice()), e.sig.sk(), msg.slice());
         jo[sfTxnSignature.getJsonName()] =
@@ -123,6 +126,8 @@ msig::operator()(Env& env, JTx& jt) const
     std::optional<STObject> st;
     try
     {
+        // required to cast the STObject to STTx
+        jt.jv[jss::SigningPubKey] = "";
         st = parse(jt.jv);
     }
     catch (parse_error const&)
@@ -130,6 +135,7 @@ msig::operator()(Env& env, JTx& jt) const
         env.test.log << pretty(jt.jv) << std::endl;
         Rethrow();
     }
+    STTx const& stx = STTx{std::move(*st)};
     auto& bs = jt[sfBatchSigners.getJsonName()];
     auto const index = jt[sfBatchSigners.jsonName].size();
     auto& bso = bs[index][sfBatchSigner.getJsonName()];
@@ -144,7 +150,7 @@ msig::operator()(Env& env, JTx& jt) const
         iso[jss::SigningPubKey] = strHex(e.sig.pk().slice());
 
         Serializer msg;
-        serializeBatch(msg, st->getFlags(), st->getBatchTransactionIDs());
+        serializeBatch(msg, stx.getFlags(), stx.getBatchTransactionIDs());
         auto const sig = ripple::sign(
             *publicKeyType(e.sig.pk().slice()), e.sig.sk(), msg.slice());
         iso[sfTxnSignature.getJsonName()] =

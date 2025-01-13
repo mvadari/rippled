@@ -144,6 +144,9 @@ public:
         std::uint32_t inLedger,
         char status,
         std::string const& escapedMetaData) const;
+    
+    std::vector<uint256>
+    getBatchTransactionIDs() const;
 
 private:
     Expected<void, std::string>
@@ -171,6 +174,7 @@ private:
     move(std::size_t n, void* buf) override;
 
     friend class detail::STVar;
+    mutable std::vector<uint256> batch_txn_ids_;
 };
 
 bool

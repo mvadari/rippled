@@ -536,6 +536,39 @@ STTx::checkMultiSign(
         });
 }
 
+/**
+ * @brief Retrieves a batch of transaction IDs from the STTx.
+ *
+ * This function returns a vector of transaction IDs by extracting them from
+ * the field array `sfRawTransactions` within the STTx. If the batch
+ * transaction IDs have already been computed and cached in `batch_txn_ids_`,
+ * it returns the cached vector. Otherwise, it computes the transaction IDs,
+ * caches them, and then returns the vector.
+ *
+ * @return A vector of `uint256` containing the batch transaction IDs.
+ *
+ * @note The function asserts that the `sfRawTransactions` field array is not
+ * empty and that the size of the computed batch transaction IDs matches the
+ * size of the `sfRawTransactions` field array.
+ */
+std::vector<uint256>
+STTx::getBatchTransactionIDs() const
+{
+    XRPL_ASSERT(
+        getFieldArray(sfRawTransactions).size() != 0,
+        "Batch transaction missing sfRawTransactions");
+    if (batch_txn_ids_.size() != 0)
+        return batch_txn_ids_;
+
+    for (STObject const& rb : getFieldArray(sfRawTransactions))
+        batch_txn_ids_.push_back(rb.getHash(HashPrefix::transactionID));
+
+    XRPL_ASSERT(
+        batch_txn_ids_.size() == getFieldArray(sfRawTransactions).size(),
+        "hashes array size does not match txns");
+    return batch_txn_ids_;
+}
+
 //------------------------------------------------------------------------------
 
 static bool
