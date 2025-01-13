@@ -1219,8 +1219,8 @@ NetworkOPsImp::processTransaction(
     // This function is called by several different parts of the codebase
     // under no circumstances will we ever accept an inner txn within a batch
     // txn from the network.
-    auto const tx = *transaction->getSTransaction();
-    if (view->rules().enabled(featureBatch) && tx.isFlag(tfInnerBatchTxn))
+    auto const sttx = *transaction->getSTransaction();
+    if (view->rules().enabled(featureBatch) && sttx.isFlag(tfInnerBatchTxn))
     {
         transaction->setStatus(INVALID);
         transaction->setResult(temINVALID_FLAG);
@@ -1232,7 +1232,7 @@ NetworkOPsImp::processTransaction(
     // but I'm not 100% sure yet.
     // If so, only cost is looking up HashRouter flags.
     auto const [validity, reason] =
-        checkValidity(app_.getHashRouter(), tx, view->rules(), app_.config());
+        checkValidity(app_.getHashRouter(), sttx, view->rules(), app_.config());
     XRPL_ASSERT(
         validity == Validity::Valid,
         "ripple::NetworkOPsImp::processTransaction : valid validity");
@@ -1495,13 +1495,13 @@ NetworkOPsImp::apply(std::unique_lock<std::mutex>& batchLock)
                 auto const toSkip =
                     app_.getHashRouter().shouldRelay(e.transaction->getID());
 
-                if (auto const txn = *(e.transaction->getSTransaction());
-                    toSkip && !txn.isFlag(tfInnerBatchTxn))
+                if (auto const sttx = *(e.transaction->getSTransaction());
+                    toSkip && !sttx.isFlag(tfInnerBatchTxn))
                 {
                     protocol::TMTransaction tx;
                     Serializer s;
 
-                    txn.add(s);
+                    sttx.add(s);
                     tx.set_rawtransaction(s.data(), s.size());
                     tx.set_status(protocol::tsCURRENT);
                     tx.set_receivetimestamp(
