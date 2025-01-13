@@ -144,7 +144,7 @@ public:
         std::uint32_t inLedger,
         char status,
         std::string const& escapedMetaData) const;
-    
+
     std::vector<uint256>
     getBatchTransactionIDs() const;
 

@@ -52,8 +52,7 @@ private:
     Json::Value txn_;
 
 public:
-    add_nofill(Json::Value const& txn)
-        : txn_(txn)
+    add_nofill(Json::Value const& txn) : txn_(txn)
     {
     }
 

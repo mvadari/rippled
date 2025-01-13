@@ -91,7 +91,8 @@ class Batch_test : public beast::unit_test::suite
             BEAST_EXPECT(
                 jrr[jss::meta][sfTransactionResult.jsonName] ==
                 batchResult.result);
-            BEAST_EXPECT(jrr[jss::meta][sfParentBatchID.jsonName] == to_string(batchId));
+            BEAST_EXPECT(
+                jrr[jss::meta][sfParentBatchID.jsonName] == to_string(batchId));
         }
     }
 

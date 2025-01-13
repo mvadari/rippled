@@ -141,8 +141,7 @@ public:
     getBatchId() const
     {
         XRPL_ASSERT(
-            hasBatchId(),
-            "ripple::TxMeta::getBatchId : non-null batch id");
+            hasBatchId(), "ripple::TxMeta::getBatchId : non-null batch id");
         return *mBatchId;
     }
 
