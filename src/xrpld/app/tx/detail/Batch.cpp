@@ -182,7 +182,7 @@ Batch::preflight(PreflightContext const& ctx)
         STArray const signers = ctx.tx.getFieldArray(sfBatchSigners);
 
         // Check that the batch signers array is not too large.
-        if (signers.size() > 8)
+        if (signers.size() > maxBatchTxCount)
         {
             JLOG(ctx.j.trace()) << "BatchTrace[" << batchId
                                 << "]:" << "signers array exceeds 8 entries.";
