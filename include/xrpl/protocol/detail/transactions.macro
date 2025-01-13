@@ -465,7 +465,7 @@ TRANSACTION(ttPERMISSIONED_DOMAIN_DELETE, 63, PermissionedDomainDelete, ({
     {sfDomainID, soeREQUIRED},
 }))
 
-/** This transaction type wraps inner transactions for batch. */
+/** This transaction type batches together transactions. */
 TRANSACTION(ttBATCH, 64, Batch, ({
     {sfRawTransactions, soeREQUIRED},
     {sfBatchSigners, soeOPTIONAL},
