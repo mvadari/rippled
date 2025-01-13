@@ -916,14 +916,18 @@ STObject::getSortedFields(STObject const& objToSort, WhichFields whichFields)
 std::vector<uint256>
 STObject::getBatchTransactionIDs() const
 {
-    assert(getFieldArray(sfRawTransactions).size() != 0);
+    XRPL_ASSERT(
+        getFieldArray(sfRawTransactions).size() != 0,
+        "Batch transaction missing sfRawTransactions");
     if (batch_txn_ids_.size() != 0)
         return batch_txn_ids_;
 
     for (STObject const& rb : getFieldArray(sfRawTransactions))
         batch_txn_ids_.push_back(rb.getHash(HashPrefix::transactionID));
 
-    assert(batch_txn_ids_.size() == getFieldArray(sfRawTransactions).size());
+    XRPL_ASSERT(
+        batch_txn_ids_.size() == getFieldArray(sfRawTransactions).size(),
+        "hashes array size does not match txns");
     return batch_txn_ids_;
 }
 

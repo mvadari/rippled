@@ -172,9 +172,10 @@ applyBatchTransactions(
     STTx const& txn,
     beast::Journal j)
 {
-    assert(
+    XRPL_ASSERT(
         txn.getTxnType() == ttBATCH &&
-        !txn.getFieldArray(sfRawTransactions).empty());
+            txn.getFieldArray(sfRawTransactions).size() != 0,
+        "Batch transaction missing sfRawTransactions");
 
     auto const batchId = txn.getTransactionID();
     auto const mode = txn.getFlags();
@@ -183,8 +184,9 @@ applyBatchTransactions(
         OpenView perTxBatchView(batch_view, batchView);
 
         auto const ret = apply(app, perTxBatchView, batchId, tx, tapBATCH, j);
-        assert(
-            ret.second == (isTesSuccess(ret.first) || isTecClaim(ret.first)));
+        XRPL_ASSERT(
+            ret.second == (isTesSuccess(ret.first) || isTecClaim(ret.first)),
+            "Outer Batch failure, inner transaction should not be applied");
 
         JLOG(j.trace()) << "BatchTrace[" << batchId
                         << "]: " << tx.getTransactionID() << " "
@@ -204,9 +206,10 @@ applyBatchTransactions(
     for (STObject rb : txn.getFieldArray(sfRawTransactions))
     {
         auto const result = applyOneTransaction(STTx{std::move(rb)});
-        assert(
+        XRPL_ASSERT(
             result.second ==
-            (isTesSuccess(result.first) || isTecClaim(result.first)));
+                (isTesSuccess(result.first) || isTecClaim(result.first)),
+            "Outer Batch failure, inner transaction should not be applied");
 
         if (result.second)
             ++applied;

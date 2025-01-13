@@ -126,9 +126,9 @@ OpenLedger::accept(
         // skip batch txns
         if (tx->isFlag(tfInnerBatchTxn))
         {
-            assert(
-                txpair.second &&
-                txpair.second->isFieldPresent(sfParentBatchID));
+            XRPL_ASSERT(
+                txpair.second && txpair.second->isFieldPresent(sfParentBatchID),
+                "Inner Batch transaction missing sfParentBatchID");
             continue;
         }
 

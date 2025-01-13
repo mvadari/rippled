@@ -52,7 +52,8 @@ public:
         , batchId(batchId_)
         , j(j_)
     {
-        assert((flags_ & tapBATCH) == tapBATCH);
+        XRPL_ASSERT(
+            (flags_ & tapBATCH) == tapBATCH, "Batch apply flag not set");
     }
 
     PreflightContext(
@@ -63,7 +64,7 @@ public:
         beast::Journal j_ = beast::Journal{beast::Journal::getNullSink()})
         : app(app_), tx(tx_), rules(rules_), flags(flags_), j(j_)
     {
-        assert((flags_ & tapBATCH) == 0);
+        XRPL_ASSERT((flags_ & tapBATCH) == 0, "Batch apply flag not set");
     }
 
     PreflightContext&
@@ -98,7 +99,9 @@ public:
         , batchId(batchId_)
         , j(j_)
     {
-        assert(batchId.has_value() == ((flags_ & tapBATCH) == tapBATCH));
+        XRPL_ASSERT(
+            batchId.has_value() == ((flags_ & tapBATCH) == tapBATCH),
+            "Batch ID not set correctly");
     }
 
     PreclaimContext(
@@ -117,7 +120,7 @@ public:
               std::nullopt,
               j_)
     {
-        assert((flags_ & tapBATCH) == 0);
+        XRPL_ASSERT((flags_ & tapBATCH) == 0, "Batch apply flag not set");
     }
 
     PreclaimContext&
