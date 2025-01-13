@@ -131,6 +131,27 @@ public:
         return static_cast<bool>(mDelivered);
     }
 
+    void
+    setBatchId(uint256 const& batchId)
+    {
+        mBatchId = batchId;
+    }
+
+    uint256
+    getBatchId() const
+    {
+        XRPL_ASSERT(
+            hasBatchId(),
+            "ripple::TxMeta::getBatchId : non-null batch id");
+        return *mBatchId;
+    }
+
+    bool
+    hasBatchId() const
+    {
+        return static_cast<bool>(mBatchId);
+    }
+
 private:
     uint256 mTransactionID;
     std::uint32_t mLedger;
@@ -138,7 +159,7 @@ private:
     int mResult;
 
     std::optional<STAmount> mDelivered;
-    std::optional<uint256 const> const mBatchId;
+    std::optional<uint256> mBatchId;
 
     STArray mNodes;
 };

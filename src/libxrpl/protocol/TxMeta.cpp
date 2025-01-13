@@ -43,6 +43,9 @@ TxMeta::TxMeta(
 
     if (obj.isFieldPresent(sfDeliveredAmount))
         setDeliveredAmount(obj.getFieldAmount(sfDeliveredAmount));
+
+    if (obj.isFieldPresent(sfParentBatchID))
+        setBatchId(obj.getFieldH256(sfParentBatchID));
 }
 
 TxMeta::TxMeta(uint256 const& txid, std::uint32_t ledger, STObject const& obj)
@@ -63,6 +66,9 @@ TxMeta::TxMeta(uint256 const& txid, std::uint32_t ledger, STObject const& obj)
 
     if (obj.isFieldPresent(sfDeliveredAmount))
         setDeliveredAmount(obj.getFieldAmount(sfDeliveredAmount));
+
+    if (obj.isFieldPresent(sfParentBatchID))
+        setBatchId(obj.getFieldH256(sfParentBatchID));
 }
 
 TxMeta::TxMeta(uint256 const& txid, std::uint32_t ledger, Blob const& vec)
@@ -217,13 +223,15 @@ TxMeta::getAsObject() const
 {
     STObject metaData(sfTransactionMetaData);
     XRPL_ASSERT(mResult != 255, "ripple::TxMeta::getAsObject : result is set");
-    if (mBatchId)
-        metaData.setFieldH256(sfParentBatchID, mBatchId.value());
     metaData.setFieldU8(sfTransactionResult, mResult);
     metaData.setFieldU32(sfTransactionIndex, mIndex);
     metaData.emplace_back(mNodes);
     if (hasDeliveredAmount())
         metaData.setFieldAmount(sfDeliveredAmount, getDeliveredAmount());
+
+    if (hasBatchId())
+        metaData.setFieldH256(sfParentBatchID, getBatchId());
+
     return metaData;
 }
 
