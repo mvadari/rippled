@@ -431,6 +431,70 @@ class Batch_test : public beast::unit_test::suite
     }
 
     void
+    testPreclaim(FeatureBitset features)
+    {
+        testcase("preclaim");
+
+        using namespace test::jtx;
+        using namespace std::literals;
+
+        //----------------------------------------------------------------------
+        // preclaim
+
+        test::jtx::Env env{*this, envconfig()};
+
+        auto const alice = Account("alice");
+        auto const bob = Account("bob");
+        auto const carol = Account("carol");
+        env.fund(XRP(10000), alice, bob, carol);
+        env.close();
+
+        //----------------------------------------------------------------------
+        // checkMultiSign
+
+        // tefNOT_MULTI_SIGNING
+        // accountSigners.error()
+        // tefBAD_SIGNATURE
+        // tefBAD_SIGNATURE
+        // tefBAD_SIGNATURE
+        // tefMASTER_DISABLED
+        // tefBAD_SIGNATURE
+        // tefBAD_SIGNATURE
+        // tefBAD_SIGNATURE
+        // tefBAD_QUORUM
+        // tesSUCCESS
+
+        //----------------------------------------------------------------------
+        // checkSingleSign
+
+        // tefBAD_AUTH
+        // tefBAD_AUTH: A batch can create an account ONLY when the account
+        // master key is the signer
+        {
+            Json::Value tx1 = noop(bob);
+            tx1[sfSetFlag.fieldName] = asfAllowTrustLineClawback;
+            auto const ledSeq = env.current()->seq();
+            auto const seq = env.seq(alice);
+            auto const batchFee = calcBatchFee(env, 1, 2);
+            env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
+                batch::add(pay(alice, bob, XRP(1000)), seq + 1),
+                batch::add(tx1, ledSeq),
+                batch::sig(Reg{bob, carol}),
+                ter(tefBAD_AUTH));
+            env.close();
+        }
+        // tesSUCCESS
+        // tesSUCCESS
+        // tesSUCCESS
+        // tefMASTER_DISABLED
+        // tefBAD_AUTH
+        // tefMASTER_DISABLED
+        // tefBAD_AUTH
+        // tefBAD_AUTH_MASTER
+        // tesSUCCESS
+    }
+
+    void
     testBadSequence(FeatureBitset features)
     {
         testcase("bad sequence");
@@ -2040,6 +2104,7 @@ class Batch_test : public beast::unit_test::suite
     {
         testEnable(features);
         testPreflight(features);
+        testPreclaim(features);
         testBadSequence(features);
         testBadFeeOuterBatch(features);
         testChangesBetweenViews(features);

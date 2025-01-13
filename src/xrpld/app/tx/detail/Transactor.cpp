@@ -559,10 +559,15 @@ Transactor::checkBatchSign(PreclaimContext const& ctx)
             auto const idSigner = calcAccountID(PublicKey(makeSlice(pkSigner)));
             auto const sleAccount = ctx.view.read(keylet::account(idAccount));
 
-            // We dont need to check the regular key or multisign here
-            // because the account does not exist.
+            // A batch can create an account ONLY when the account master key is
+            // the signer
             if (!sleAccount)
+            {
+                if (idAccount != idSigner)
+                    return tefBAD_AUTH;
+
                 return tesSUCCESS;
+            }
 
             if (ret = checkSingleSign(
                     idSigner, idAccount, sleAccount, ctx.view.rules(), ctx.j);
