@@ -85,7 +85,7 @@ Batch::preflight(PreflightContext const& ctx)
     }
 
     auto rawTxns = ctx.tx.getFieldArray(sfRawTransactions);
-    if (rawTxns.size() == 0)
+    if (rawTxns.size() <= 0)
     {
         JLOG(ctx.j.trace())
             << "BatchTrace[" << batchId << "]:" << "txns array is empty.";
