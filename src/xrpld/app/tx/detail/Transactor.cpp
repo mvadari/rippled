@@ -503,7 +503,7 @@ Transactor::checkSign(PreclaimContext const& ctx)
             !ctx.tx.getSigningPubKey().empty() ||
             ctx.tx.isFieldPresent(sfSigners))
         {
-            return temINVALID_FLAG;
+            return temINVALID_FLAG;  // LCOV_EXCL_LINE
         }
         return tesSUCCESS;
     }
