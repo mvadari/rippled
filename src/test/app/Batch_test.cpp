@@ -1272,7 +1272,7 @@ class Batch_test : public beast::unit_test::suite
             auto const preBob = env.balance(bob);
             auto const bobSeq = env.seq(bob);
             auto const seq = env.seq(alice);
-            auto const batchFee = calcBatchFee(env, 2, 2);
+            auto const batchFee = calcBatchFee(env, 3, 2);
             env(batch::batch(alice, seq, batchFee, tfAllOrNothing),
                 batch::add(pay(alice, bob, XRP(10)), seq + 1),
                 batch::add(pay(bob, alice, XRP(5)), bobSeq),

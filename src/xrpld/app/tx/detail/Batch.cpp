@@ -36,20 +36,29 @@ Batch::calculateBaseFee(ReadView const& view, STTx const& tx)
     XRPAmount txnFees{0};
     if (tx.isFieldPresent(sfRawTransactions))
     {
-        XRPAmount txFees{0};
         auto const& txns = tx.getFieldArray(sfRawTransactions);
         for (STObject txn : txns)
         {
             STTx const stx = STTx{std::move(txn)};
-            txFees += ripple::calculateBaseFee(view, stx);
+            txnFees += ripple::calculateBaseFee(view, stx);
         }
-        txnFees += txFees;
     }
 
-    // Calculate the BatchSigners Fees
-    std::int32_t signerCount = tx.isFieldPresent(sfBatchSigners)
-        ? tx.getFieldArray(sfBatchSigners).size()
-        : 0;
+    // Calculate the Signers/BatchSigners Fees
+    std::int32_t signerCount = 0;
+    if (tx.isFieldPresent(sfSigners))
+        signerCount += tx.getFieldArray(sfSigners).size();
+
+    if (tx.isFieldPresent(sfBatchSigners))
+    {
+        for (STObject const& signer : tx.getFieldArray(sfBatchSigners))
+        {
+            if (signer.isFieldPresent(sfTxnSignature))
+                signerCount += 1;
+            else if (signer.isFieldPresent(sfSigners))
+                signerCount += signer.getFieldArray(sfSigners).size();
+        }
+    }
 
     // sum of inner tx fees + 10 drops per signature + 20 drops for processing
     return ((signerCount + 2) * view.fees().base) + txnFees;
