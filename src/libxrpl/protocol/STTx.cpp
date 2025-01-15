@@ -340,8 +340,7 @@ static Expected<void, std::string>
 singleSignHelper(
     STObject const& signer,
     Slice const& data,
-    STTx::RequireFullyCanonicalSig requireCanonicalSig,
-    std::uint32_t flags)
+    bool const fullyCanonical)
 {
     if (signer.isFieldPresent(sfSigners))
         return Unexpected("Cannot both single- and multi-sign.");
@@ -349,9 +348,6 @@ singleSignHelper(
     bool validSig = false;
     try
     {
-        bool const fullyCanonical = (flags & tfFullyCanonicalSig) ||
-            (requireCanonicalSig == STTx::RequireFullyCanonicalSig::yes);
-
         auto const spk = signer.getFieldVL(sfSigningPubKey);
         if (publicKeyType(makeSlice(spk)))
         {
@@ -378,8 +374,9 @@ Expected<void, std::string>
 STTx::checkSingleSign(RequireFullyCanonicalSig requireCanonicalSig) const
 {
     auto const data = getSigningData(*this);
-    return singleSignHelper(
-        *this, makeSlice(data), requireCanonicalSig, getFlags());
+    bool const fullyCanonical = (getFlags() & tfFullyCanonicalSig) ||
+        (requireCanonicalSig == STTx::RequireFullyCanonicalSig::yes);
+    return singleSignHelper(*this, makeSlice(data), fullyCanonical);
 }
 
 Expected<void, std::string>
@@ -389,17 +386,38 @@ STTx::checkBatchSingleSign(
 {
     Serializer msg;
     serializeBatch(msg, getFlags(), getBatchTransactionIDs());
-    return singleSignHelper(
-        batchSigner, msg.slice(), requireCanonicalSig, getFlags());
+    bool const fullyCanonical = (getFlags() & tfFullyCanonicalSig) ||
+        (requireCanonicalSig == STTx::RequireFullyCanonicalSig::yes);
+    return singleSignHelper(batchSigner, msg.slice(), fullyCanonical);
 }
 
 Expected<void, std::string>
 multiSignHelper(
-    STArray const& signers,
-    AccountID const& txnAccountID,
+    STObject const& signerObj,
     bool const fullyCanonical,
-    std::function<std::vector<uint8_t>(AccountID const&)> makeMsg)
+    std::function<std::vector<uint8_t>(AccountID const&)> makeMsg,
+    Rules const& rules)
 {
+    // Make sure the MultiSigners are present.  Otherwise they are not
+    // attempting multi-signing and we just have a bad SigningPubKey.
+    if (!signerObj.isFieldPresent(sfSigners))
+        return Unexpected("Empty SigningPubKey.");
+
+    // We don't allow both an sfSigners and an sfTxnSignature.  Both fields
+    // being present would indicate that the transaction is signed both ways.
+    if (signerObj.isFieldPresent(sfTxnSignature))
+        return Unexpected("Cannot both single- and multi-sign.");
+
+    STArray const& signers{signerObj.getFieldArray(sfSigners)};
+
+    // There are well known bounds that the number of signers must be within.
+    if (signers.size() < STTx::minMultiSigners ||
+        signers.size() > STTx::maxMultiSigners(&rules))
+        return Unexpected("Invalid Signers array size.");
+
+    // We also use the sfAccount field inside the loop.  Get it once.
+    auto const txnAccountID = signerObj.getAccountID(sfAccount);
+
     // Signers must be in sorted order by AccountID.
     AccountID lastAccountID(beast::zero);
 
@@ -460,40 +478,18 @@ STTx::checkBatchMultiSign(
     RequireFullyCanonicalSig requireCanonicalSig,
     Rules const& rules) const
 {
-    // Make sure the MultiSigners are present.  Otherwise they are not
-    // attempting multi-signing and we just have a bad SigningPubKey.
-    if (!batchSigner.isFieldPresent(sfSigners))
-        return Unexpected("Empty SigningPubKey.");
-
-    // We don't allow both an sfSigners and an sfTxnSignature.  Both fields
-    // being present would indicate that the transaction is signed both ways.
-    if (batchSigner.isFieldPresent(sfTxnSignature))
-        return Unexpected("Cannot both single- and multi-sign.");
-
-    STArray const& signers{batchSigner.getFieldArray(sfSigners)};
-
-    // There are well known bounds that the number of signers must be within.
-    if (signers.size() < minMultiSigners ||
-        signers.size() > maxMultiSigners(&rules))
-        return Unexpected("Invalid Signers array size.");
-
-    // We also use the sfAccount field inside the loop.  Get it once.
-    auto const txnAccountID = batchSigner.getAccountID(sfAccount);
-
-    // Determine whether signatures must be full canonical.
+    Serializer msg;
+    serializeBatch(msg, getFlags(), getBatchTransactionIDs());
     bool const fullyCanonical = (getFlags() & tfFullyCanonicalSig) ||
         (requireCanonicalSig == RequireFullyCanonicalSig::yes);
 
-    Serializer msg;
-    serializeBatch(msg, getFlags(), getBatchTransactionIDs());
-
     return multiSignHelper(
-        signers,
-        txnAccountID,
+        batchSigner,
         fullyCanonical,
         [&msg](AccountID const&) -> std::vector<uint8_t> {
             return msg.getData();
-        });
+        },
+        rules);
 }
 
 Expected<void, std::string>
@@ -501,39 +497,17 @@ STTx::checkMultiSign(
     RequireFullyCanonicalSig requireCanonicalSig,
     Rules const& rules) const
 {
-    // Make sure the MultiSigners are present.  Otherwise they are not
-    // attempting multi-signing and we just have a bad SigningPubKey.
-    if (!isFieldPresent(sfSigners))
-        return Unexpected("Empty SigningPubKey.");
-
-    // We don't allow both an sfSigners and an sfTxnSignature.  Both fields
-    // being present would indicate that the transaction is signed both ways.
-    if (isFieldPresent(sfTxnSignature))
-        return Unexpected("Cannot both single- and multi-sign.");
-
-    STArray const& signers{getFieldArray(sfSigners)};
-
-    // There are well known bounds that the number of signers must be within.
-    if (signers.size() < minMultiSigners ||
-        signers.size() > maxMultiSigners(&rules))
-        return Unexpected("Invalid Signers array size.");
-
-    // We also use the sfAccount field inside the loop.  Get it once.
-    auto const txnAccountID = getAccountID(sfAccount);
-
-    // Determine whether signatures must be full canonical.
     bool const fullyCanonical = (getFlags() & tfFullyCanonicalSig) ||
         (requireCanonicalSig == RequireFullyCanonicalSig::yes);
-
     return multiSignHelper(
-        signers,
-        txnAccountID,
+        *this,
         fullyCanonical,
         [this](AccountID const& accountID) -> std::vector<uint8_t> {
             Serializer dataStart = startMultiSigningData(*this);
             finishMultiSigningData(accountID, dataStart);
             return dataStart.getData();
-        });
+        },
+        rules);
 }
 
 /**
