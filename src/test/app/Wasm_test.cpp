@@ -4556,7 +4556,7 @@ struct Wasm_test : public beast::unit_test::suite
                "PreviousTxnID" : "CF25D1C6B8E637C7DAC61B586F820A16896A3090D9F6FBF9FA00D8B13A265647",
                "PreviousTxnLgrSeq" : 4,
                "index" : "9BC6631F3EC761CF9BD846D006560E2D57B0A5C91D4570AEB209645B189A702F",
-               "Data" : "2"
+               "Data" : "02"
             })";
 
             std::vector<uint8_t> escrow_lo_json_data(
@@ -4566,8 +4566,9 @@ struct Wasm_test : public beast::unit_test::suite
             if (BEAST_EXPECT(re.has_value()))
             {
                 auto reValue = re.value();
-//                std::cout << reValue.first << " " << reValue.second
-//                          << std::endl;
+                //                std::cout << reValue.first << " " <<
+                //                reValue.second
+                //                          << std::endl;
                 BEAST_EXPECT(!reValue.first);
                 BEAST_EXPECT(reValue.second == "1");
             }
@@ -4598,8 +4599,9 @@ struct Wasm_test : public beast::unit_test::suite
             if (BEAST_EXPECT(re.has_value()))
             {
                 auto reValue = re.value();
-//                std::cout << reValue.first << " " << reValue.second
-//                          << std::endl;
+                //                std::cout << reValue.first << " " <<
+                //                reValue.second
+                //                          << std::endl;
                 BEAST_EXPECT(reValue.first);
                 BEAST_EXPECT(reValue.second == "0");
             }
