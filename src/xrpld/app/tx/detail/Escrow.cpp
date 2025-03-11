@@ -588,7 +588,7 @@ EscrowFinish::doApply()
         // WASM execution
         auto const wasmStr = slep->getFieldVL(sfFinishFunction);
         std::vector<uint8_t> wasm(wasmStr.begin(), wasmStr.end());
-        std::string funcName("ready");
+        std::string funcName("finish");
 
         auto const escrowTx =
             ctx_.tx.getJson(JsonOptions::none).toStyledString();
@@ -599,7 +599,7 @@ EscrowFinish::doApply()
 
         EscrowLedgerDataProvider ledgerDataProvider(ctx_.view());
 
-        auto re = runEscrowWasm(wasm, funcName, &ledgerDataProvider);
+        auto re = runEscrowWasm(wasm, funcName, escrowTxData, escrowObjData);
         JLOG(j_.trace()) << "Escrow WASM ran";
         if (re.has_value())
         {
