@@ -26,13 +26,12 @@
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/beast/net/IPEndpoint.h>
 #include <xrpl/beast/utility/Journal.h>
+#include <xrpl/protocol/FeeUnits.h>
+#include <xrpl/protocol/PublicKey.h>
 #include <xrpl/protocol/SystemParameters.h>  // VFALCO Breaks levelization
 
 #include <boost/beast/core/string.hpp>
 #include <boost/filesystem.hpp>  // VFALCO FIX: This include should not be here
-
-#include <include/xrpl/protocol/FeeUnits.h>
-#include <include/xrpl/protocol/PublicKey.h>
 
 #include <cstdint>
 #include <optional>
@@ -344,13 +343,6 @@ public:
     {
         return RUN_STANDALONE;
     }
-<<<<<<< HEAD:src/xrpld/core/Config.h
-=======
-    bool
-    reporting() const
-    {
-        return RUN_REPORTING;
-    }
     bool
     mem_backend() const
     {
@@ -366,7 +358,6 @@ public:
         // tests
         return isMem;
     }
->>>>>>> 2b225977e2 (Feature: RWDB (#378)):src/ripple/core/Config.h
 
     bool
     useTxTables() const

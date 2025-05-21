@@ -4,11 +4,11 @@
 #include <xrpld/nodestore/detail/EncodedBlob.h>
 #include <xrpld/nodestore/detail/codec.h>
 
+#include <xrpl/basics/contract.h>
+
 #include <boost/beast/core/string.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/unordered/concurrent_flat_map.hpp>
-
-#include <include/xrpl/basics/contract.h>
 
 #include <memory>
 #include <mutex>

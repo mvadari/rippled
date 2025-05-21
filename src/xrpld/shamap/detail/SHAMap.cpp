@@ -271,7 +271,7 @@ SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
 }
 */
 
-std::shared_ptr<SHAMapTreeNode>
+intr_ptr::SharedPtr<SHAMapTreeNode>
 SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
 {
     using namespace std::chrono;
@@ -310,7 +310,7 @@ SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
         std::this_thread::yield();
     }
 
-    return nullptr;
+    return {};
 }
 
 intr_ptr::SharedPtr<SHAMapTreeNode>

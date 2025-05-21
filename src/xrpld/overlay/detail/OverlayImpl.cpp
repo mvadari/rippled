@@ -23,6 +23,7 @@
 #include <xrpld/app/misc/ValidatorSite.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/core/ConfigSections.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
@@ -42,7 +43,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "xrpld/overlay/detail/TrafficCount.h"
-#include <ripple/core/ConfigSections.h>
 
 namespace ripple {
 

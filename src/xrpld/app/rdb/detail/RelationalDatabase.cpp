@@ -35,42 +35,23 @@ RelationalDatabase::init(
     JobQueue& jobQueue)
 {
     bool use_sqlite = false;
-    bool use_postgres = false;
     bool use_rwdb = false;
     bool use_flatmap = false;
 
     Section const& rdb_section{config.section(SECTION_RELATIONAL_DB)};
     if (!rdb_section.empty())
     {
-        use_postgres = true;
-    }
-    else
-    {
-        Section const& rdb_section{config.section(SECTION_RELATIONAL_DB)};
-        if (!rdb_section.empty())
-        {
-            if (boost::iequals(get(rdb_section, "backend"), "sqlite"))
-            {
-                use_sqlite = true;
-            }
-            else if (boost::iequals(get(rdb_section, "backend"), "rwdb"))
-            {
-                use_rwdb = true;
-            }
-            else if (boost::iequals(get(rdb_section, "backend"), "flatmap"))
-            {
-                use_flatmap = true;
-            }
-            else
-            {
-                Throw<std::runtime_error>(
-                    "Invalid rdb_section backend value: " +
-                    get(rdb_section, "backend"));
-            }
-        }
-        else
+        if (boost::iequals(get(rdb_section, "backend"), "sqlite"))
         {
             use_sqlite = true;
+        }
+        else if (boost::iequals(get(rdb_section, "backend"), "rwdb"))
+        {
+            use_rwdb = true;
+        }
+        else if (boost::iequals(get(rdb_section, "backend"), "flatmap"))
+        {
+            use_flatmap = true;
         }
         else
         {
@@ -81,16 +62,14 @@ RelationalDatabase::init(
     }
     else
     {
-        use_sqlite = true;
+        Throw<std::runtime_error>(
+            "Invalid rdb_section backend value: " +
+            get(rdb_section, "backend"));
     }
 
     if (use_sqlite)
     {
         return getSQLiteDatabase(app, config, jobQueue);
-    }
-    else if (use_postgres)
-    {
-        return getPostgresDatabase(app, config, jobQueue);
     }
     else if (use_rwdb)
     {
