@@ -246,7 +246,8 @@ SHAMap::checkFilter(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
 
 // Get a node without throwing
 // Used on maps where missing nodes are expected
-intr_ptr::SharedPtr<SHAMapTreeNode>
+/*
+std::shared_ptr<SHAMapTreeNode>
 SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
 {
     auto node = cacheLookup(hash);
@@ -267,6 +268,49 @@ SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
         node = checkFilter(hash, filter);
 
     return node;
+}
+*/
+
+std::shared_ptr<SHAMapTreeNode>
+SHAMap::fetchNodeNT(SHAMapHash const& hash, SHAMapSyncFilter* filter) const
+{
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
+    auto timeout = nanoseconds(50);
+
+    while (true)
+    {
+        // Try to fetch from cache first
+        auto node = cacheLookup(hash);
+        if (node)
+            return node;
+
+        if (backed_)
+        {
+            node = fetchNodeFromDB(hash);
+            if (node)
+            {
+                canonicalize(hash, node);
+                return node;
+            }
+        }
+
+        if (filter)
+            node = checkFilter(hash, filter);
+
+        if (node)
+            return node;
+
+        // Check if we've exceeded timeout
+        auto elapsed = high_resolution_clock::now() - start;
+        if (elapsed >= timeout)
+            break;
+
+        // Short yield to avoid overwhelming CPU
+        std::this_thread::yield();
+    }
+
+    return nullptr;
 }
 
 intr_ptr::SharedPtr<SHAMapTreeNode>

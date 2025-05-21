@@ -42,6 +42,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "xrpld/overlay/detail/TrafficCount.h"
+#include <ripple/core/ConfigSections.h>
 
 namespace ripple {
 
@@ -138,7 +139,11 @@ OverlayImpl::OverlayImpl(
           stopwatch(),
           app_.journal("PeerFinder"),
           config,
-          collector))
+          collector,
+          app.config().section(SECTION_RELATIONAL_DB).empty() ||
+              !boost::iequals(
+                  get(app.config().section(SECTION_RELATIONAL_DB), "backend"),
+                  "rwdb")))
     , m_resolver(resolver)
     , next_id_(1)
     , timer_count_(0)

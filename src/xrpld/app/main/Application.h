@@ -22,6 +22,7 @@
 
 #include <xrpld/core/Config.h>
 #include <xrpld/overlay/PeerReservationTable.h>
+#include <xrpld/shamap/FullBelowCache.h>
 #include <xrpld/shamap/TreeNodeCache.h>
 
 #include <xrpl/basics/TaggedCache.h>

@@ -20,13 +20,19 @@
 #ifndef RIPPLE_CORE_CONFIG_H_INCLUDED
 #define RIPPLE_CORE_CONFIG_H_INCLUDED
 
+#include <xrpld/core/ConfigSections.h>
+
 #include <xrpl/basics/BasicConfig.h>
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/beast/net/IPEndpoint.h>
 #include <xrpl/beast/utility/Journal.h>
 #include <xrpl/protocol/SystemParameters.h>  // VFALCO Breaks levelization
 
+#include <boost/beast/core/string.hpp>
 #include <boost/filesystem.hpp>  // VFALCO FIX: This include should not be here
+
+#include <include/xrpl/protocol/FeeUnits.h>
+#include <include/xrpl/protocol/PublicKey.h>
 
 #include <cstdint>
 #include <optional>
@@ -338,6 +344,29 @@ public:
     {
         return RUN_STANDALONE;
     }
+<<<<<<< HEAD:src/xrpld/core/Config.h
+=======
+    bool
+    reporting() const
+    {
+        return RUN_REPORTING;
+    }
+    bool
+    mem_backend() const
+    {
+        static bool const isMem =
+            (!section(SECTION_RELATIONAL_DB).empty() &&
+             boost::beast::iequals(
+                 get(section(SECTION_RELATIONAL_DB), "backend"), "rwdb")) ||
+            (!section("node_db").empty() &&
+             (boost::beast::iequals(get(section("node_db"), "type"), "rwdb") ||
+              boost::beast::iequals(
+                  get(section("node_db"), "type"), "flatmap")));
+        // RHNOTE: memory type is not selected for here because it breaks
+        // tests
+        return isMem;
+    }
+>>>>>>> 2b225977e2 (Feature: RWDB (#378)):src/ripple/core/Config.h
 
     bool
     useTxTables() const

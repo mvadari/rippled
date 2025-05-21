@@ -117,8 +117,13 @@ SHAMapStoreImp::SHAMapStoreImp(
 
     get_if_exists(section, "online_delete", deleteInterval_);
 
-    if (deleteInterval_)
+    bool const isMem = config.mem_backend();
+
+    if (deleteInterval_ || isMem)
     {
+        if (isMem)
+            deleteInterval_ = config.LEDGER_HISTORY;
+
         // Configuration that affects the behavior of online delete
         get_if_exists(section, "delete_batch", deleteBatch_);
         std::uint32_t temp;
@@ -154,7 +159,8 @@ SHAMapStoreImp::SHAMapStoreImp(
         }
 
         state_db_.init(config, dbName_);
-        dbPaths();
+        if (!isMem)
+            dbPaths();
     }
 }
 
@@ -181,6 +187,7 @@ SHAMapStoreImp::makeNodeStore(int readThreads)
     if (deleteInterval_)
     {
         SavedState state = state_db_.getState();
+
         auto writableBackend = makeBackendRotating(state.writableDb);
         auto archiveBackend = makeBackendRotating(state.archiveDb);
         if (!state.writableDb.size())
@@ -272,6 +279,8 @@ SHAMapStoreImp::run()
     fullBelowCache_ = &(*app_.getNodeFamily().getFullBelowCache());
     treeNodeCache_ = &(*app_.getNodeFamily().getTreeNodeCache());
 
+    bool const isMem = app_.config().mem_backend();
+
     if (advisoryDelete_)
         canDelete_ = state_db_.getCanDelete();
 
@@ -311,7 +320,7 @@ SHAMapStoreImp::run()
         // will delete up to (not including) lastRotated
         if (readyToRotate)
         {
-            JLOG(journal_.warn())
+            JLOG(journal_.debug())
                 << "rotating  validatedSeq " << validatedSeq << " lastRotated "
                 << lastRotated << " deleteInterval " << deleteInterval_
                 << " canDelete_ " << canDelete_ << " state "
@@ -355,7 +364,7 @@ SHAMapStoreImp::run()
             // Only log if we completed without a "health" abort
             JLOG(journal_.debug()) << validatedSeq << " freshened caches";
 
-            JLOG(journal_.trace()) << "Making a new backend";
+            JLOG(journal_.debug()) << "Making a new backend";
             auto newBackend = makeBackendRotating();
             JLOG(journal_.debug())
                 << validatedSeq << " new backend " << newBackend->getName();
