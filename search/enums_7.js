@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['jobtype_26174',['JobType',['../namespaceripple.html#ae0f54f8ce649d639bf3e2b295347e17a',1,'ripple']]],
-  ['jsonoptions_26175',['JsonOptions',['../namespaceripple.html#a169967ff418b80729654b6d45ade8711',1,'ripple']]]
+  ['hashprefix_0',['HashPrefix',['../namespaceripple.html#ad5143ceada01141772ae4aab984f94bd',1,'ripple']]],
+  ['hashrouterflags_1',['HashRouterFlags',['../namespaceripple.html#a79683ec651b1658886d9c9ce8434f972',1,'ripple']]],
+  ['healthresult_2',['HealthResult',['../classripple_1_1SHAMapStoreImp.html#aaef701af5fbfe0fe8d445eddc7ccf7c8',1,'ripple::SHAMapStoreImp']]]
 ];

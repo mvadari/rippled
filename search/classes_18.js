@@ -1,21 +1,12 @@
 var searchData=
 [
-  ['xferfee_15409',['xferFee',['../classripple_1_1test_1_1jtx_1_1token_1_1xferFee.html',1,'ripple::test::jtx::token']]],
-  ['xor_5fshift_5fengine_15410',['xor_shift_engine',['../classbeast_1_1detail_1_1xor__shift__engine.html',1,'beast::detail']]],
-  ['xrp_5ft_15411',['XRP_t',['../structripple_1_1test_1_1jtx_1_1XRP__t.html',1,'ripple::test::jtx']]],
-  ['xrpamount_15412',['XRPAmount',['../classripple_1_1XRPAmount.html',1,'ripple']]],
-  ['xrpamount_5ftest_15413',['XRPAmount_test',['../classripple_1_1XRPAmount__test.html',1,'ripple']]],
-  ['xrpbalancechecks_15414',['XRPBalanceChecks',['../classripple_1_1XRPBalanceChecks.html',1,'ripple']]],
-  ['xrpendpointoffercrossingstep_15415',['XRPEndpointOfferCrossingStep',['../classripple_1_1XRPEndpointOfferCrossingStep.html',1,'ripple']]],
-  ['xrpendpointpaymentstep_15416',['XRPEndpointPaymentStep',['../classripple_1_1XRPEndpointPaymentStep.html',1,'ripple']]],
-  ['xrpendpointstep_15417',['XRPEndpointStep',['../classripple_1_1XRPEndpointStep.html',1,'ripple']]],
-  ['xrpendpointstep_3c_20xrpendpointoffercrossingstep_20_3e_15418',['XRPEndpointStep&lt; XRPEndpointOfferCrossingStep &gt;',['../classripple_1_1XRPEndpointStep.html',1,'ripple']]],
-  ['xrpendpointstep_3c_20xrpendpointpaymentstep_20_3e_15419',['XRPEndpointStep&lt; XRPEndpointPaymentStep &gt;',['../classripple_1_1XRPEndpointStep.html',1,'ripple']]],
-  ['xrpendpointstepinfo_15420',['XRPEndpointStepInfo',['../structripple_1_1test_1_1XRPEndpointStepInfo.html',1,'ripple::test']]],
-  ['xrpnotcreated_15421',['XRPNotCreated',['../classripple_1_1XRPNotCreated.html',1,'ripple']]],
-  ['xxh32_5fstate_5ft_15422',['XXH32_state_t',['../structbeast_1_1detail_1_1XXH32__state__t.html',1,'beast::detail']]],
-  ['xxh64_5fstate_5ft_15423',['XXH64_state_t',['../structbeast_1_1detail_1_1XXH64__state__t.html',1,'beast::detail']]],
-  ['xxh_5fistate32_5ft_15424',['XXH_istate32_t',['../structbeast_1_1detail_1_1XXH__istate32__t.html',1,'beast::detail']]],
-  ['xxh_5fistate64_5ft_15425',['XXH_istate64_t',['../structbeast_1_1detail_1_1XXH__istate64__t.html',1,'beast::detail']]],
-  ['xxhasher_15426',['xxhasher',['../classbeast_1_1xxhasher.html',1,'beast']]]
+  ['year_0',['year',['http://en.cppreference.com/w/cpp/chrono/year.html',1,'std::chrono']]],
+  ['year_5fmonth_1',['year_month',['http://en.cppreference.com/w/cpp/chrono/year_month.html',1,'std::chrono']]],
+  ['year_5fmonth_5fday_2',['year_month_day',['http://en.cppreference.com/w/cpp/chrono/year_month_day.html',1,'std::chrono']]],
+  ['year_5fmonth_5fday_5flast_3',['year_month_day_last',['http://en.cppreference.com/w/cpp/chrono/year_month_day_last.html',1,'std::chrono']]],
+  ['year_5fmonth_5fweekday_4',['year_month_weekday',['http://en.cppreference.com/w/cpp/chrono/year_month_weekday.html',1,'std::chrono']]],
+  ['year_5fmonth_5fweekday_5flast_5',['year_month_weekday_last',['http://en.cppreference.com/w/cpp/chrono/year_month_weekday_last.html',1,'std::chrono']]],
+  ['years_6',['years',['http://en.cppreference.com/w/cpp/chrono/duration.html',1,'std::chrono']]],
+  ['yocto_7',['yocto',['http://en.cppreference.com/w/cpp/numeric/ratio/ratio.html',1,'std']]],
+  ['yotta_8',['yotta',['http://en.cppreference.com/w/cpp/numeric/ratio/ratio.html',1,'std']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['protocol_15448',['protocol',['../namespaceprotocol.html',1,'']]]
+  ['json_0',['Json',['../namespaceJson.html',1,'']]],
+  ['json_3a_3adetail_1',['detail',['../namespaceJson_1_1detail.html',1,'Json']]]
 ];

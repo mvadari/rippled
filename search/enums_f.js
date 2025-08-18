@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['reason_26203',['Reason',['../classripple_1_1InboundLedger.html#a3e8d7f8b5fa089a184dcc9b00b6e0da7',1,'ripple::InboundLedger']]],
-  ['requirefullycanonicalsig_26204',['RequireFullyCanonicalSig',['../classripple_1_1STTx.html#a8bb1ca29546758e0fe3e97d1753e3d8d',1,'ripple::STTx']]],
-  ['result_26205',['Result',['../classripple_1_1OpenLedger.html#a96bb5c3c9dfae39b054eedc8d6026a97',1,'ripple::OpenLedger::Result()'],['../namespaceripple_1_1PeerFinder.html#ae15e107cb3b0b67dbf43bd4a0a229c15',1,'ripple::PeerFinder::Result()']]],
-  ['role_26206',['Role',['../namespaceripple.html#ae08fe18f17b24699ce41d3898fbb8c2c',1,'ripple']]],
-  ['rounding_5fmode_26207',['rounding_mode',['../classripple_1_1Number.html#a33e3d8e7a95979bd1eb22c59703c8534',1,'ripple::Number']]]
+  ['parseresult_0',['ParseResult',['../classripple_1_1base__uint.html#a0b8a12d34f2b89afcba928b6f4dbbe3d',1,'ripple::base_uint']]],
+  ['paymenttype_1',['PaymentType',['../classripple_1_1Pathfinder.html#ac8ac528dd5f3db523d97019bd5cc7b68',1,'ripple::Pathfinder']]],
+  ['peerfeature_2',['PeerFeature',['../namespaceripple_1_1test.html#a71635c111c539c74ec6bd2065e2e0b3e',1,'ripple::test']]],
+  ['peersetbehavior_3',['PeerSetBehavior',['../namespaceripple_1_1test.html#a6e324fd8fc463ac8f4a1d1a185511db1',1,'ripple::test']]],
+  ['peerstate_4',['PeerState',['../namespaceripple_1_1reduce__relay.html#ac8510a72575fb51be1db4944073f8b22',1,'ripple::reduce_relay']]],
+  ['promote_5',['Promote',['../classripple_1_1Overlay.html#ac507c233b4fc1f7557ad23fc0939250e',1,'ripple::Overlay']]],
+  ['protocolfeature_6',['ProtocolFeature',['../namespaceripple.html#a3b423ad1ba6341f945c08c13fe141150',1,'ripple']]],
+  ['publisherstatus_7',['PublisherStatus',['../namespaceripple.html#aaf9d6587e02c610e84a029ad5b5e17b4',1,'ripple']]]
 ];

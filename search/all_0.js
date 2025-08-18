@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['_5fexit_0',['_Exit',['http://en.cppreference.com/w/cpp/utility/program/_Exit.html',1,'std']]],
-  ['_5fu32_5fs_1',['_U32_S',['../structbeast_1_1detail_1_1__U32__S.html',1,'beast::detail']]],
-  ['_5fu64_5fs_2',['_U64_S',['../structbeast_1_1detail_1_1__U64__S.html',1,'beast::detail']]]
+  ['0_0',['0',['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md16',1,'Additions and bugfixes in 2.3.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md13',1,'Additions and bugfixes in 2.4.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md11',1,'Additions and bugfixes in 2.5.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md15',1,'Breaking changes in 2.3.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md24',1,'XRP Ledger server version 1.10.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md21',1,'XRP Ledger server version 1.11.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md20',1,'XRP Ledger server version 1.12.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md17',1,'XRP Ledger server version 2.2.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md19',1,'XRP Ledger server version 2.2.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md14',1,'XRP Ledger server version 2.3.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md12',1,'XRP Ledger server version 2.4.0'],['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md10',1,'XRP Ledger server version 2.5.0']]],
+  ['0_200_1',['XRP Ledger server version 2.0.0',['../md__2____w_2rippled_2rippled_2API-CHANGELOG.html#autotoc_md18',1,'']]]
 ];
