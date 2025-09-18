@@ -43,10 +43,11 @@ namespace ripple {
 NotTEC
 preflight0(PreflightContext const& ctx)
 {
-    if (isPseudoTx(ctx.tx) && ctx.tx.isFlag(tfInnerBatchTxn))
+    if (isPseudoTx(ctx.tx) &&
+        (ctx.tx.isFlag(tfInnerBatchTxn) || ctx.tx.isFlag(tfSaveSignature)))
     {
         JLOG(ctx.j.warn()) << "Pseudo transactions cannot contain the "
-                              "tfInnerBatchTxn flag.";
+                              "tfInnerBatchTxn or tfSaveSignature flags.";
         return temINVALID_FLAG;
     }
 
@@ -151,6 +152,19 @@ preflight1(PreflightContext const& ctx)
         ctx.tx.isFlag(tfInnerBatchTxn) == ctx.parentBatchId.has_value() ||
             !ctx.rules.enabled(featureBatch),
         "Inner batch transaction must have a parent batch ID.");
+
+    if (ctx.tx.isFlag(tfSaveSignature) &&
+        !ctx.rules.enabled(featureOnChainMultiSign))
+        return temINVALID_FLAG;
+
+    if (ctx.tx.isFlag(tfSaveSignature))
+    {
+        if (!ctx.tx.isFieldPresent(sfSigners))
+            return temINVALID;
+
+        if (ctx.tx.getFieldArray(sfSigners).size() != 1)
+            return temINVALID;
+    }
 
     return tesSUCCESS;
 }
@@ -538,6 +552,70 @@ Transactor::preCompute()
 }
 
 TER
+addSLEHelper(
+    ApplyContext& ctx,
+    std::shared_ptr<SLE> const& sle,
+    AccountID const& owner)
+{
+    auto const sleAccount = ctx.view().peek(keylet::account(owner));
+    if (!sleAccount)
+        return tefINTERNAL;
+
+    // Check reserve availability for new object creation
+    {
+        auto const balance = STAmount((*sleAccount)[sfBalance]).xrp();
+        auto const reserve =
+            ctx.view().fees().accountReserve((*sleAccount)[sfOwnerCount] + 1);
+
+        if (balance < reserve)
+            return tecINSUFFICIENT_RESERVE;
+    }
+
+    // Add ledger object to ledger
+    ctx.view().insert(sle);
+
+    // Add ledger object to owner's page
+    {
+        auto page = ctx.view().dirInsert(
+            keylet::ownerDir(owner), sle->key(), describeOwnerDir(owner));
+        if (!page)
+            return tecDIR_FULL;
+        (*sle)[sfOwnerNode] = *page;
+    }
+    adjustOwnerCount(ctx.view(), sleAccount, 1, ctx.journal);
+    ctx.view().update(sleAccount);
+
+    return tesSUCCESS;
+}
+
+TER
+deleteSLE(
+    ApplyView& view,
+    std::shared_ptr<SLE> sle,
+    AccountID const owner,
+    beast::Journal j)
+{
+    // Remove object from owner directory
+    if (!view.dirRemove(
+            keylet::ownerDir(owner), (*sle)[sfOwnerNode], sle->key(), true))
+    {
+        JLOG(j.fatal()) << "Unable to delete DID Token from owner.";
+        return tefBAD_LEDGER;
+    }
+
+    auto const sleOwner = view.peek(keylet::account(owner));
+    if (!sleOwner)
+        return tecINTERNAL;
+
+    adjustOwnerCount(view, sleOwner, -1, j);
+    view.update(sleOwner);
+
+    // Remove object from ledger
+    view.erase(sle);
+    return tesSUCCESS;
+}
+
+TER
 Transactor::apply()
 {
     preCompute();
@@ -569,6 +647,52 @@ Transactor::apply()
             sle->setFieldH256(sfAccountTxnID, ctx_.tx.getTransactionID());
 
         view().update(sle);
+    }
+
+    if (ctx_.tx.isFlag(tfSaveSignature))
+    {
+        Keylet k = keylet::savedTxn(ctx_.tx);
+        auto const& signers = ctx_.tx.getFieldArray(sfSigners);
+        if (signers.size() > 1)
+            return tefBAD_QUORUM;
+        auto const newSigner = signers[0][sfAccount];
+        uint8_t numSigners;
+        if (auto const sle = ctx_.view().peek(k))
+        {
+            auto authAccounts = sle->getFieldArray(sfAuthAccounts);
+            auto newAuthAccount = STObject(sfAuthAccount);
+            newAuthAccount.setAccountID(sfAccount, newSigner);
+            authAccounts.push_back(newAuthAccount);  // add new auth account
+            sle->setFieldArray(sfAuthAccounts, authAccounts);
+            numSigners = authAccounts.size();
+            ctx_.view().update(sle);
+        }
+        else
+        {
+            auto const newSle = std::make_shared<SLE>(k);
+            newSle->setFieldH256(sfTransactionHash, ctx_.tx.getTransactionID());
+            auto authAccounts = STArray(sfAuthAccounts);
+            auto newAuthAccount = STObject(sfAuthAccount);
+            newAuthAccount.setAccountID(sfAccount, newSigner);
+            authAccounts.push_back(newAuthAccount);  // add new auth account
+            newSle->setFieldArray(sfAuthAccounts, authAccounts);
+            addSLEHelper(ctx_, newSle, newSigner);
+            numSigners = 1;
+        }
+        // TODO: actually check quorum
+        if (numSigners < 2)
+            return tesSUCCESS;
+        else
+        {
+            auto const sle = ctx_.view().peek(k);
+            deleteSLE(
+                ctx_.view(),
+                sle,
+                sle->getFieldArray(sfAuthAccounts)[0][sfAccount],
+                ctx_.journal);
+
+            // continue processing
+        }
     }
 
     return doApply();

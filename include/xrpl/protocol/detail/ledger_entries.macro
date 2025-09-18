@@ -54,6 +54,12 @@ LEDGER_ENTRY(ltNFTOKEN_OFFER, 0x0037, NFTokenOffer, nft_offer, ({
     {sfPreviousTxnLgrSeq,    soeREQUIRED},
 }))
 
+LEDGER_ENTRY(ltSAVED_TX, 0x0038, SavedTransaction, saved_tx, ({
+    {sfTransactionHash,      soeREQUIRED},
+    {sfAuthAccounts,         soeOPTIONAL},
+    {sfOwnerNode,            soeREQUIRED},
+}))
+
 /** A ledger object which describes a check.
 
     \sa keylet::check

@@ -582,6 +582,14 @@ parseRippleState(
 }
 
 static Expected<uint256, Json::Value>
+parseSavedTransaction(
+    Json::Value const& params,
+    Json::StaticString const fieldName)
+{
+    return parseObjectID(params, fieldName, "hex string");
+}
+
+static Expected<uint256, Json::Value>
 parseSignerList(Json::Value const& params, Json::StaticString const fieldName)
 {
     return parseObjectID(params, fieldName, "hex string");

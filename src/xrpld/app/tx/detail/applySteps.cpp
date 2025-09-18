@@ -180,7 +180,7 @@ invoke_preclaim(PreclaimContext const& ctx)
     {
         // use name hiding to accomplish compile-time polymorphism of static
         // class functions for Transactor and derived classes.
-        return with_txn_type(ctx.tx.getTxnType(), [&]<typename T>() {
+        return with_txn_type(ctx.tx.getTxnType(), [&]<typename T>() -> TER {
             // If the transactor requires a valid account and the transaction
             // doesn't list one, preflight will have already a flagged a
             // failure.
@@ -209,6 +209,14 @@ invoke_preclaim(PreclaimContext const& ctx)
                     return result;
 
                 result = T::checkSign(ctx);
+                if (ctx.tx.isFlag(tfSaveSignature))
+                {
+                    if (result == tefBAD_QUORUM)
+                        return tesSUCCESS;
+                    if (result == tesSUCCESS)
+                        return tefFAILURE;
+                    return result;
+                }
 
                 if (result != tesSUCCESS)
                     return result;

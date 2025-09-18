@@ -580,6 +580,12 @@ permissionedDomain(uint256 const& domainID) noexcept
     return {ltPERMISSIONED_DOMAIN, domainID};
 }
 
+Keylet
+savedTxn(STTx const& tx)
+{
+    return {ltSAVED_TX, tx.getTransactionID()};
+}
+
 }  // namespace keylet
 
 }  // namespace ripple
