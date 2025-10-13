@@ -134,13 +134,14 @@ var searchData=
   ['logs_131',['logs',['../structripple_1_1DatabaseCon_1_1CheckpointerSetup.html#a27c5a4113ee67b9e186370406b89e452',1,'ripple::DatabaseCon::CheckpointerSetup']]],
   ['logs_5f_132',['logs_',['../classripple_1_1test_1_1OverlaySim.html#a729c929fa66e720064cdfb7b6b5f49d5',1,'ripple::test::OverlaySim::logs_'],['../classripple_1_1RPCSubImp.html#abd7176ede52cda0a9c12d3a1da2cb1d4',1,'ripple::RPCSubImp::logs_'],['../classripple_1_1reduce__relay_1_1Slots.html#ae6103d07aef85097b639d9b4437d59b5',1,'ripple::reduce_relay::Slots::logs_'],['../classripple_1_1ApplicationImp.html#aeb56f5eec262129621b143c65f353744',1,'ripple::ApplicationImp::logs_'],['../classripple_1_1Logs_1_1Sink.html#a4224989c5bbcb2b2e1391204361af554',1,'ripple::Logs::Sink::logs_']]],
   ['lookup_5f_133',['lookup_',['../classripple_1_1Section.html#ad2441213a6b27da5c79428cab983142d',1,'ripple::Section']]],
-  ['low_5f_134',['low_',['../structripple_1_1Validations_1_1KeepRange.html#a028f5ccd407d1e0d3e53f9d6bf93d4a9',1,'ripple::Validations::KeepRange']]],
-  ['lowacctcredits_135',['lowAcctCredits',['../structripple_1_1detail_1_1DeferredCredits_1_1Value.html#ae04ac7b9857b9fcee01601d3afaad965',1,'ripple::detail::DeferredCredits::Value']]],
-  ['lowacctorigbalance_136',['lowAcctOrigBalance',['../structripple_1_1detail_1_1DeferredCredits_1_1Value.html#a5bc03d401b63989f81de875d1e0482a8',1,'ripple::detail::DeferredCredits::Value']]],
-  ['lowqualityin_5f_137',['lowQualityIn_',['../classripple_1_1RPCTrustLine.html#a2f5f685f1165f11df65a06eef2cb6e47',1,'ripple::RPCTrustLine']]],
-  ['lowqualityout_5f_138',['lowQualityOut_',['../classripple_1_1RPCTrustLine.html#ad0cd7643052901bb78b248b3270698e8',1,'ripple::RPCTrustLine']]],
-  ['lptammbalanceafter_5f_139',['lptAMMBalanceAfter_',['../classripple_1_1ValidAMM.html#a53702615ffa7b8193e3de5c1cdcb4e4a',1,'ripple::ValidAMM']]],
-  ['lptammbalancebefore_5f_140',['lptAMMBalanceBefore_',['../classripple_1_1ValidAMM.html#afad11bb9c0dbd9158415cef6e65d72a2',1,'ripple::ValidAMM']]],
-  ['lptissue_5f_141',['lptIssue_',['../classripple_1_1test_1_1jtx_1_1AMM.html#a11236ef3920154a549d540007f0905a0',1,'ripple::test::jtx::AMM']]],
-  ['lvs_5f_142',['lvs_',['../classripple_1_1JobQueue_1_1Coro.html#a9ae6d29e6af4311658bf567baed62561',1,'ripple::JobQueue::Coro']]]
+  ['lossunrealized_134',['lossUnrealized',['../structripple_1_1ValidVault_1_1Vault.html#a27f242c39c989f28e8ed75aa0044a5c7',1,'ripple::ValidVault::Vault']]],
+  ['low_5f_135',['low_',['../structripple_1_1Validations_1_1KeepRange.html#a028f5ccd407d1e0d3e53f9d6bf93d4a9',1,'ripple::Validations::KeepRange']]],
+  ['lowacctcredits_136',['lowAcctCredits',['../structripple_1_1detail_1_1DeferredCredits_1_1Value.html#ae04ac7b9857b9fcee01601d3afaad965',1,'ripple::detail::DeferredCredits::Value']]],
+  ['lowacctorigbalance_137',['lowAcctOrigBalance',['../structripple_1_1detail_1_1DeferredCredits_1_1Value.html#a5bc03d401b63989f81de875d1e0482a8',1,'ripple::detail::DeferredCredits::Value']]],
+  ['lowqualityin_5f_138',['lowQualityIn_',['../classripple_1_1RPCTrustLine.html#a2f5f685f1165f11df65a06eef2cb6e47',1,'ripple::RPCTrustLine']]],
+  ['lowqualityout_5f_139',['lowQualityOut_',['../classripple_1_1RPCTrustLine.html#ad0cd7643052901bb78b248b3270698e8',1,'ripple::RPCTrustLine']]],
+  ['lptammbalanceafter_5f_140',['lptAMMBalanceAfter_',['../classripple_1_1ValidAMM.html#a53702615ffa7b8193e3de5c1cdcb4e4a',1,'ripple::ValidAMM']]],
+  ['lptammbalancebefore_5f_141',['lptAMMBalanceBefore_',['../classripple_1_1ValidAMM.html#afad11bb9c0dbd9158415cef6e65d72a2',1,'ripple::ValidAMM']]],
+  ['lptissue_5f_142',['lptIssue_',['../classripple_1_1test_1_1jtx_1_1AMM.html#a11236ef3920154a549d540007f0905a0',1,'ripple::test::jtx::AMM']]],
+  ['lvs_5f_143',['lvs_',['../classripple_1_1JobQueue_1_1Coro.html#a9ae6d29e6af4311658bf567baed62561',1,'ripple::JobQueue::Coro']]]
 ];
