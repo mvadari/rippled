@@ -850,7 +850,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>        <span class="comment">// Note that the fee structure for unit tests does not match the fees</span></div>
 <div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>        <span class="comment">// on the production network (October 2019).  Unit tests have a base</span></div>
 <div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>        <span class="comment">// reserve of 200 XRP.</span></div>
-<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>        env.fund(env.current()-&gt;fees().accountReserve(0), <a class="code hl_enumvalue" href="namespaceripple_1_1test.html#acf39cc44acdd6b5089f2076897fa3911af34d3a138958b0d338875bb910a39cf6">noripple</a>(alice));</div>
+<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>        env.fund(env.current()-&gt;fees().reserve, <a class="code hl_enumvalue" href="namespaceripple_1_1test.html#acf39cc44acdd6b5089f2076897fa3911af34d3a138958b0d338875bb910a39cf6">noripple</a>(alice));</div>
 <div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>        env.close();</div>
 <div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span> </div>
 <div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>        <span class="comment">// Burn a chunk of alice&#39;s funds so she only has 1 XRP remaining in</span></div>
