@@ -5462,6 +5462,8 @@ requires (T::ConsequencesFactory == <a class="el" href="classripple_1_1Transacto
 <tr class="separator:af9385e32e58e7742807ca79691b1bf7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30a7d5130aaaa560f043b17321268f72" id="r_a30a7d5130aaaa560f043b17321268f72"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classripple_1_1Expected.html">Expected</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/types/integer.html">std::uint32_t</a>, <a class="el" href="classJson_1_1Value.html">Json::Value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a30a7d5130aaaa560f043b17321268f72">getAutofillSequence</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> const &amp;tx_json, <a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:a30a7d5130aaaa560f043b17321268f72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad232d942febcde1cb06dfc97edcdfbb0" id="r_ad232d942febcde1cb06dfc97edcdfbb0"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="classJson_1_1Value.html">Json::Value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#ad232d942febcde1cb06dfc97edcdfbb0">autofillSignature</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;sigObject)</td></tr>
+<tr class="separator:ad232d942febcde1cb06dfc97edcdfbb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2dddbab675f359ffe6eefa42617cae29" id="r_a2dddbab675f359ffe6eefa42617cae29"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="classJson_1_1Value.html">Json::Value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a2dddbab675f359ffe6eefa42617cae29">autofillTx</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;tx_json, <a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:a2dddbab675f359ffe6eefa42617cae29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62dc8b501f06e097d9140863ea0ea9ba" id="r_a62dc8b501f06e097d9140863ea0ea9ba"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classJson_1_1Value.html">Json::Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a62dc8b501f06e097d9140863ea0ea9ba">getTxJsonFromParams</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> const &amp;params)</td></tr>
@@ -48330,7 +48332,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00311">311</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00320">320</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
 
 </div>
 </div>
@@ -50010,6 +50012,34 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
+<a id="ad232d942febcde1cb06dfc97edcdfbb0" name="ad232d942febcde1cb06dfc97edcdfbb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad232d942febcde1cb06dfc97edcdfbb0">&#9670;&#160;</a></span>autofillSignature()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="classJson_1_1Value.html">Json::Value</a> &gt; ripple::autofillSignature </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;&#160;</td>
+          <td class="paramname"><em>sigObject</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00075">75</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
+
+</div>
+</div>
 <a id="a2dddbab675f359ffe6eefa42617cae29" name="a2dddbab675f359ffe6eefa42617cae29"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2dddbab675f359ffe6eefa42617cae29">&#9670;&#160;</a></span>autofillTx()</h2>
 
@@ -50044,7 +50074,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00075">75</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00130">130</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
 
 </div>
 </div>
@@ -50072,7 +50102,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00162">162</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00171">171</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
 
 </div>
 </div>
@@ -50110,7 +50140,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00224">224</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Simulate_8cpp_source.html#l00233">233</a> of file <a class="el" href="Simulate_8cpp_source.html">Simulate.cpp</a>.</p>
 
 </div>
 </div>
