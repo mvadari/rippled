@@ -150,6 +150,12 @@ enum LedgerSpecificFlags {
     lsfAllowTrustLineClawback =
         0x80000000,               // True, enable clawback
 
+    // DisallowIncoming flags for use in sfDisallowIncoming field
+    disfDisallowIncomingNFTokenOffer = 0x00000001,
+    disfDisallowIncomingCheck        = 0x00000002,
+    disfDisallowIncomingPayChan      = 0x00000004,
+    disfDisallowIncomingTrustline    = 0x00000008,
+
     // ltOFFER
     lsfPassive = 0x00010000,
     lsfSell = 0x00020000,  // True, offer was placed as a sell.

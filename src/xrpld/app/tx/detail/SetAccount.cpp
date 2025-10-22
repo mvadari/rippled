@@ -647,6 +647,72 @@ SetAccount::doApply()
             uFlagsOut &= ~lsfDisallowIncomingTrustline;
     }
 
+    // Handle dual flag management for DisallowIncoming field
+    if (ctx_.view().rules().enabled(featureDisallowIncomingField))
+    {
+        // Get current value, syncing from lsf flags if needed
+        std::uint32_t disallowIncoming = sle->getFieldU32(sfDisallowIncoming);
+        if (disallowIncoming == 0)
+        {
+            // Sync from existing lsf flags for legacy accounts
+            auto const flags = sle->getFieldU32(sfFlags);
+            if (flags & lsfDisallowIncomingNFTokenOffer)
+                disallowIncoming |= disfDisallowIncomingNFTokenOffer;
+            if (flags & lsfDisallowIncomingCheck)
+                disallowIncoming |= disfDisallowIncomingCheck;
+            if (flags & lsfDisallowIncomingPayChan)
+                disallowIncoming |= disfDisallowIncomingPayChan;
+            if (flags & lsfDisallowIncomingTrustline)
+                disallowIncoming |= disfDisallowIncomingTrustline;
+        }
+
+        if (uSetFlag == asfDisallowIncomingNFTokenOffer)
+        {
+            uFlagsOut |= lsfDisallowIncomingNFTokenOffer;
+            disallowIncoming |= disfDisallowIncomingNFTokenOffer;
+        }
+        else if (uClearFlag == asfDisallowIncomingNFTokenOffer)
+        {
+            uFlagsOut &= ~lsfDisallowIncomingNFTokenOffer;
+            disallowIncoming &= ~disfDisallowIncomingNFTokenOffer;
+        }
+
+        if (uSetFlag == asfDisallowIncomingCheck)
+        {
+            uFlagsOut |= lsfDisallowIncomingCheck;
+            disallowIncoming |= disfDisallowIncomingCheck;
+        }
+        else if (uClearFlag == asfDisallowIncomingCheck)
+        {
+            uFlagsOut &= ~lsfDisallowIncomingCheck;
+            disallowIncoming &= ~disfDisallowIncomingCheck;
+        }
+
+        if (uSetFlag == asfDisallowIncomingPayChan)
+        {
+            uFlagsOut |= lsfDisallowIncomingPayChan;
+            disallowIncoming |= disfDisallowIncomingPayChan;
+        }
+        else if (uClearFlag == asfDisallowIncomingPayChan)
+        {
+            uFlagsOut &= ~lsfDisallowIncomingPayChan;
+            disallowIncoming &= ~disfDisallowIncomingPayChan;
+        }
+
+        if (uSetFlag == asfDisallowIncomingTrustline)
+        {
+            uFlagsOut |= lsfDisallowIncomingTrustline;
+            disallowIncoming |= disfDisallowIncomingTrustline;
+        }
+        else if (uClearFlag == asfDisallowIncomingTrustline)
+        {
+            uFlagsOut &= ~lsfDisallowIncomingTrustline;
+            disallowIncoming &= ~disfDisallowIncomingTrustline;
+        }
+
+        sle->setFieldU32(sfDisallowIncoming, disallowIncoming);
+    }
+
     // Set or clear flags for disallowing escrow
     if (ctx_.view().rules().enabled(featureTokenEscrow))
     {
