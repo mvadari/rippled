@@ -696,6 +696,153 @@ public:
     }
 
     void
+    testDisallowIncomingFieldAmendment()
+    {
+        testcase("DisallowIncoming field amendment");
+        using namespace test::jtx;
+
+        // Phase 1: Pre-amendment behavior with featureDisallowIncoming only
+        {
+            Env env(*this, FeatureBitset{featureDisallowIncoming});
+            Account const alice("alice");
+            env.fund(XRP(1000), alice);
+            env.close();
+
+            // Initially, no flags set and new field not used
+            auto acct = env.le(alice);
+            BEAST_EXPECT(acct);
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingNFTokenOffer) == 0);
+            BEAST_EXPECT(acct->getFieldU32(sfDisallowIncoming) == 0);
+
+            // Set multiple flags with old amendment only
+            env(fset(alice, asfDisallowIncomingNFTokenOffer));
+            env.close();
+            env(fset(alice, asfDisallowIncomingCheck));
+            env.close();
+            env(fset(alice, asfDisallowIncomingTrustline));
+            env.close();
+
+            acct = env.le(alice);
+            BEAST_EXPECT(acct);
+
+            // Verify traditional flags work correctly
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT((acct->getFlags() & lsfDisallowIncomingCheck) != 0);
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingTrustline) != 0);
+            BEAST_EXPECT((acct->getFlags() & lsfDisallowIncomingPayChan) == 0);
+
+            // New field should still be unused
+            BEAST_EXPECT(acct->getFieldU32(sfDisallowIncoming) == 0);
+
+            // Phase 2: Enable new amendment and test transition
+            env.enableFeature(featureDisallowIncomingField);
+            env.close();
+
+            // First flag modification should sync existing flags to new field
+            env(fset(alice, asfDisallowIncomingPayChan));
+            env.close();
+
+            acct = env.le(alice);
+            BEAST_EXPECT(acct);
+
+            // All flags should now be in both representations
+            auto const flags = acct->getFlags();
+            auto const disallowIncoming = acct->getFieldU32(sfDisallowIncoming);
+
+            // Verify traditional flags still set
+            BEAST_EXPECT((flags & lsfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT((flags & lsfDisallowIncomingCheck) != 0);
+            BEAST_EXPECT((flags & lsfDisallowIncomingTrustline) != 0);
+            BEAST_EXPECT((flags & lsfDisallowIncomingPayChan) != 0);
+
+            // Verify new field has all flags
+            BEAST_EXPECT(
+                (disallowIncoming & disfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT((disallowIncoming & disfDisallowIncomingCheck) != 0);
+            BEAST_EXPECT(
+                (disallowIncoming & disfDisallowIncomingTrustline) != 0);
+            BEAST_EXPECT((disallowIncoming & disfDisallowIncomingPayChan) != 0);
+
+            // Phase 3: Test dual flag management
+            // Clear one flag - should affect both representations
+            env(fclear(alice, asfDisallowIncomingCheck));
+            env.close();
+
+            acct = env.le(alice);
+            BEAST_EXPECT(acct);
+            BEAST_EXPECT((acct->getFlags() & lsfDisallowIncomingCheck) == 0);
+            BEAST_EXPECT(
+                (acct->getFieldU32(sfDisallowIncoming) &
+                 disfDisallowIncomingCheck) == 0);
+
+            // Other flags should remain set in both
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT(
+                (acct->getFieldU32(sfDisallowIncoming) &
+                 disfDisallowIncomingNFTokenOffer) != 0);
+
+            // Set the flag again - should affect both representations
+            env(fset(alice, asfDisallowIncomingCheck));
+            env.close();
+
+            acct = env.le(alice);
+            BEAST_EXPECT(acct);
+            BEAST_EXPECT((acct->getFlags() & lsfDisallowIncomingCheck) != 0);
+            BEAST_EXPECT(
+                (acct->getFieldU32(sfDisallowIncoming) &
+                 disfDisallowIncomingCheck) != 0);
+        }
+
+        // Phase 4: Test new account behavior with both amendments enabled
+        {
+            Env env(
+                *this,
+                FeatureBitset{
+                    featureDisallowIncoming, featureDisallowIncomingField});
+            Account const bob("bob");
+            env.fund(XRP(1000), bob);
+            env.close();
+
+            // New account should start with both representations at 0
+            auto acct = env.le(bob);
+            BEAST_EXPECT(acct);
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingNFTokenOffer) == 0);
+            BEAST_EXPECT(acct->getFieldU32(sfDisallowIncoming) == 0);
+
+            // Setting flag should immediately update both representations
+            env(fset(bob, asfDisallowIncomingNFTokenOffer));
+            env.close();
+
+            acct = env.le(bob);
+            BEAST_EXPECT(acct);
+            BEAST_EXPECT(
+                (acct->getFlags() & lsfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT(
+                (acct->getFieldU32(sfDisallowIncoming) &
+                 disfDisallowIncomingNFTokenOffer) != 0);
+
+            // Test multiple flags on new account
+            env(fset(bob, asfDisallowIncomingPayChan));
+            env.close();
+
+            acct = env.le(bob);
+            BEAST_EXPECT(acct);
+            auto const disallowIncoming = acct->getFieldU32(sfDisallowIncoming);
+            BEAST_EXPECT(
+                (disallowIncoming & disfDisallowIncomingNFTokenOffer) != 0);
+            BEAST_EXPECT((disallowIncoming & disfDisallowIncomingPayChan) != 0);
+            BEAST_EXPECT((disallowIncoming & disfDisallowIncomingCheck) == 0);
+            BEAST_EXPECT(
+                (disallowIncoming & disfDisallowIncomingTrustline) == 0);
+        }
+    }
+
+    void
     run() override
     {
         testNullAccountSet();
@@ -713,6 +860,7 @@ public:
         testTicket();
         testBadSigningKey();
         testDisallowIncomingField();
+        testDisallowIncomingFieldAmendment();
     }
 };
 
