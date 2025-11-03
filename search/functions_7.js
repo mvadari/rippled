@@ -101,7 +101,7 @@ var searchData=
   ['getamounts_98',['getAmounts',['../classripple_1_1test_1_1AMMCalc__test.html#a0751c312ae58dc8de6a383126bdc1084',1,'ripple::test::AMMCalc_test']]],
   ['getamt_99',['getAmt',['../classripple_1_1test_1_1AMMCalc__test.html#a9fb1d99f6f0b58f6abc26d95798e975d',1,'ripple::test::AMMCalc_test']]],
   ['getapiversion_100',['getApiVersion',['../classripple_1_1InfoSub.html#a43d7579c2e91e51f415018ac2f8471dd',1,'ripple::InfoSub']]],
-  ['getapiversionnumber_101',['getAPIVersionNumber',['../namespaceripple_1_1RPC.html#a4f4d5d12384c7c76f873c16166c8da43',1,'ripple::RPC']]],
+  ['getapiversionnumber_101',['getAPIVersionNumber',['../namespaceripple_1_1RPC.html#ad8fbfe3fd4651227fd4df999f60921d6',1,'ripple::RPC']]],
   ['getapplying_102',['getApplying',['../classripple_1_1Transaction.html#a3fb5c9c8bad8eb1b4be1f29efac111b8',1,'ripple::Transaction']]],
   ['getasobject_103',['getAsObject',['../classripple_1_1TxMeta.html#a79212acdeff88c336db5231db639fcd8',1,'ripple::TxMeta']]],
   ['getassetrounding_104',['getAssetRounding',['../namespaceripple_1_1detail.html#a70b33e4d5020db2c31ce836e4af4923a',1,'ripple::detail']]],

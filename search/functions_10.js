@@ -327,7 +327,7 @@ var searchData=
   ['print_5fresults_324',['print_results',['../structripple_1_1detail_1_1multi__runner__base_1_1inner.html#a9b7add91b1113f9185d7fa17c1df7244',1,'ripple::detail::multi_runner_base::inner::print_results()'],['../classripple_1_1detail_1_1multi__runner__base.html#a8fd28913f45486dd56bfc3d2cb65a3a4',1,'ripple::detail::multi_runner_base::print_results()']]],
   ['printf_325',['printf',['http://en.cppreference.com/w/cpp/io/c/fprintf.html',1,'std']]],
   ['printhelp_326',['printHelp',['../namespaceripple.html#ae01af1741b7be23974dfc58a0b5e6f44',1,'ripple']]],
-  ['printnftpages_327',['printnftpages',['../classripple_1_1NFTokenDir__test.html#a25a30345ef1362838b058edcb7e79971',1,'ripple::NFTokenDir_test::printNFTPages()'],['../classripple_1_1NFTokenBurnBaseUtil__test.html#abcb5e74929999bd9c8001b4fdaac6c40',1,'ripple::NFTokenBurnBaseUtil_test::printNFTPages()']]],
+  ['printnftpages_327',['printnftpages',['../classripple_1_1NFTokenDir__test.html#a25a30345ef1362838b058edcb7e79971',1,'ripple::NFTokenDir_test::printNFTPages()'],['../classripple_1_1NFTokenBurn__test.html#aa50811e3d79add5adb172903abf44b2c',1,'ripple::NFTokenBurn_test::printNFTPages()']]],
   ['printpeers_328',['printPeers',['../classripple_1_1test_1_1reduce__relay__test.html#aed485364b3786aa90005e695e37da0c0',1,'ripple::test::reduce_relay_test']]],
   ['priority_5fqueue_329',['priority_queue',['http://en.cppreference.com/w/cpp/container/priority_queue/priority_queue.html',1,'std::priority_queue']]],
   ['private_5faccess_5ftag_5ft_330',['private_access_tag_t',['../structripple_1_1SField_1_1private__access__tag__t.html#a02d6b4942ac131555fc66285d578dadd',1,'ripple::SField::private_access_tag_t']]],

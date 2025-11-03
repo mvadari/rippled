@@ -287,7 +287,7 @@ var searchData=
   ['setvalidledger_284',['setValidLedger',['../classripple_1_1LedgerMaster.html#ab670b2dabf3882d2f465799a354c9f34',1,'ripple::LedgerMaster']]],
   ['setvalue_285',['setvalue',['../classripple_1_1STVector256.html#a73992975ff08c9467a02728306dfe422',1,'ripple::STVector256::setValue()'],['../classripple_1_1STNumber.html#a83bbbd4ffd6fafabf7a3994d39ca6cfd',1,'ripple::STNumber::setValue()'],['../classripple_1_1STInteger.html#ae8b01d91a90a3b2510b73667a1403d78',1,'ripple::STInteger::setValue()'],['../classripple_1_1STBlob.html#a53662d81f04256852bb09bfd8aaf9a15',1,'ripple::STBlob::setValue()'],['../classripple_1_1STBitString.html#a6ce8e71ab19e0411c01035814ebb9d5f',1,'ripple::STBitString::setValue()'],['../classripple_1_1STAccount.html#a34ae6bfaf2a3546896f873eff21f1fbc',1,'ripple::STAccount::setValue()']]],
   ['setvbuf_286',['setvbuf',['http://en.cppreference.com/w/cpp/io/c/setvbuf.html',1,'std']]],
-  ['setversion_287',['setVersion',['../namespaceripple_1_1RPC.html#a952d28abf431af0330afa7db13e7253d',1,'ripple::RPC']]],
+  ['setversion_287',['setVersion',['../namespaceripple_1_1RPC.html#a22d5b7097ef2a30d9b968b82ecb6c991',1,'ripple::RPC']]],
   ['setvote_288',['setVote',['../classripple_1_1DisputedTx.html#a6b0856be34a73054ff683cf4dd41805c',1,'ripple::DisputedTx']]],
   ['setw_289',['setw',['http://en.cppreference.com/w/cpp/io/manip/setw.html',1,'std']]],
   ['sfgeneric_290',['sfGeneric',['../namespaceripple.html#af72b7032eca62a7125c58b923070fe8b',1,'ripple']]],

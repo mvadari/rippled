@@ -249,8 +249,6 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a39f329aefd90004b4e9c8a66e17457e0" id="r_a39f329aefd90004b4e9c8a66e17457e0"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1NFTokenModify.html#a39f329aefd90004b4e9c8a66e17457e0">checkExtraFeatures</a> (<a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;ctx)</td></tr>
-<tr class="separator:a39f329aefd90004b4e9c8a66e17457e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8602fef48e1f6ffed68fca157e88c679" id="r_a8602fef48e1f6ffed68fca157e88c679"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespaceripple.html#af99ba2263d2a1e29207c40a35fc9f6b3">NotTEC</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1NFTokenModify.html#a8602fef48e1f6ffed68fca157e88c679">preflight</a> (<a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;ctx)</td></tr>
 <tr class="separator:a8602fef48e1f6ffed68fca157e88c679"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77416fc4e15020df24c8199b10cc7fdf" id="r_a77416fc4e15020df24c8199b10cc7fdf"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespaceripple.html#adfb760bc3e4ccb79d5d4f6ecff2f1817">TER</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1NFTokenModify.html#a77416fc4e15020df24c8199b10cc7fdf">preclaim</a> (<a class="el" href="structripple_1_1PreclaimContext.html">PreclaimContext</a> const &amp;ctx)</td></tr>
@@ -302,6 +300,8 @@ Static Protected Member Functions</h2></td></tr>
 <tr class="separator:a5c4568739676c5335b8d63dc375f7920"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae7d5ad05a7074eabf7ede735de264d7" id="r_aae7d5ad05a7074eabf7ede735de264d7"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classripple_1_1XRPAmount.html">XRPAmount</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1Transactor.html#aae7d5ad05a7074eabf7ede735de264d7">calculateOwnerReserveFee</a> (<a class="el" href="classripple_1_1ReadView.html">ReadView</a> const &amp;<a class="el" href="classripple_1_1Transactor.html#a9acc4edc9b8f2a11a27fbcf5e93e2fe2">view</a>, <a class="el" href="classripple_1_1STTx.html">STTx</a> const &amp;tx)</td></tr>
 <tr class="separator:aae7d5ad05a7074eabf7ede735de264d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6beabfd9a97ee52d4c3300822a3853ec" id="r_a6beabfd9a97ee52d4c3300822a3853ec"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1Transactor.html#a6beabfd9a97ee52d4c3300822a3853ec">checkExtraFeatures</a> (<a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;ctx)</td></tr>
+<tr class="separator:a6beabfd9a97ee52d4c3300822a3853ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae5c4328abacdc9af3fc2c0b57ea69ce3" id="r_ae5c4328abacdc9af3fc2c0b57ea69ce3"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/types/integer.html">std::uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1Transactor.html#ae5c4328abacdc9af3fc2c0b57ea69ce3">getFlagsMask</a> (<a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;ctx)</td></tr>
 <tr class="separator:ae5c4328abacdc9af3fc2c0b57ea69ce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23f4d5514782adc75f83ecea8dc38919" id="r_a23f4d5514782adc75f83ecea8dc38919"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespaceripple.html#af99ba2263d2a1e29207c40a35fc9f6b3">NotTEC</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1Transactor.html#a23f4d5514782adc75f83ecea8dc38919">preflightSigValidated</a> (<a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;ctx)</td></tr>
@@ -418,34 +418,6 @@ Static Private Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a39f329aefd90004b4e9c8a66e17457e0" name="a39f329aefd90004b4e9c8a66e17457e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39f329aefd90004b4e9c8a66e17457e0">&#9670;&#160;</a></span>checkExtraFeatures()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ripple::NFTokenModify::checkExtraFeatures </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;&#160;</td>
-          <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00029">29</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
-
-</div>
-</div>
 <a id="a8602fef48e1f6ffed68fca157e88c679" name="a8602fef48e1f6ffed68fca157e88c679"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8602fef48e1f6ffed68fca157e88c679">&#9670;&#160;</a></span>preflight()</h2>
 
@@ -470,7 +442,7 @@ Static Private Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00035">35</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00029">29</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
 
 </div>
 </div>
@@ -498,7 +470,7 @@ Static Private Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00050">50</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00044">44</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
 
 </div>
 </div>
@@ -527,7 +499,7 @@ Static Private Member Functions</h2></td></tr>
 
 <p>Implements <a class="el" href="classripple_1_1Transactor.html#af0192505cdcebc1bb31be32dfb62aa72">ripple::Transactor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00078">78</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NFTokenModify_8cpp_source.html#l00072">72</a> of file <a class="el" href="NFTokenModify_8cpp_source.html">NFTokenModify.cpp</a>.</p>
 
 </div>
 </div>
@@ -1208,6 +1180,34 @@ template&lt;&gt; </div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="Transactor_8cpp_source.html#l00312">312</a> of file <a class="el" href="Transactor_8cpp_source.html">Transactor.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a6beabfd9a97ee52d4c3300822a3853ec" name="a6beabfd9a97ee52d4c3300822a3853ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6beabfd9a97ee52d4c3300822a3853ec">&#9670;&#160;</a></span>checkExtraFeatures()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ripple::Transactor::checkExtraFeatures </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structripple_1_1PreflightContext.html">PreflightContext</a> const &amp;&#160;</td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Transactor_8h_source.html#l00363">363</a> of file <a class="el" href="Transactor_8h_source.html">Transactor.h</a>.</p>
 
 </div>
 </div>
