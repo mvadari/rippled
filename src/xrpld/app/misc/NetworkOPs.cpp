@@ -356,7 +356,6 @@ public:
         std::shared_ptr<ReadView const>& lpLedger,
         Book const&,
         AccountID const& uTakerID,
-        bool const bProof,
         unsigned int iLimit,
         Json::Value const& jvMarker,
         Json::Value& jvResult) override;
@@ -4441,7 +4440,6 @@ NetworkOPsImp::getBookPage(
     std::shared_ptr<ReadView const>& lpLedger,
     Book const& book,
     AccountID const& uTakerID,
-    bool const bProof,
     unsigned int iLimit,
     Json::Value const& jvMarker,
     Json::Value& jvResult)
@@ -4648,7 +4646,6 @@ NetworkOPsImp::getBookPage(
     std::shared_ptr<ReadView const> lpLedger,
     Book const& book,
     AccountID const& uTakerID,
-    bool const bProof,
     unsigned int iLimit,
     Json::Value const& jvMarker,
     Json::Value& jvResult)

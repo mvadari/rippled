@@ -480,7 +480,6 @@ JSS(ports);                   // out: NetworkOPs
 JSS(previous);                // out: Reservations
 JSS(previous_ledger);         // out: LedgerPropose
 JSS(price);                   // out: amm_info, AuctionSlot
-JSS(proof);                   // in: BookOffers
 JSS(propose_seq);             // out: LedgerPropose
 JSS(proposers);               // out: NetworkOPs, LedgerConsensus
 JSS(protocol);                // out: NetworkOPs, PeerImp

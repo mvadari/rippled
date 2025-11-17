@@ -179,8 +179,6 @@ doBookOffers(RPC::JsonContext& context)
     if (auto err = readLimitField(limit, RPC::Tuning::bookOffers, context))
         return *err;
 
-    bool const bProof(context.params.isMember(jss::proof));
-
     Json::Value const jvMarker(
         context.params.isMember(jss::marker) ? context.params[jss::marker]
                                              : Json::Value(Json::nullValue));
@@ -189,7 +187,6 @@ doBookOffers(RPC::JsonContext& context)
         lpLedger,
         {{pay_currency, pay_issuer}, {get_currency, get_issuer}, domain},
         takerID ? *takerID : beast::zero,
-        bProof,
         limit,
         jvMarker,
         jvResult);
