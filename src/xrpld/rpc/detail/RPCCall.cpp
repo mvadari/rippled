@@ -299,7 +299,7 @@ private:
         else
         {
             std::int32_t ledgerMin, ledgerMax;
-            if (auto ledgerMinOpt = jvParseInt(jvParams[1u]))
+            if (auto const ledgerMinOpt = jvParseInt(jvParams[1u]))
             {
                 ledgerMin = *ledgerMinOpt;
             }
@@ -308,7 +308,7 @@ private:
                 return rpcError(rpcINVALID_LGR_RANGE);
             }
 
-            if (auto ledgerMaxOpt = jvParseInt(jvParams[2u]))
+            if (auto const ledgerMaxOpt = jvParseInt(jvParams[2u]))
             {
                 ledgerMax = *ledgerMaxOpt;
             }
@@ -329,7 +329,7 @@ private:
 
             if (iParams >= 4)
             {
-                if (auto limit = jvParseInt(jvParams[3u]))
+                if (auto const limit = jvParseInt(jvParams[3u]))
                     jvRequest[jss::limit] = *limit;
                 else
                     return RPC::invalid_field_error(jss::limit);
@@ -337,7 +337,7 @@ private:
 
             if (iParams >= 5)
             {
-                if (auto offset = jvParseInt(jvParams[4u]))
+                if (auto const offset = jvParseInt(jvParams[4u]))
                     jvRequest[jss::offset] = *offset;
                 else
                     return RPC::invalid_field_error(jss::offset);
@@ -390,7 +390,7 @@ private:
 
         if (jvParams.size() >= 5)
         {
-            if (auto limit = jvParseInt(jvParams[4u]))
+            if (auto const limit = jvParseInt(jvParams[4u]))
             {
                 if (limit > 0)
                     jvRequest[jss::limit] = *limit;
