@@ -1288,7 +1288,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
     })"},
     },
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "account_tx: non-integer min.",
         __LINE__,
         {"account_tx", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", "Binary", "-1"},
@@ -1303,7 +1302,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
 })",
     },
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "account_tx: non-integer max.",
         __LINE__,
         {"account_tx", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", "-1", "counts"},
@@ -1318,7 +1316,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
 })",
     },
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "account_tx: non-integer offset.",
         __LINE__,
         {"account_tx",
@@ -1686,8 +1683,7 @@ static RPCCallTestData const rpcCallTestArray[] = {
       }
     ]
     })"},
-    {// Note: this really shouldn't throw, but does at the moment.
-     "book_offers: non-numeric limit.",
+    {"book_offers: non-numeric limit.",
      __LINE__,
      {
          "book_offers",
@@ -1823,8 +1819,7 @@ static RPCCallTestData const rpcCallTestArray[] = {
       }
     ]
     })"},
-    {// Note: this should return an error but not throw.
-     "can_delete: ledger index > 32 bits.",
+    {"can_delete: ledger index > 32 bits.",
      __LINE__,
      {
          "can_delete",
@@ -1839,8 +1834,7 @@ static RPCCallTestData const rpcCallTestArray[] = {
       }
    ]
 })"},
-    {// Note: this really shouldn't throw since it's a legitimate ledger hash.
-     "can_delete: ledger hash with no alphas.",
+    {"can_delete: ledger hash with no alphas.",
      __LINE__,
      {
          "can_delete",
@@ -2261,8 +2255,7 @@ static RPCCallTestData const rpcCallTestArray[] = {
       }
     ]
     })"},
-    {// Note: this should return an error but not throw.
-     "connect: port too small.",
+    {"connect: port too small.",
      __LINE__,
      {
          "connect",
@@ -2278,8 +2271,7 @@ static RPCCallTestData const rpcCallTestArray[] = {
       }
    ]
 })"},
-    {// Note: this should return an error but not throw.
-     "connect: port too large.",
+    {"connect: port too large.",
      __LINE__,
      {
          "connect",
@@ -5274,7 +5266,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
     ]
     })"},
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "tx_history: start too small.",
         __LINE__,
         {"tx_history", "-1"},
@@ -5290,7 +5281,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
     })",
     },
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "tx_history: start too big.",
         __LINE__,
         {"tx_history", "4294967296"},
@@ -5306,7 +5296,6 @@ static RPCCallTestData const rpcCallTestArray[] = {
     })",
     },
     {
-        // Note: this really shouldn't throw, but does at the moment.
         "tx_history: start not integer.",
         __LINE__,
         {"tx_history", "beginning"},
@@ -5684,8 +5673,6 @@ public:
                 ? rpcCallTest.exp[apiVersion - RPC::apiMinimumSupportedVersion]
                 : rpcCallTest.exp.back();
 
-            // Note that, over the long term, none of these tests should
-            // throw.  But, for the moment, some of them do.  So handle it.
             Json::Value got;
             try
             {
@@ -5693,6 +5680,7 @@ public:
             }
             catch (std::bad_cast const&)
             {
+                // better handling for throws
                 fail(rpcCallTest.description, __FILE__, rpcCallTest.line);
                 // Try the next test.
                 continue;
