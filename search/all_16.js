@@ -12,7 +12,7 @@ var searchData=
   ['objectvalues_9',['ObjectValues',['../classJson_1_1Value.html#ae2e1660b018d7fd8870fa51102c3c0b5',1,'Json::Value']]],
   ['observer_5fptr_10',['observer_ptr',['http://en.cppreference.com/w/cpp/experimental/observer_ptr/observer_ptr.html',1,'std::experimental::observer_ptr::observer_ptr()'],['http://en.cppreference.com/w/cpp/experimental/observer_ptr.html',1,'std::experimental::observer_ptr']]],
   ['observing_11',['observing',['../namespaceripple.html#a33f8b6e68b5f63faf2e9755cc251563eaea5234685f43dcab142e132c0e7be2ce',1,'ripple']]],
-  ['obsolete_12',['obsolete',['../namespaceripple.html#a2e97c395a5e1ef4ed1052299e0e60843ad8d4ab290d0006e2cbe215ff1b11e5ea',1,'ripple::OBSOLETE'],['../namespaceripple.html#a1dcb4cf27e683bd94d11f5322836c689a28a39c5d0e09f2b9f423c9864ecf1db8',1,'ripple::obsolete'],['../namespaceripple.html#aa5778f9faa15e3677dcda7975d9db7c6aec30c235d0eb792797af1aa1d11759a7',1,'ripple::Obsolete']]],
+  ['obsolete_12',['obsolete',['../namespaceripple.html#a1dcb4cf27e683bd94d11f5322836c689a28a39c5d0e09f2b9f423c9864ecf1db8',1,'ripple::obsolete'],['../namespaceripple.html#a2e97c395a5e1ef4ed1052299e0e60843ad8d4ab290d0006e2cbe215ff1b11e5ea',1,'ripple::OBSOLETE'],['../namespaceripple.html#aa5778f9faa15e3677dcda7975d9db7c6aec30c235d0eb792797af1aa1d11759a7',1,'ripple::Obsolete']]],
   ['obsolete_5f_13',['obsolete_',['../classripple_1_1AmendmentTable__test.html#a45595186fca835df3e7ef4c34f3150e2',1,'ripple::AmendmentTable_test']]],
   ['oct_14',['oct',['http://en.cppreference.com/w/cpp/io/manip/hex.html',1,'std']]],
   ['of_20code_20changes_15',['High Level Sequence Diagram of Code Changes',['../md__2____w_2rippled_2rippled_2docs_20001-negative-unl_2README.html#autotoc_md100',1,'']]],
