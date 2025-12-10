@@ -5453,6 +5453,9 @@ requires (T::ConsequencesFactory == <a class="el" href="classripple_1_1Transacto
 <tr class="separator:ae8b89236251547b8108049e244786083"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acee6f754675c22b999fa6aabf1601e2c" id="r_acee6f754675c22b999fa6aabf1601e2c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classJson_1_1Value.html">Json::Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#acee6f754675c22b999fa6aabf1601e2c">doAccountCurrencies</a> (<a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:acee6f754675c22b999fa6aabf1601e2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad046ed31082419367f0f441e1c160889" id="r_ad046ed31082419367f0f441e1c160889"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#ad046ed31082419367f0f441e1c160889">injectSLE</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;jv, <a class="el" href="namespaceripple.html#abbba3966df1925ac76f6d04c0aa1abe3">SLE</a> const &amp;sle)</td></tr>
+<tr class="memdesc:ad046ed31082419367f0f441e1c160889"><td class="mdescLeft">&#160;</td><td class="mdescRight">Injects JSON describing a ledger entry.  <br /></td></tr>
+<tr class="separator:ad046ed31082419367f0f441e1c160889"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3181666a917aca45f4f288e690e9305" id="r_ad3181666a917aca45f4f288e690e9305"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classJson_1_1Value.html">Json::Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#ad3181666a917aca45f4f288e690e9305">doAccountInfo</a> (<a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:ad3181666a917aca45f4f288e690e9305"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2034429f184987e4b0b16566cf82a213" id="r_a2034429f184987e4b0b16566cf82a213"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a2034429f184987e4b0b16566cf82a213">addLine</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;jsonLines, <a class="el" href="classripple_1_1RPCTrustLine.html">RPCTrustLine</a> const &amp;line)</td></tr>
@@ -5463,6 +5466,7 @@ requires (T::ConsequencesFactory == <a class="el" href="classripple_1_1Transacto
 <tr class="memdesc:a83d674e07fc446c267931d356e0e1b34"><td class="mdescLeft">&#160;</td><td class="mdescRight">General <a class="el" href="namespaceripple_1_1RPC.html" title="API version numbers used in later API versions.">RPC</a> command that can retrieve objects in the account root.  <br /></td></tr>
 <tr class="separator:a83d674e07fc446c267931d356e0e1b34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e341df5ee04eb3eafd7b1a16879da9c" id="r_a8e341df5ee04eb3eafd7b1a16879da9c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a8e341df5ee04eb3eafd7b1a16879da9c">getAccountObjects</a> (<a class="el" href="classripple_1_1ReadView.html">ReadView</a> const &amp;ledger, <a class="el" href="namespaceripple.html#a00ae0d729cb3e35b6bcac9a27ebb5284">AccountID</a> const &amp;account, <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="el" href="namespaceripple.html#ac151bf19e1f4daae2b04c65c65117139">LedgerEntryType</a> &gt; &gt; const &amp;typeFilter, <a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> dirIndex, <a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> entryIndex, <a class="elRef" href="http://en.cppreference.com/w/cpp/types/integer.html">std::uint32_t</a> const limit, <a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;jvResult)</td></tr>
+<tr class="memdesc:a8e341df5ee04eb3eafd7b1a16879da9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gathers all objects for an account in a ledger.  <br /></td></tr>
 <tr class="separator:a8e341df5ee04eb3eafd7b1a16879da9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d200c98fa51fb8c3ccdf22757b55cf4" id="r_a7d200c98fa51fb8c3ccdf22757b55cf4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classJson_1_1Value.html">Json::Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a7d200c98fa51fb8c3ccdf22757b55cf4">doAccountObjects</a> (<a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:a7d200c98fa51fb8c3ccdf22757b55cf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -5480,8 +5484,6 @@ requires (T::ConsequencesFactory == <a class="el" href="classripple_1_1Transacto
 <tr class="separator:abf027fe1a653ac30d984f64a96cdfa55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49278e98ca5f0fd6da22d26278cdd2d5" id="r_a49278e98ca5f0fd6da22d26278cdd2d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classJson_1_1Value.html">Json::Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a49278e98ca5f0fd6da22d26278cdd2d5">doAccountTxJson</a> (<a class="el" href="structripple_1_1RPC_1_1JsonContext.html">RPC::JsonContext</a> &amp;context)</td></tr>
 <tr class="separator:a49278e98ca5f0fd6da22d26278cdd2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40eee647377f68d4cfc78f4539331ac3" id="r_a40eee647377f68d4cfc78f4539331ac3"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#a00ae0d729cb3e35b6bcac9a27ebb5284">AccountID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a40eee647377f68d4cfc78f4539331ac3">getAccount</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> const &amp;v, <a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;result)</td></tr>
-<tr class="separator:a40eee647377f68d4cfc78f4539331ac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98a18cf59c62fa3b25743ab675830d82" id="r_a98a18cf59c62fa3b25743ab675830d82"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classripple_1_1Expected.html">Expected</a>&lt; <a class="el" href="classripple_1_1Issue.html">Issue</a>, <a class="el" href="namespaceripple.html#a32d6d3ce1a48272b677d2c88b1d30932">error_code_i</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#a98a18cf59c62fa3b25743ab675830d82">getIssue</a> (<a class="el" href="classJson_1_1Value.html">Json::Value</a> const &amp;v, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
 <tr class="separator:a98a18cf59c62fa3b25743ab675830d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af58d1f8cb315a2e5487a028714b13982" id="r_af58d1f8cb315a2e5487a028714b13982"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple.html#af58d1f8cb315a2e5487a028714b13982">to_iso8601</a> (<a class="el" href="classripple_1_1NetClock.html#a4c2428e178dca6689fa3fb4be0657107">NetClock::time_point</a> tp)</td></tr>
@@ -49572,7 +49574,7 @@ template&lt;typename Predicate &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00039">39</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00047">47</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49610,7 +49612,7 @@ template&lt;typename Predicate &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00047">47</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00055">55</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49648,7 +49650,7 @@ template&lt;typename Predicate &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00067">67</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00075">75</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49676,7 +49678,7 @@ template&lt;typename Predicate &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00239">239</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00247">247</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49704,7 +49706,7 @@ template&lt;typename Predicate &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00247">247</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00255">255</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49734,7 +49736,7 @@ template&lt;class ConstBufferSequence &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00265">265</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00273">273</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49772,7 +49774,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00386">386</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00394">394</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49810,7 +49812,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00578">578</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00586">586</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49848,7 +49850,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01085">1085</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01093">1093</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49886,7 +49888,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01131">1131</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01139">1139</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49914,7 +49916,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01202">1202</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01210">1210</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49942,7 +49944,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01226">1226</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01234">1234</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -49972,7 +49974,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01241">1241</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01249">1249</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -50026,7 +50028,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01253">1253</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l01261">1261</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -50180,6 +50182,46 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
+<a id="ad046ed31082419367f0f441e1c160889" name="ad046ed31082419367f0f441e1c160889"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad046ed31082419367f0f441e1c160889">&#9670;&#160;</a></span>injectSLE()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ripple::injectSLE </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;&#160;</td>
+          <td class="paramname"><em>jv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceripple.html#abbba3966df1925ac76f6d04c0aa1abe3">SLE</a> const &amp;&#160;</td>
+          <td class="paramname"><em>sle</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Injects JSON describing a ledger entry. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">jv</td><td>The JSON value to populate. </td></tr>
+    <tr><td class="paramname">sle</td><td>The ledger entry to describe.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Populates the provided JSON value with the description of the specified ledger entry. If the entry is an account root and contains an email hash, adds a 'urlgravatar' field with the corresponding Gravatar URL. If the entry is not an account root, sets the 'Invalid' field to true. </p>
+
+<p class="definition">Definition at line <a class="el" href="AccountInfo_8cpp_source.html#l00031">31</a> of file <a class="el" href="AccountInfo_8cpp_source.html">AccountInfo.cpp</a>.</p>
+
+</div>
+</div>
 <a id="ad3181666a917aca45f4f288e690e9305" name="ad3181666a917aca45f4f288e690e9305"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3181666a917aca45f4f288e690e9305">&#9670;&#160;</a></span>doAccountInfo()</h2>
 
@@ -50196,7 +50238,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AccountInfo_8cpp_source.html#l00032">32</a> of file <a class="el" href="AccountInfo_8cpp_source.html">AccountInfo.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AccountInfo_8cpp_source.html#l00070">70</a> of file <a class="el" href="AccountInfo_8cpp_source.html">AccountInfo.cpp</a>.</p>
 
 </div>
 </div>
@@ -50329,7 +50371,21 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AccountObjects_8cpp_source.html#l00163">163</a> of file <a class="el" href="AccountObjects_8cpp_source.html">AccountObjects.cpp</a>.</p>
+<p>Gathers all objects for an account in a ledger. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ledger</td><td><a class="el" href="classripple_1_1Ledger.html" title="Holds a ledger.">Ledger</a> to search account objects. </td></tr>
+    <tr><td class="paramname">account</td><td>AccountID to find objects for. </td></tr>
+    <tr><td class="paramname">typeFilter</td><td>Gathers objects of these types. empty gathers all types. </td></tr>
+    <tr><td class="paramname">dirIndex</td><td>Begin gathering account objects from this directory. </td></tr>
+    <tr><td class="paramname">entryIndex</td><td>Begin gathering objects from this directory node. </td></tr>
+    <tr><td class="paramname">limit</td><td>Maximum number of objects to find. </td></tr>
+    <tr><td class="paramname">jvResult</td><td>A JSON result that holds the request objects. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="AccountObjects_8cpp_source.html#l00172">172</a> of file <a class="el" href="AccountObjects_8cpp_source.html">AccountObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -50349,7 +50405,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AccountObjects_8cpp_source.html#l00355">355</a> of file <a class="el" href="AccountObjects_8cpp_source.html">AccountObjects.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AccountObjects_8cpp_source.html#l00364">364</a> of file <a class="el" href="AccountObjects_8cpp_source.html">AccountObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -50549,36 +50605,6 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a40eee647377f68d4cfc78f4539331ac3" name="a40eee647377f68d4cfc78f4539331ac3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40eee647377f68d4cfc78f4539331ac3">&#9670;&#160;</a></span>getAccount()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#a00ae0d729cb3e35b6bcac9a27ebb5284">AccountID</a> &gt; ripple::getAccount </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classJson_1_1Value.html">Json::Value</a> const &amp;&#160;</td>
-          <td class="paramname"><em>v</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classJson_1_1Value.html">Json::Value</a> &amp;&#160;</td>
-          <td class="paramname"><em>result</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00017">17</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
-
-</div>
-</div>
 <a id="a98a18cf59c62fa3b25743ab675830d82" name="a98a18cf59c62fa3b25743ab675830d82"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a98a18cf59c62fa3b25743ab675830d82">&#9670;&#160;</a></span>getIssue() <span class="overload">[2/2]</span></h2>
 
@@ -50605,7 +50631,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00033">33</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00016">16</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
 
 </div>
 </div>
@@ -50625,7 +50651,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00047">47</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00030">30</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
 
 </div>
 </div>
@@ -50645,7 +50671,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00058">58</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AMMInfo_8cpp_source.html#l00041">41</a> of file <a class="el" href="AMMInfo_8cpp_source.html">AMMInfo.cpp</a>.</p>
 
 </div>
 </div>
@@ -51292,7 +51318,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LedgerRequest_8cpp_source.html#l00017">17</a> of file <a class="el" href="LedgerRequest_8cpp_source.html">LedgerRequest.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LedgerRequest_8cpp_source.html#l00016">16</a> of file <a class="el" href="LedgerRequest_8cpp_source.html">LedgerRequest.cpp</a>.</p>
 
 </div>
 </div>
@@ -60976,7 +61002,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00588">588</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00596">596</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -61000,7 +61026,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00589">589</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00597">597</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -61024,7 +61050,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00590">590</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00598">598</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>
@@ -61048,7 +61074,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00591">591</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ServerHandler_8cpp_source.html#l00599">599</a> of file <a class="el" href="ServerHandler_8cpp_source.html">ServerHandler.cpp</a>.</p>
 
 </div>
 </div>

@@ -44,7 +44,7 @@ var searchData=
   ['ledgerreplayertimeout_5ftest_41',['LedgerReplayerTimeout_test',['../structripple_1_1test_1_1LedgerReplayerTimeout__test.html',1,'ripple::test']]],
   ['ledgerreplaymsghandler_42',['LedgerReplayMsgHandler',['../classripple_1_1LedgerReplayMsgHandler.html',1,'ripple']]],
   ['ledgerreplaytask_43',['LedgerReplayTask',['../classripple_1_1LedgerReplayTask.html',1,'ripple']]],
-  ['ledgerrequestrpc_5ftest_44',['LedgerRequestRPC_test',['../classripple_1_1RPC_1_1LedgerRequestRPC__test.html',1,'ripple::RPC']]],
+  ['ledgerrequest_5ftest_44',['LedgerRequest_test',['../classripple_1_1RPC_1_1LedgerRequest__test.html',1,'ripple::RPC']]],
   ['ledgerrpc_5ftest_45',['LedgerRPC_test',['../classripple_1_1test_1_1LedgerRPC__test.html',1,'ripple::test']]],
   ['ledgerserver_46',['LedgerServer',['../structripple_1_1test_1_1LedgerServer.html',1,'ripple::test']]],
   ['ledgerstatefix_47',['LedgerStateFix',['../classripple_1_1LedgerStateFix.html',1,'ripple']]],
