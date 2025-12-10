@@ -210,21 +210,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2beb06c18310e331fa63e18d5470f02c" id="r_a2beb06c18310e331fa63e18d5470f02c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a2beb06c18310e331fa63e18d5470f02c">saveValidatedLedger</a> (<a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt; <a class="el" href="classripple_1_1Ledger.html">Ledger</a> const &gt; const &amp;ledger, bool <a class="el" href="namespaceripple.html#a6434c1a0fd22b77e2e4a228c0eca79eba43b5c9175984c071f30b873fdce0a000">current</a>) override</td></tr>
 <tr class="memdesc:a2beb06c18310e331fa63e18d5470f02c"><td class="mdescLeft">&#160;</td><td class="mdescRight">saveValidatedLedger Saves a ledger into the database.  <br /></td></tr>
 <tr class="separator:a2beb06c18310e331fa63e18d5470f02c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af98c9aa88ce231f95164cec02e58ed0d" id="r_af98c9aa88ce231f95164cec02e58ed0d"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#af98c9aa88ce231f95164cec02e58ed0d">getLedgerInfoByIndex</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerSeq) override</td></tr>
-<tr class="memdesc:af98c9aa88ce231f95164cec02e58ed0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByIndex Returns a ledger by its sequence.  <br /></td></tr>
-<tr class="separator:af98c9aa88ce231f95164cec02e58ed0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1416bd1f665f27453f8dce95f0818fbb" id="r_a1416bd1f665f27453f8dce95f0818fbb"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a1416bd1f665f27453f8dce95f0818fbb">getNewestLedgerInfo</a> () override</td></tr>
-<tr class="memdesc:a1416bd1f665f27453f8dce95f0818fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">getNewestLedgerInfo Returns the info of the newest saved ledger.  <br /></td></tr>
-<tr class="separator:a1416bd1f665f27453f8dce95f0818fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0713cfb94435bed560441b22c96461df" id="r_a0713cfb94435bed560441b22c96461df"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a0713cfb94435bed560441b22c96461df">getLimitedOldestLedgerInfo</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex) override</td></tr>
-<tr class="memdesc:a0713cfb94435bed560441b22c96461df"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedOldestLedgerInfo Returns the info of the oldest ledger whose sequence number is greater than or equal to the given sequence number.  <br /></td></tr>
-<tr class="separator:a0713cfb94435bed560441b22c96461df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c990ed554556dd75199764f00111977" id="r_a8c990ed554556dd75199764f00111977"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a8c990ed554556dd75199764f00111977">getLimitedNewestLedgerInfo</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex) override</td></tr>
-<tr class="memdesc:a8c990ed554556dd75199764f00111977"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedNewestLedgerInfo Returns the info of the newest ledger whose sequence number is greater than or equal to the given sequence number.  <br /></td></tr>
-<tr class="separator:a8c990ed554556dd75199764f00111977"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a575ad184e70064a3e324ea435fa58333" id="r_a575ad184e70064a3e324ea435fa58333"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a575ad184e70064a3e324ea435fa58333">getLedgerInfoByHash</a> (<a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> const &amp;ledgerHash) override</td></tr>
-<tr class="memdesc:a575ad184e70064a3e324ea435fa58333"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByHash Returns the info of the ledger with given hash.  <br /></td></tr>
-<tr class="separator:a575ad184e70064a3e324ea435fa58333"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b0b8cd06fbe3fb95a3db55e654f706f" id="r_a0b0b8cd06fbe3fb95a3db55e654f706f"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a0b0b8cd06fbe3fb95a3db55e654f706f">getLedgerInfoByIndex</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerSeq) override</td></tr>
+<tr class="memdesc:a0b0b8cd06fbe3fb95a3db55e654f706f"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByIndex Returns a ledger by its sequence.  <br /></td></tr>
+<tr class="separator:a0b0b8cd06fbe3fb95a3db55e654f706f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8da385876948b159c40f9bf75ec29530" id="r_a8da385876948b159c40f9bf75ec29530"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a8da385876948b159c40f9bf75ec29530">getNewestLedgerInfo</a> () override</td></tr>
+<tr class="memdesc:a8da385876948b159c40f9bf75ec29530"><td class="mdescLeft">&#160;</td><td class="mdescRight">getNewestLedgerInfo Returns the info of the newest saved ledger.  <br /></td></tr>
+<tr class="separator:a8da385876948b159c40f9bf75ec29530"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab546417de9fead9a6f6c6063143b56c0" id="r_ab546417de9fead9a6f6c6063143b56c0"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#ab546417de9fead9a6f6c6063143b56c0">getLimitedOldestLedgerInfo</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex) override</td></tr>
+<tr class="memdesc:ab546417de9fead9a6f6c6063143b56c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedOldestLedgerInfo Returns the info of the oldest ledger whose sequence number is greater than or equal to the given sequence number.  <br /></td></tr>
+<tr class="separator:ab546417de9fead9a6f6c6063143b56c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e590f674ff20ed899ffb92a1686c99b" id="r_a5e590f674ff20ed899ffb92a1686c99b"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a5e590f674ff20ed899ffb92a1686c99b">getLimitedNewestLedgerInfo</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex) override</td></tr>
+<tr class="memdesc:a5e590f674ff20ed899ffb92a1686c99b"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedNewestLedgerInfo Returns the info of the newest ledger whose sequence number is greater than or equal to the given sequence number.  <br /></td></tr>
+<tr class="separator:a5e590f674ff20ed899ffb92a1686c99b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a023b181023d8461a0abaf6c1e53143ce" id="r_a023b181023d8461a0abaf6c1e53143ce"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#a023b181023d8461a0abaf6c1e53143ce">getLedgerInfoByHash</a> (<a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> const &amp;ledgerHash) override</td></tr>
+<tr class="memdesc:a023b181023d8461a0abaf6c1e53143ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByHash Returns the info of the ledger with given hash.  <br /></td></tr>
+<tr class="separator:a023b181023d8461a0abaf6c1e53143ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7796a6d5a4a4b0a7fd7feb7e23f612b" id="r_ad7796a6d5a4a4b0a7fd7feb7e23f612b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1SQLiteDatabaseImp.html#ad7796a6d5a4a4b0a7fd7feb7e23f612b">getHashByIndex</a> (<a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerIndex) override</td></tr>
 <tr class="memdesc:ad7796a6d5a4a4b0a7fd7feb7e23f612b"><td class="mdescLeft">&#160;</td><td class="mdescRight">getHashByIndex Returns the hash of the ledger with the given sequence.  <br /></td></tr>
 <tr class="separator:ad7796a6d5a4a4b0a7fd7feb7e23f612b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -985,8 +985,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="af98c9aa88ce231f95164cec02e58ed0d" name="af98c9aa88ce231f95164cec02e58ed0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af98c9aa88ce231f95164cec02e58ed0d">&#9670;&#160;</a></span>getLedgerInfoByIndex()</h2>
+<a id="a0b0b8cd06fbe3fb95a3db55e654f706f" name="a0b0b8cd06fbe3fb95a3db55e654f706f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b0b8cd06fbe3fb95a3db55e654f706f">&#9670;&#160;</a></span>getLedgerInfoByIndex()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -995,7 +995,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::SQLiteDatabaseImp::getLedgerInfoByIndex </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::SQLiteDatabaseImp::getLedgerInfoByIndex </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a>&#160;</td>
           <td class="paramname"><em>ledgerSeq</em></td><td>)</td>
@@ -1018,14 +1018,14 @@ Private Attributes</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The ledger if found, otherwise no value. </dd></dl>
 
-<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#a388e80415da1da75b45ecf011a64f5dd">ripple::RelationalDatabase</a>.</p>
+<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#a91cb8a0048940d0d74709f929c9be044">ripple::RelationalDatabase</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="SQLiteDatabase_8cpp_source.html#l00403">403</a> of file <a class="el" href="SQLiteDatabase_8cpp_source.html">SQLiteDatabase.cpp</a>.</p>
 
 </div>
 </div>
-<a id="a1416bd1f665f27453f8dce95f0818fbb" name="a1416bd1f665f27453f8dce95f0818fbb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1416bd1f665f27453f8dce95f0818fbb">&#9670;&#160;</a></span>getNewestLedgerInfo()</h2>
+<a id="a8da385876948b159c40f9bf75ec29530" name="a8da385876948b159c40f9bf75ec29530"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8da385876948b159c40f9bf75ec29530">&#9670;&#160;</a></span>getNewestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1034,7 +1034,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::SQLiteDatabaseImp::getNewestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::SQLiteDatabaseImp::getNewestLedgerInfo </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -1050,14 +1050,14 @@ Private Attributes</h2></td></tr>
 <p>getNewestLedgerInfo Returns the info of the newest saved ledger. </p>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="classripple_1_1Ledger.html" title="Holds a ledger.">Ledger</a> info if found, otherwise no value. </dd></dl>
 
-<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#a21b8bd40f0332c84bf71ef73d32bd91c">ripple::RelationalDatabase</a>.</p>
+<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#a8b4d18c2e74583215ba9aa0332a589e7">ripple::RelationalDatabase</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="SQLiteDatabase_8cpp_source.html#l00418">418</a> of file <a class="el" href="SQLiteDatabase_8cpp_source.html">SQLiteDatabase.cpp</a>.</p>
 
 </div>
 </div>
-<a id="a0713cfb94435bed560441b22c96461df" name="a0713cfb94435bed560441b22c96461df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0713cfb94435bed560441b22c96461df">&#9670;&#160;</a></span>getLimitedOldestLedgerInfo()</h2>
+<a id="ab546417de9fead9a6f6c6063143b56c0" name="ab546417de9fead9a6f6c6063143b56c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab546417de9fead9a6f6c6063143b56c0">&#9670;&#160;</a></span>getLimitedOldestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1066,7 +1066,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::SQLiteDatabaseImp::getLimitedOldestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::SQLiteDatabaseImp::getLimitedOldestLedgerInfo </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a>&#160;</td>
           <td class="paramname"><em>ledgerFirstIndex</em></td><td>)</td>
@@ -1089,14 +1089,14 @@ Private Attributes</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="classripple_1_1Ledger.html" title="Holds a ledger.">Ledger</a> info if found, otherwise no value. </dd></dl>
 
-<p>Implements <a class="el" href="classripple_1_1SQLiteDatabase.html#af8e1f66c6c3d018f9e7dde1bf6ed26c1">ripple::SQLiteDatabase</a>.</p>
+<p>Implements <a class="el" href="classripple_1_1SQLiteDatabase.html#a9992abd005cf3659c587b3788eb6beb1">ripple::SQLiteDatabase</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="SQLiteDatabase_8cpp_source.html#l00433">433</a> of file <a class="el" href="SQLiteDatabase_8cpp_source.html">SQLiteDatabase.cpp</a>.</p>
 
 </div>
 </div>
-<a id="a8c990ed554556dd75199764f00111977" name="a8c990ed554556dd75199764f00111977"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c990ed554556dd75199764f00111977">&#9670;&#160;</a></span>getLimitedNewestLedgerInfo()</h2>
+<a id="a5e590f674ff20ed899ffb92a1686c99b" name="a5e590f674ff20ed899ffb92a1686c99b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e590f674ff20ed899ffb92a1686c99b">&#9670;&#160;</a></span>getLimitedNewestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1105,7 +1105,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::SQLiteDatabaseImp::getLimitedNewestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::SQLiteDatabaseImp::getLimitedNewestLedgerInfo </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a>&#160;</td>
           <td class="paramname"><em>ledgerFirstIndex</em></td><td>)</td>
@@ -1128,14 +1128,14 @@ Private Attributes</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="classripple_1_1Ledger.html" title="Holds a ledger.">Ledger</a> info if found, otherwise no value. </dd></dl>
 
-<p>Implements <a class="el" href="classripple_1_1SQLiteDatabase.html#a298b73c72766ae6ee4eb188c2fb06d89">ripple::SQLiteDatabase</a>.</p>
+<p>Implements <a class="el" href="classripple_1_1SQLiteDatabase.html#ad203dc9081b74f3d13fca6b9f712d079">ripple::SQLiteDatabase</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="SQLiteDatabase_8cpp_source.html#l00449">449</a> of file <a class="el" href="SQLiteDatabase_8cpp_source.html">SQLiteDatabase.cpp</a>.</p>
 
 </div>
 </div>
-<a id="a575ad184e70064a3e324ea435fa58333" name="a575ad184e70064a3e324ea435fa58333"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a575ad184e70064a3e324ea435fa58333">&#9670;&#160;</a></span>getLedgerInfoByHash()</h2>
+<a id="a023b181023d8461a0abaf6c1e53143ce" name="a023b181023d8461a0abaf6c1e53143ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a023b181023d8461a0abaf6c1e53143ce">&#9670;&#160;</a></span>getLedgerInfoByHash()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1144,7 +1144,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::SQLiteDatabaseImp::getLedgerInfoByHash </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::SQLiteDatabaseImp::getLedgerInfoByHash </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> const &amp;&#160;</td>
           <td class="paramname"><em>ledgerHash</em></td><td>)</td>
@@ -1167,7 +1167,7 @@ Private Attributes</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="classripple_1_1Ledger.html" title="Holds a ledger.">Ledger</a> if found, otherwise no value. </dd></dl>
 
-<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#ae42b5ec856d806da94e9ebf4560e3ee4">ripple::RelationalDatabase</a>.</p>
+<p>Implements <a class="el" href="classripple_1_1RelationalDatabase.html#ab44c7d1fd0d264d87f7d96cc7e6efae7">ripple::RelationalDatabase</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="SQLiteDatabase_8cpp_source.html#l00465">465</a> of file <a class="el" href="SQLiteDatabase_8cpp_source.html">SQLiteDatabase.cpp</a>.</p>
 

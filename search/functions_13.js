@@ -207,7 +207,7 @@ var searchData=
   ['setkept_204',['setKept',['../classripple_1_1Transaction.html#aa189b1b3301f1e14911aba334373d189',1,'ripple::Transaction']]],
   ['setlastrotated_205',['setlastrotated',['../namespaceripple.html#aefa79f90126517a5b18ac63f899a9138',1,'ripple::setLastRotated()'],['../classripple_1_1SHAMapStoreImp_1_1SavedStateDB.html#ad08732c80f7c72199b1853d0516e1e0c',1,'ripple::SHAMapStoreImp::SavedStateDB::setLastRotated()']]],
   ['setledger_206',['setLedger',['../classripple_1_1Transaction.html#aa836f16240e16ad0fc83f6a1b7f03565',1,'ripple::Transaction']]],
-  ['setledgerinfo_207',['setLedgerInfo',['../classripple_1_1Ledger.html#a78795bd8c41a17de40297a3f2e5331d1',1,'ripple::Ledger']]],
+  ['setledgerinfo_207',['setLedgerInfo',['../classripple_1_1Ledger.html#a18236b7bb6fd912ca4e0abde6b793714',1,'ripple::Ledger']]],
   ['setledgerrangepresent_208',['setLedgerRangePresent',['../classripple_1_1LedgerMaster.html#a2204e39a00d7a57401d99b520c2721fd',1,'ripple::LedgerMaster']]],
   ['setledgerseq_209',['setLedgerSeq',['../classripple_1_1SHAMap.html#a69277b2085232dc4bde1cd6eda4f0791',1,'ripple::SHAMap']]],
   ['setloadfee_210',['setLoadFee',['../classripple_1_1test_1_1csf_1_1Validations__test_1_1Node.html#a4fbb89ccee103b2dc1ada82f269586aa',1,'ripple::test::csf::Validations_test::Node']]],

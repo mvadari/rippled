@@ -153,7 +153,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        }</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        env.fund(XRP(10000), alice);</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        env.close();</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger3Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger3Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        BEAST_EXPECT(ledger3Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 3);</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        {</div>
@@ -203,7 +203,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>            env(pay(gw1, alice, gw1Currency(50 + c)));</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        }</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>        env.close();</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger4Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger4Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        BEAST_EXPECT(ledger4Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 4);</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        <span class="comment">// Add another set of trust lines in another ledger so we can see</span></div>
@@ -238,13 +238,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                <a class="code hl_variable" href="namespaceripple.html#ae5a4ff779dae30156e2906661a2f9b74">tfSetNoRipple</a> | <a class="code hl_variable" href="namespaceripple.html#ae34d881cd8926ab3505340a51f91fd8b">tfSetFreeze</a> | <a class="code hl_variable" href="namespaceripple.html#a2064883c5298050aff66754857955885">tfSetDeepFreeze</a>));</div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>        }</div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        env.close();</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger58Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger58Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        BEAST_EXPECT(ledger58Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 58);</div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span> </div>
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <span class="comment">// A re-usable test for historic ledgers.</span></div>
 <div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        <span class="keyword">auto</span> testAccountLinesHistory = [<span class="keyword">this</span>, &amp;env](</div>
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>                                           Account <span class="keyword">const</span>&amp; account,</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>                                           <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span>&amp; info,</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>                                           <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span>&amp; info,</div>
 <div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>                                           <span class="keywordtype">int</span> count) {</div>
 <div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>            <span class="comment">// Get account_lines by ledger index.</span></div>
 <div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>            <a class="code hl_class" href="classJson_1_1Value.html">Json::Value</a> paramsSeq;</div>
@@ -910,7 +910,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>        }</div>
 <div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>        env.fund(XRP(10000), alice);</div>
 <div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>        env.close();</div>
-<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger3Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger3Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>        BEAST_EXPECT(ledger3Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 3);</div>
 <div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span> </div>
 <div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>        {</div>
@@ -992,7 +992,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>            env(pay(gw1, alice, gw1Currency(50 + c)));</div>
 <div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>        }</div>
 <div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>        env.close();</div>
-<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger4Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger4Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>        BEAST_EXPECT(ledger4Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 4);</div>
 <div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span> </div>
 <div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>        <span class="comment">// Add another set of trust lines in another ledger so we can see</span></div>
@@ -1027,13 +1027,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>                <a class="code hl_variable" href="namespaceripple.html#ae5a4ff779dae30156e2906661a2f9b74">tfSetNoRipple</a> | <a class="code hl_variable" href="namespaceripple.html#ae34d881cd8926ab3505340a51f91fd8b">tfSetFreeze</a> | <a class="code hl_variable" href="namespaceripple.html#a2064883c5298050aff66754857955885">tfSetDeepFreeze</a>));</div>
 <div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>        }</div>
 <div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span>        env.close();</div>
-<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span> ledger58Info = env.closed()-&gt;info();</div>
+<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>        <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span> ledger58Info = env.closed()-&gt;info();</div>
 <div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span>        BEAST_EXPECT(ledger58Info.<a class="code hl_variable" href="structripple_1_1LedgerHeader.html#a233e04cfeb4d879ab8517d8aabb7e38b">seq</a> == 58);</div>
 <div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span> </div>
 <div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>        <span class="comment">// A re-usable test for historic ledgers.</span></div>
 <div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>        <span class="keyword">auto</span> testAccountLinesHistory = [<span class="keyword">this</span>, &amp;env](</div>
 <div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span>                                           Account <span class="keyword">const</span>&amp; account,</div>
-<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span>                                           <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerInfo</a> <span class="keyword">const</span>&amp; info,</div>
+<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span>                                           <a class="code hl_struct" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> <span class="keyword">const</span>&amp; info,</div>
 <div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span>                                           <span class="keywordtype">int</span> count) {</div>
 <div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span>            <span class="comment">// Get account_lines by ledger index.</span></div>
 <div class="line"><a id="l00946" name="l00946"></a><span class="lineno">  946</span>            <a class="code hl_class" href="classJson_1_1Value.html">Json::Value</a> paramsSeq;</div>

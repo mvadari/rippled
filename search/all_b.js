@@ -270,7 +270,7 @@ var searchData=
   ['dh_267',['dh',['../classripple_1_1test_1_1TrustedPublisherServer.html#ac1ace68a4d406b05ff9e0d0848122aa8',1,'ripple::test::TrustedPublisherServer']]],
   ['diagram_268',['diagram',['../md__2____w_2rippled_2rippled_2docs_20010-ledger-replay_2README.html#autotoc_md117',1,'Class Diagram'],['../md__2____w_2rippled_2rippled_2docs_20010-ledger-replay_2README.html#autotoc_md116',1,'Sequence Diagram']]],
   ['diagram_20of_20code_20changes_269',['High Level Sequence Diagram of Code Changes',['../md__2____w_2rippled_2rippled_2docs_20001-negative-unl_2README.html#autotoc_md100',1,'']]],
-  ['did_270',['did',['../namespaceripple_1_1keylet.html#a89f207b0bdf0ef73cf0d9c35e49ef227',1,'ripple::keylet::did()'],['../namespaceripple.html#a22768e0a41b646442c98d38f2f2a307badbeab5095e8b54be8527724b23c371a3',1,'ripple::DID']]],
+  ['did_270',['did',['../namespaceripple.html#a22768e0a41b646442c98d38f2f2a307badbeab5095e8b54be8527724b23c371a3',1,'ripple::DID'],['../namespaceripple_1_1keylet.html#a89f207b0bdf0ef73cf0d9c35e49ef227',1,'ripple::keylet::did()']]],
   ['did_5ftest_271',['DID_test',['../structripple_1_1test_1_1DID__test.html',1,'ripple::test']]],
   ['diddelete_272',['diddelete',['../classripple_1_1DIDDelete.html#a0a49ffb6266a2e344e36dcc5c11f8475',1,'ripple::DIDDelete::DIDDelete()'],['../classripple_1_1DIDDelete.html',1,'ripple::DIDDelete']]],
   ['didset_273',['didset',['../classripple_1_1DIDSet.html',1,'ripple::DIDSet'],['../classripple_1_1DIDSet.html#a1293eaeb657f8a964df3b12c08d250c2',1,'ripple::DIDSet::DIDSet()']]],

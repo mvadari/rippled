@@ -379,24 +379,24 @@ Functions</h2></td></tr>
 <tr class="memitem:a8a800ed37a6099acd0464b99e71b6f97" id="r_a8a800ed37a6099acd0464b99e71b6f97"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a8a800ed37a6099acd0464b99e71b6f97">saveValidatedLedger</a> (<a class="el" href="classripple_1_1DatabaseCon.html">DatabaseCon</a> &amp;ldgDB, <a class="elRef" href="http://en.cppreference.com/w/cpp/memory/unique_ptr.html">std::unique_ptr</a>&lt; <a class="el" href="classripple_1_1DatabaseCon.html">DatabaseCon</a> &gt; const  &amp;txnDB, <a class="el" href="classripple_1_1Application.html">Application</a> &amp;app, <a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt; <a class="el" href="classripple_1_1Ledger.html">Ledger</a> const  &gt; const  &amp;ledger, bool <a class="el" href="namespaceripple.html#a6434c1a0fd22b77e2e4a228c0eca79eba43b5c9175984c071f30b873fdce0a000">current</a>)</td></tr>
 <tr class="memdesc:a8a800ed37a6099acd0464b99e71b6f97"><td class="mdescLeft">&#160;</td><td class="mdescRight">saveValidatedLedger Saves ledger into database.  <br /></td></tr>
 <tr class="separator:a8a800ed37a6099acd0464b99e71b6f97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae93cc399fa745d41f09ff23e70a08659" id="r_ae93cc399fa745d41f09ff23e70a08659"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#ae93cc399fa745d41f09ff23e70a08659">getLedgerInfo</a> (soci::session &amp;session, <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> const &amp;sqlSuffix, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:ae93cc399fa745d41f09ff23e70a08659"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfo Returns the info of the ledger retrieved from the database by using the provided SQL query suffix.  <br /></td></tr>
-<tr class="separator:ae93cc399fa745d41f09ff23e70a08659"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac0faae54c95ea279c12796d020425225" id="r_ac0faae54c95ea279c12796d020425225"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#ac0faae54c95ea279c12796d020425225">getLedgerInfoByIndex</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerSeq, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:ac0faae54c95ea279c12796d020425225"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByIndex Returns ledger by its sequence.  <br /></td></tr>
-<tr class="separator:ac0faae54c95ea279c12796d020425225"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38d07212e5ba7aa00ef07b35dd4dd727" id="r_a38d07212e5ba7aa00ef07b35dd4dd727"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a38d07212e5ba7aa00ef07b35dd4dd727">getNewestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:a38d07212e5ba7aa00ef07b35dd4dd727"><td class="mdescLeft">&#160;</td><td class="mdescRight">getNewestLedgerInfo Returns info of newest saved ledger.  <br /></td></tr>
-<tr class="separator:a38d07212e5ba7aa00ef07b35dd4dd727"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c58f0c1b53f9763a3889c2767295385" id="r_a8c58f0c1b53f9763a3889c2767295385"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a8c58f0c1b53f9763a3889c2767295385">getLimitedOldestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:a8c58f0c1b53f9763a3889c2767295385"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedOldestLedgerInfo Returns info of oldest ledger from ledgers with sequences greather or equal to given.  <br /></td></tr>
-<tr class="separator:a8c58f0c1b53f9763a3889c2767295385"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b0d9b76795929090150cd60dc6fbdca" id="r_a2b0d9b76795929090150cd60dc6fbdca"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a2b0d9b76795929090150cd60dc6fbdca">getLimitedNewestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:a2b0d9b76795929090150cd60dc6fbdca"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedNewestLedgerInfo Returns info of newest ledger from ledgers with sequences greather or equal to given.  <br /></td></tr>
-<tr class="separator:a2b0d9b76795929090150cd60dc6fbdca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad37ddc47b141d2270e5cad7f625f4094" id="r_ad37ddc47b141d2270e5cad7f625f4094"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#ad37ddc47b141d2270e5cad7f625f4094">getLedgerInfoByHash</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> const  &amp;ledgerHash, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
-<tr class="memdesc:ad37ddc47b141d2270e5cad7f625f4094"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByHash Returns info of ledger with given hash.  <br /></td></tr>
-<tr class="separator:ad37ddc47b141d2270e5cad7f625f4094"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62bb8eaa308220b5a8be8ca1f798d5a1" id="r_a62bb8eaa308220b5a8be8ca1f798d5a1"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a62bb8eaa308220b5a8be8ca1f798d5a1">getLedgerInfo</a> (soci::session &amp;session, <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> const &amp;sqlSuffix, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:a62bb8eaa308220b5a8be8ca1f798d5a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfo Returns the info of the ledger retrieved from the database by using the provided SQL query suffix.  <br /></td></tr>
+<tr class="separator:a62bb8eaa308220b5a8be8ca1f798d5a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1aa391a5448cfed6fc69122fa3bc8ce9" id="r_a1aa391a5448cfed6fc69122fa3bc8ce9"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a1aa391a5448cfed6fc69122fa3bc8ce9">getLedgerInfoByIndex</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerSeq, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:a1aa391a5448cfed6fc69122fa3bc8ce9"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByIndex Returns ledger by its sequence.  <br /></td></tr>
+<tr class="separator:a1aa391a5448cfed6fc69122fa3bc8ce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cbc60856465087251211c56c2f8d710" id="r_a1cbc60856465087251211c56c2f8d710"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a1cbc60856465087251211c56c2f8d710">getNewestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:a1cbc60856465087251211c56c2f8d710"><td class="mdescLeft">&#160;</td><td class="mdescRight">getNewestLedgerInfo Returns info of newest saved ledger.  <br /></td></tr>
+<tr class="separator:a1cbc60856465087251211c56c2f8d710"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ab95d997ce29f75fd0566d53d459849" id="r_a7ab95d997ce29f75fd0566d53d459849"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a7ab95d997ce29f75fd0566d53d459849">getLimitedOldestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:a7ab95d997ce29f75fd0566d53d459849"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedOldestLedgerInfo Returns info of oldest ledger from ledgers with sequences greather or equal to given.  <br /></td></tr>
+<tr class="separator:a7ab95d997ce29f75fd0566d53d459849"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01989eb5b87460df135428fe30611abc" id="r_a01989eb5b87460df135428fe30611abc"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a01989eb5b87460df135428fe30611abc">getLimitedNewestLedgerInfo</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerFirstIndex, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:a01989eb5b87460df135428fe30611abc"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLimitedNewestLedgerInfo Returns info of newest ledger from ledgers with sequences greather or equal to given.  <br /></td></tr>
+<tr class="separator:a01989eb5b87460df135428fe30611abc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae04db6286a76330afebc1889252c570f" id="r_ae04db6286a76330afebc1889252c570f"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#ae04db6286a76330afebc1889252c570f">getLedgerInfoByHash</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a> const  &amp;ledgerHash, <a class="el" href="classbeast_1_1Journal.html">beast::Journal</a> j)</td></tr>
+<tr class="memdesc:ae04db6286a76330afebc1889252c570f"><td class="mdescLeft">&#160;</td><td class="mdescRight">getLedgerInfoByHash Returns info of ledger with given hash.  <br /></td></tr>
+<tr class="separator:ae04db6286a76330afebc1889252c570f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16cbecb925fb26e8657b67c6c53214d7" id="r_a16cbecb925fb26e8657b67c6c53214d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceripple.html#a356c68147333a9a48a344718038576d9">uint256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceripple_1_1detail.html#a16cbecb925fb26e8657b67c6c53214d7">getHashByIndex</a> (soci::session &amp;session, <a class="el" href="namespaceripple.html#a12af8e98b794e8ee3b4dbecaed2a4efd">LedgerIndex</a> ledgerIndex)</td></tr>
 <tr class="memdesc:a16cbecb925fb26e8657b67c6c53214d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">getHashByIndex Returns hash of ledger with given sequence.  <br /></td></tr>
 <tr class="separator:a16cbecb925fb26e8657b67c6c53214d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2911,8 +2911,8 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="ae93cc399fa745d41f09ff23e70a08659" name="ae93cc399fa745d41f09ff23e70a08659"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae93cc399fa745d41f09ff23e70a08659">&#9670;&#160;</a></span>getLedgerInfo()</h2>
+<a id="a62bb8eaa308220b5a8be8ca1f798d5a1" name="a62bb8eaa308220b5a8be8ca1f798d5a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62bb8eaa308220b5a8be8ca1f798d5a1">&#9670;&#160;</a></span>getLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2921,7 +2921,7 @@ template&lt;class T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getLedgerInfo </td>
+          <td class="memname">static <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getLedgerInfo </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
@@ -2966,14 +2966,14 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="ac0faae54c95ea279c12796d020425225" name="ac0faae54c95ea279c12796d020425225"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac0faae54c95ea279c12796d020425225">&#9670;&#160;</a></span>getLedgerInfoByIndex()</h2>
+<a id="a1aa391a5448cfed6fc69122fa3bc8ce9" name="a1aa391a5448cfed6fc69122fa3bc8ce9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1aa391a5448cfed6fc69122fa3bc8ce9">&#9670;&#160;</a></span>getLedgerInfoByIndex()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getLedgerInfoByIndex </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getLedgerInfoByIndex </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
@@ -3013,14 +3013,14 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a38d07212e5ba7aa00ef07b35dd4dd727" name="a38d07212e5ba7aa00ef07b35dd4dd727"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38d07212e5ba7aa00ef07b35dd4dd727">&#9670;&#160;</a></span>getNewestLedgerInfo()</h2>
+<a id="a1cbc60856465087251211c56c2f8d710" name="a1cbc60856465087251211c56c2f8d710"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cbc60856465087251211c56c2f8d710">&#9670;&#160;</a></span>getNewestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getNewestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getNewestLedgerInfo </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
@@ -3053,14 +3053,14 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a8c58f0c1b53f9763a3889c2767295385" name="a8c58f0c1b53f9763a3889c2767295385"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c58f0c1b53f9763a3889c2767295385">&#9670;&#160;</a></span>getLimitedOldestLedgerInfo()</h2>
+<a id="a7ab95d997ce29f75fd0566d53d459849" name="a7ab95d997ce29f75fd0566d53d459849"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ab95d997ce29f75fd0566d53d459849">&#9670;&#160;</a></span>getLimitedOldestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getLimitedOldestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getLimitedOldestLedgerInfo </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
@@ -3100,14 +3100,14 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a2b0d9b76795929090150cd60dc6fbdca" name="a2b0d9b76795929090150cd60dc6fbdca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2b0d9b76795929090150cd60dc6fbdca">&#9670;&#160;</a></span>getLimitedNewestLedgerInfo()</h2>
+<a id="a01989eb5b87460df135428fe30611abc" name="a01989eb5b87460df135428fe30611abc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a01989eb5b87460df135428fe30611abc">&#9670;&#160;</a></span>getLimitedNewestLedgerInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getLimitedNewestLedgerInfo </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getLimitedNewestLedgerInfo </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
@@ -3147,14 +3147,14 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="ad37ddc47b141d2270e5cad7f625f4094" name="ad37ddc47b141d2270e5cad7f625f4094"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad37ddc47b141d2270e5cad7f625f4094">&#9670;&#160;</a></span>getLedgerInfoByHash()</h2>
+<a id="ae04db6286a76330afebc1889252c570f" name="ae04db6286a76330afebc1889252c570f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae04db6286a76330afebc1889252c570f">&#9670;&#160;</a></span>getLedgerInfoByHash()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="namespaceripple.html#aaf521cde20561da32d6a54a105363555">LedgerInfo</a> &gt; ripple::detail::getLedgerInfoByHash </td>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="el" href="structripple_1_1LedgerHeader.html">LedgerHeader</a> &gt; ripple::detail::getLedgerInfoByHash </td>
           <td>(</td>
           <td class="paramtype">soci::session &amp;&#160;</td>
           <td class="paramname"><em>session</em>, </td>
