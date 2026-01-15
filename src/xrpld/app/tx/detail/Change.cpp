@@ -1,6 +1,7 @@
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/AmendmentTable.h>
+#include <xrpld/app/misc/FeeParamRegistry.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/tx/detail/Change.h>
 
@@ -74,40 +75,50 @@ Change::preclaim(PreclaimContext const& ctx)
         case ttFEE:
             if (ctx.view.rules().enabled(featureXRPFees))
             {
-                // The ttFEE transaction format defines these fields as
-                // optional, but once the XRPFees feature is enabled, they are
-                // required.
-                if (!ctx.tx.isFieldPresent(sfBaseFeeDrops) ||
-                    !ctx.tx.isFieldPresent(sfReserveBaseDrops) ||
-                    !ctx.tx.isFieldPresent(sfReserveIncrementDrops))
-                    return temMALFORMED;
-                // The ttFEE transaction format defines these fields as
-                // optional, but once the XRPFees feature is enabled, they are
-                // forbidden.
-                if (ctx.tx.isFieldPresent(sfBaseFee) ||
-                    ctx.tx.isFieldPresent(sfReferenceFeeUnits) ||
-                    ctx.tx.isFieldPresent(sfReserveBase) ||
-                    ctx.tx.isFieldPresent(sfReserveIncrement))
+                // The ttFEE transaction format defines XRPFees fields as
+                // required once the feature is enabled.
+                for (auto const& param : feeParamRegistry())
+                {
+                    if (!ctx.tx.isFieldPresent(*param.xrpFeesField))
+                        return temMALFORMED;
+                }
+                // Legacy fields are forbidden once XRPFees is enabled.
+                for (auto const& param : feeParamRegistry())
+                {
+                    if (param.legacyField64 &&
+                        ctx.tx.isFieldPresent(*param.legacyField64))
+                        return temMALFORMED;
+                    if (param.legacyField32 &&
+                        ctx.tx.isFieldPresent(*param.legacyField32))
+                        return temMALFORMED;
+                }
+                // sfReferenceFeeUnits is a special legacy field, not
+                // represented in the registry, but still forbidden
+                if (ctx.tx.isFieldPresent(sfReferenceFeeUnits))
                     return temMALFORMED;
             }
             else
             {
-                // The ttFEE transaction format formerly defined these fields
-                // as required. When the XRPFees feature was implemented, they
-                // were changed to be optional. Until the feature has been
-                // enabled, they are required.
-                if (!ctx.tx.isFieldPresent(sfBaseFee) ||
-                    !ctx.tx.isFieldPresent(sfReferenceFeeUnits) ||
-                    !ctx.tx.isFieldPresent(sfReserveBase) ||
-                    !ctx.tx.isFieldPresent(sfReserveIncrement))
+                // Without XRPFees, legacy fields are required.
+                for (auto const& param : feeParamRegistry())
+                {
+                    if (param.legacyField64 &&
+                        !ctx.tx.isFieldPresent(*param.legacyField64))
+                        return temMALFORMED;
+                    if (param.legacyField32 &&
+                        !ctx.tx.isFieldPresent(*param.legacyField32))
+                        return temMALFORMED;
+                }
+                // sfReferenceFeeUnits is a special legacy field, not
+                // represented in the registry, but still required
+                if (!ctx.tx.isFieldPresent(sfReferenceFeeUnits))
                     return temMALFORMED;
-                // The ttFEE transaction format defines these fields as
-                // optional, but without the XRPFees feature, they are
-                // forbidden.
-                if (ctx.tx.isFieldPresent(sfBaseFeeDrops) ||
-                    ctx.tx.isFieldPresent(sfReserveBaseDrops) ||
-                    ctx.tx.isFieldPresent(sfReserveIncrementDrops))
-                    return temDISABLED;
+                // XRPFees fields are forbidden without the feature.
+                for (auto const& param : feeParamRegistry())
+                {
+                    if (ctx.tx.isFieldPresent(*param.xrpFeesField))
+                        return temDISABLED;
+                }
             }
             return tesSUCCESS;
         case ttAMENDMENT:
@@ -252,26 +263,39 @@ Change::applyFee()
         feeObject = std::make_shared<SLE>(k);
         view().insert(feeObject);
     }
-    auto set = [](SLE::pointer& feeObject, STTx const& tx, auto const& field) {
-        feeObject->at(field) = tx[field];
-    };
+
     if (view().rules().enabled(featureXRPFees))
     {
-        set(feeObject, ctx_.tx, sfBaseFeeDrops);
-        set(feeObject, ctx_.tx, sfReserveBaseDrops);
-        set(feeObject, ctx_.tx, sfReserveIncrementDrops);
+        // Copy XRPFees fields from transaction to fee object
+        for (auto const& param : feeParamRegistry())
+        {
+            feeObject->at(*param.xrpFeesField) = ctx_.tx[*param.xrpFeesField];
+        }
         // Ensure the old fields are removed
-        feeObject->makeFieldAbsent(sfBaseFee);
+        for (auto const& param : feeParamRegistry())
+        {
+            if (param.legacyField64)
+                feeObject->makeFieldAbsent(*param.legacyField64);
+            if (param.legacyField32)
+                feeObject->makeFieldAbsent(*param.legacyField32);
+        }
+        // sfReferenceFeeUnits is a special legacy field
         feeObject->makeFieldAbsent(sfReferenceFeeUnits);
-        feeObject->makeFieldAbsent(sfReserveBase);
-        feeObject->makeFieldAbsent(sfReserveIncrement);
     }
     else
     {
-        set(feeObject, ctx_.tx, sfBaseFee);
-        set(feeObject, ctx_.tx, sfReferenceFeeUnits);
-        set(feeObject, ctx_.tx, sfReserveBase);
-        set(feeObject, ctx_.tx, sfReserveIncrement);
+        // Copy legacy fields from transaction to fee object
+        for (auto const& param : feeParamRegistry())
+        {
+            if (param.legacyField64)
+                feeObject->at(*param.legacyField64) =
+                    ctx_.tx[*param.legacyField64];
+            if (param.legacyField32)
+                feeObject->at(*param.legacyField32) =
+                    ctx_.tx[*param.legacyField32];
+        }
+        // sfReferenceFeeUnits is a special legacy field
+        feeObject->at(sfReferenceFeeUnits) = ctx_.tx[sfReferenceFeeUnits];
     }
 
     view().update(feeObject);

@@ -1,6 +1,7 @@
 #include <test/jtx.h>
 
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpld/app/misc/FeeParamRegistry.h>
 #include <xrpld/app/misc/FeeVote.h>
 #include <xrpld/app/tx/apply.h>
 
@@ -11,6 +12,8 @@
 #include <xrpl/protocol/PublicKey.h>
 #include <xrpl/protocol/STTx.h>
 #include <xrpl/protocol/SecretKey.h>
+
+#include <set>
 
 namespace xrpl {
 namespace test {
@@ -765,6 +768,119 @@ class FeeVote_test : public beast::unit_test::suite
     }
 
     void
+    testFeeParamRegistry()
+    {
+        testcase("FeeParamRegistry");
+
+        // Verify that the registry contains exactly 3 parameters
+        auto const registry = feeParamRegistry();
+        BEAST_EXPECT(registry.size() == kFeeParamCount);
+        BEAST_EXPECT(kFeeParamCount == 3);
+
+        // Verify the registry contains expected fee parameters by name
+        std::set<std::string_view> expectedNames = {
+            "base_fee", "account_reserve", "owner_reserve"};
+
+        for (auto const& param : registry)
+        {
+            BEAST_EXPECT(!param.name.empty());
+            BEAST_EXPECT(!param.humanLabel.empty());
+            BEAST_EXPECT(param.xrpFeesField != nullptr);
+            BEAST_EXPECT(
+                param.legacyField32 != nullptr ||
+                param.legacyField64 != nullptr);
+            BEAST_EXPECT(!param.configKey.empty());
+            BEAST_EXPECT(param.getFromSetup != nullptr);
+            BEAST_EXPECT(param.getFromFees != nullptr);
+
+            // Check that name is in expected set
+            BEAST_EXPECT(expectedNames.count(param.name) == 1);
+            expectedNames.erase(param.name);
+        }
+        // All expected names should have been found
+        BEAST_EXPECT(expectedNames.empty());
+
+        // Verify findFeeParam works
+        BEAST_EXPECT(findFeeParam("base_fee") != nullptr);
+        BEAST_EXPECT(findFeeParam("account_reserve") != nullptr);
+        BEAST_EXPECT(findFeeParam("owner_reserve") != nullptr);
+        BEAST_EXPECT(findFeeParam("nonexistent") == nullptr);
+
+        // Verify getFromSetup and getFromFees accessors
+        FeeSetup setup;
+        setup.reference_fee = 100;
+        setup.account_reserve = 2000000;
+        setup.owner_reserve = 500000;
+
+        Fees fees;
+        fees.base = 100;
+        fees.reserve = 2000000;
+        fees.increment = 500000;
+
+        auto const* baseFee = findFeeParam("base_fee");
+        BEAST_EXPECT(baseFee->getFromSetup(setup) == setup.reference_fee);
+        BEAST_EXPECT(baseFee->getFromFees(fees) == fees.base);
+
+        auto const* accountReserve = findFeeParam("account_reserve");
+        BEAST_EXPECT(
+            accountReserve->getFromSetup(setup) == setup.account_reserve);
+        BEAST_EXPECT(accountReserve->getFromFees(fees) == fees.reserve);
+
+        auto const* ownerReserve = findFeeParam("owner_reserve");
+        BEAST_EXPECT(ownerReserve->getFromSetup(setup) == setup.owner_reserve);
+        BEAST_EXPECT(ownerReserve->getFromFees(fees) == fees.increment);
+    }
+
+    void
+    testRegistryDrivenValidation()
+    {
+        testcase("Registry-driven Validation Round Trip");
+
+        using namespace jtx;
+
+        FeeSetup setup;
+        setup.reference_fee = 42;
+        setup.account_reserve = 1234567;
+        setup.owner_reserve = 7654321;
+
+        Env env(*this, testable_amendments() | featureXRPFees);
+        auto feeVote = make_FeeVote(setup, env.app().journal("FeeVote"));
+
+        auto ledger = std::make_shared<Ledger>(
+            create_genesis,
+            env.app().config(),
+            std::vector<uint256>{},
+            env.app().getNodeFamily());
+
+        auto sec = randomSecretKey();
+        auto pub = derivePublicKey(KeyType::secp256k1, sec);
+
+        auto val = std::make_shared<STValidation>(
+            env.app().timeKeeper().now(),
+            pub,
+            sec,
+            calcNodeID(pub),
+            [](STValidation& v) { v.setFieldU32(sfLedgerSequence, 12345); });
+
+        auto const& currentFees = ledger->fees();
+
+        // Use doValidation to populate the validation object
+        feeVote->doValidation(currentFees, ledger->rules(), *val);
+
+        // Verify that all fee parameters in the registry have been set
+        for (auto const& param : feeParamRegistry())
+        {
+            // With XRPFees enabled, only XRPFees fields should be present
+            BEAST_EXPECT(val->isFieldPresent(*param.xrpFeesField));
+
+            // Verify the value matches what we expect from the setup
+            auto const expected = param.getFromSetup(setup);
+            auto const actual = val->getFieldAmount(*param.xrpFeesField);
+            BEAST_EXPECT(actual == expected);
+        }
+    }
+
+    void
     run() override
     {
         testSetup();
@@ -777,6 +893,8 @@ class FeeVote_test : public beast::unit_test::suite
         testSingleInvalidTransaction();
         testDoValidation();
         testDoVoting();
+        testFeeParamRegistry();
+        testRegistryDrivenValidation();
     }
 };
 

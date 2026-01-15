@@ -1,4 +1,5 @@
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpld/app/misc/FeeParamRegistry.h>
 #include <xrpld/app/misc/FeeVote.h>
 
 #include <xrpl/beast/utility/Journal.h>
@@ -108,68 +109,45 @@ FeeVoteImpl::doValidation(
     // not send a value.
     if (rules.enabled(featureXRPFees))
     {
-        auto vote = [&v, this](
-                        auto const current,
-                        XRPAmount target,
-                        char const* name,
-                        auto const& sfield) {
+        for (auto const& param : feeParamRegistry())
+        {
+            auto const current = param.getFromFees(lastFees);
+            auto const target = param.getFromSetup(target_);
+
             if (current != target)
             {
                 JLOG(journal_.info())
-                    << "Voting for " << name << " of " << target;
+                    << "Voting for " << param.humanLabel << " of " << target;
 
-                v[sfield] = target;
+                v[*param.xrpFeesField] = target;
             }
-        };
-        vote(lastFees.base, target_.reference_fee, "base fee", sfBaseFeeDrops);
-        vote(
-            lastFees.reserve,
-            target_.account_reserve,
-            "base reserve",
-            sfReserveBaseDrops);
-        vote(
-            lastFees.increment,
-            target_.owner_reserve,
-            "reserve increment",
-            sfReserveIncrementDrops);
+        }
     }
     else
     {
-        auto to32 = [](XRPAmount target) {
-            return target.dropsAs<std::uint32_t>();
-        };
-        auto to64 = [](XRPAmount target) {
-            return target.dropsAs<std::uint64_t>();
-        };
-        auto vote = [&v, this](
-                        auto const current,
-                        XRPAmount target,
-                        auto const& convertCallback,
-                        char const* name,
-                        auto const& sfield) {
+        for (auto const& param : feeParamRegistry())
+        {
+            auto const current = param.getFromFees(lastFees);
+            auto const target = param.getFromSetup(target_);
+
             if (current != target)
             {
                 JLOG(journal_.info())
-                    << "Voting for " << name << " of " << target;
+                    << "Voting for " << param.humanLabel << " of " << target;
 
-                if (auto const f = convertCallback(target))
-                    v[sfield] = *f;
+                // Legacy mode uses either UINT32 or UINT64 fields
+                if (param.legacyField64)
+                {
+                    if (auto const f = target.dropsAs<std::uint64_t>())
+                        v[*param.legacyField64] = *f;
+                }
+                else if (param.legacyField32)
+                {
+                    if (auto const f = target.dropsAs<std::uint32_t>())
+                        v[*param.legacyField32] = *f;
+                }
             }
-        };
-
-        vote(lastFees.base, target_.reference_fee, to64, "base fee", sfBaseFee);
-        vote(
-            lastFees.reserve,
-            target_.account_reserve,
-            to32,
-            "base reserve",
-            sfReserveBase);
-        vote(
-            lastFees.increment,
-            target_.owner_reserve,
-            to32,
-            "reserve increment",
-            sfReserveIncrement);
+        }
     }
 }
 
@@ -184,116 +162,154 @@ FeeVoteImpl::doVoting(
         lastClosedLedger && isFlagLedger(lastClosedLedger->seq()),
         "xrpl::FeeVoteImpl::doVoting : has a flag ledger");
 
-    detail::VotableValue baseFeeVote(
-        lastClosedLedger->fees().base, target_.reference_fee);
-
-    detail::VotableValue baseReserveVote(
-        lastClosedLedger->fees().reserve, target_.account_reserve);
-
-    detail::VotableValue incReserveVote(
-        lastClosedLedger->fees().increment, target_.owner_reserve);
-
+    auto const& currentFees = lastClosedLedger->fees();
     auto const& rules = lastClosedLedger->rules();
+    auto const registry = feeParamRegistry();
+
+    // Create VotableValue objects for each fee parameter
+    std::array<detail::VotableValue, kFeeParamCount> votes = {{
+        detail::VotableValue(
+            registry[0].getFromFees(currentFees),
+            registry[0].getFromSetup(target_)),
+        detail::VotableValue(
+            registry[1].getFromFees(currentFees),
+            registry[1].getFromSetup(target_)),
+        detail::VotableValue(
+            registry[2].getFromFees(currentFees),
+            registry[2].getFromSetup(target_)),
+    }};
+
+    // Process votes from validations
     if (rules.enabled(featureXRPFees))
     {
-        auto doVote = [](std::shared_ptr<STValidation> const& val,
-                         detail::VotableValue& value,
-                         SF_AMOUNT const& xrpField) {
-            if (auto const field = ~val->at(~xrpField);
-                field && field->native())
-            {
-                auto const vote = field->xrp();
-                if (isLegalAmountSigned(vote))
-                    value.addVote(vote);
-                else
-                    value.noVote();
-            }
-            else
-            {
-                value.noVote();
-            }
-        };
-
         for (auto const& val : set)
         {
             if (!val->isTrusted())
                 continue;
-            doVote(val, baseFeeVote, sfBaseFeeDrops);
-            doVote(val, baseReserveVote, sfReserveBaseDrops);
-            doVote(val, incReserveVote, sfReserveIncrementDrops);
+
+            for (std::size_t i = 0; i < kFeeParamCount; ++i)
+            {
+                auto const& param = registry[i];
+                if (auto const field = ~val->at(~*param.xrpFeesField);
+                    field && field->native())
+                {
+                    auto const vote = field->xrp();
+                    if (isLegalAmountSigned(vote))
+                        votes[i].addVote(vote);
+                    else
+                        votes[i].noVote();
+                }
+                else
+                {
+                    votes[i].noVote();
+                }
+            }
         }
     }
     else
     {
-        auto doVote = [](std::shared_ptr<STValidation> const& val,
-                         detail::VotableValue& value,
-                         auto const& valueField) {
-            if (auto const field = val->at(~valueField))
-            {
-                using XRPType = XRPAmount::value_type;
-                auto const vote = *field;
-                if (vote <= std::numeric_limits<XRPType>::max() &&
-                    isLegalAmountSigned(XRPAmount{unsafe_cast<XRPType>(vote)}))
-                    value.addVote(XRPAmount{unsafe_cast<XRPType>(vote)});
-                else
-                    // Invalid amounts will be treated as if they're
-                    // not provided. Don't throw because this value is
-                    // provided by an external entity.
-                    value.noVote();
-            }
-            else
-            {
-                value.noVote();
-            }
-        };
-
         for (auto const& val : set)
         {
             if (!val->isTrusted())
                 continue;
-            doVote(val, baseFeeVote, sfBaseFee);
-            doVote(val, baseReserveVote, sfReserveBase);
-            doVote(val, incReserveVote, sfReserveIncrement);
+
+            for (std::size_t i = 0; i < kFeeParamCount; ++i)
+            {
+                auto const& param = registry[i];
+                std::optional<XRPAmount> voteValue;
+
+                // Read from either UINT64 or UINT32 legacy field
+                if (param.legacyField64)
+                {
+                    if (auto const field = val->at(~*param.legacyField64))
+                    {
+                        using XRPType = XRPAmount::value_type;
+                        auto const v = *field;
+                        if (v <= static_cast<std::uint64_t>(
+                                     std::numeric_limits<XRPType>::max()) &&
+                            isLegalAmountSigned(
+                                XRPAmount{unsafe_cast<XRPType>(v)}))
+                            voteValue = XRPAmount{unsafe_cast<XRPType>(v)};
+                    }
+                }
+                else if (param.legacyField32)
+                {
+                    if (auto const field = val->at(~*param.legacyField32))
+                    {
+                        // uint32_t always fits in XRPAmount::value_type
+                        // (int64_t), so no range check needed
+                        auto const v = XRPAmount{
+                            static_cast<XRPAmount::value_type>(*field)};
+                        if (isLegalAmountSigned(v))
+                            voteValue = v;
+                    }
+                }
+
+                if (voteValue)
+                    votes[i].addVote(*voteValue);
+                else
+                    votes[i].noVote();
+            }
         }
     }
 
-    // choose our positions
-    // TODO: Use structured binding once LLVM 16 is the minimum supported
-    // version. See also: https://github.com/llvm/llvm-project/issues/48582
-    // https://github.com/llvm/llvm-project/commit/127bf44385424891eb04cff8e52d3f157fc2cb7c
-    auto const baseFee = baseFeeVote.getVotes();
-    auto const baseReserve = baseReserveVote.getVotes();
-    auto const incReserve = incReserveVote.getVotes();
+    // Get vote results for each parameter
+    std::array<std::pair<XRPAmount, bool>, kFeeParamCount> results;
+    for (std::size_t i = 0; i < kFeeParamCount; ++i)
+    {
+        results[i] = votes[i].getVotes();
+    }
 
     auto const seq = lastClosedLedger->header().seq + 1;
 
+    // Check if any parameter needs a vote
+    bool needsVote = false;
+    for (auto const& result : results)
+    {
+        if (result.second)
+        {
+            needsVote = true;
+            break;
+        }
+    }
+
     // add transactions to our position
-    if (baseFee.second || baseReserve.second || incReserve.second)
+    if (needsVote)
     {
         JLOG(journal_.warn())
-            << "We are voting for a fee change: " << baseFee.first << "/"
-            << baseReserve.first << "/" << incReserve.first;
+            << "We are voting for a fee change: " << results[0].first << "/"
+            << results[1].first << "/" << results[2].first;
 
-        STTx feeTx(ttFEE, [=, &rules](auto& obj) {
+        STTx feeTx(ttFEE, [&](auto& obj) {
             obj[sfAccount] = AccountID();
             obj[sfLedgerSequence] = seq;
             if (rules.enabled(featureXRPFees))
             {
-                obj[sfBaseFeeDrops] = baseFee.first;
-                obj[sfReserveBaseDrops] = baseReserve.first;
-                obj[sfReserveIncrementDrops] = incReserve.first;
+                for (std::size_t i = 0; i < kFeeParamCount; ++i)
+                {
+                    obj[*registry[i].xrpFeesField] = results[i].first;
+                }
             }
             else
             {
                 // Without the featureXRPFees amendment, these fields are
                 // required.
-                obj[sfBaseFee] =
-                    baseFee.first.dropsAs<std::uint64_t>(baseFeeVote.current());
-                obj[sfReserveBase] = baseReserve.first.dropsAs<std::uint32_t>(
-                    baseReserveVote.current());
-                obj[sfReserveIncrement] =
-                    incReserve.first.dropsAs<std::uint32_t>(
-                        incReserveVote.current());
+                for (std::size_t i = 0; i < kFeeParamCount; ++i)
+                {
+                    auto const& param = registry[i];
+                    if (param.legacyField64)
+                    {
+                        obj[*param.legacyField64] =
+                            results[i].first.dropsAs<std::uint64_t>(
+                                votes[i].current());
+                    }
+                    else if (param.legacyField32)
+                    {
+                        obj[*param.legacyField32] =
+                            results[i].first.dropsAs<std::uint32_t>(
+                                votes[i].current());
+                    }
+                }
                 obj[sfReferenceFeeUnits] = Config::FEE_UNITS_DEPRECATED;
             }
         });
