@@ -1209,8 +1209,8 @@ TEST(json_value, iterator)
         EXPECT_EQ(i2.key(), 3);
         EXPECT_EQ(i1.index(), 0);
         EXPECT_EQ(i2.index(), 3);
-        EXPECT_STREQ(i1.memberName(), "");
-        EXPECT_STREQ(i2.memberName(), "");
+        EXPECT_EQ(i1.memberName(), "");
+        EXPECT_EQ(i2.memberName(), "");
 
         // Pre and post increment and decrement.
         *i1++ = "0";
@@ -1246,8 +1246,8 @@ TEST(json_value, iterator)
         EXPECT_EQ(i2.key(), "3");
         EXPECT_EQ(i1.index(), -1);
         EXPECT_EQ(i2.index(), -1);
-        EXPECT_STREQ(i1.memberName(), "0");
-        EXPECT_STREQ(i2.memberName(), "3");
+        EXPECT_EQ(i1.memberName(), "0");
+        EXPECT_EQ(i2.memberName(), "3");
 
         // Pre and post increment and decrement.
         EXPECT_EQ(*i1++, 0);
