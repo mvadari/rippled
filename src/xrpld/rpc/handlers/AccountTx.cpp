@@ -81,7 +81,7 @@ parseLedgerArgs(RPC::Context& context, Json::Value const& params)
     {
         LedgerSpecifier ledger;
         if (params[jss::ledger_index].isNumeric())
-            ledger = params[jss::ledger_index].asUInt();
+            ledger = params[jss::ledger_index].asUInt32();
         else
         {
             std::string ledgerStr = params[jss::ledger_index].asString();
@@ -422,7 +422,7 @@ doAccountTxJson(RPC::JsonContext& context)
             status.inject(response);
             return response;
         }
-        args.marker = {token[jss::ledger].asUInt(), token[jss::seq].asUInt()};
+        args.marker = {token[jss::ledger].asUInt32(), token[jss::seq].asUInt32()};
     }
 
     auto res = doAccountTxHelp(context, args);

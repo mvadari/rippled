@@ -160,7 +160,7 @@ public:
     Json::Value
     ledgerEntry(std::optional<std::string> const& index = std::nullopt) const
     {
-        return Oracle::ledgerEntry(env_, owner_, documentID_, index);
+        return Oracle::ledgerEntry(env_, owner_, static_cast<Json::UInt>(documentID_), index);
     }
 
     static void

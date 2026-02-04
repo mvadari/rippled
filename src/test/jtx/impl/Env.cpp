@@ -303,7 +303,7 @@ Env::parseResult(Json::Value const& jr)
         if (!object.isObject())
             return;
         if (object.isMember(jss::error_code))
-            parsed.rpcCode = safe_cast<error_code_i>(object[jss::error_code].asInt());
+            parsed.rpcCode = safe_cast<error_code_i>(object[jss::error_code].asInt32());
         if (object.isMember(jss::error_message))
             parsed.rpcMessage = object[jss::error_message].asString();
         if (object.isMember(jss::error))

@@ -216,13 +216,13 @@ private:
             // Less than the last close time - 300s
             oracle.set(UpdateArg{
                 .series = {{"XRP", "USD", 740, 1}},
-                .lastUpdateTime = static_cast<std::uint32_t>(closeTime() - 301),
+                .lastUpdateTime = static_cast<Json::UInt>(closeTime() - 301),
                 .fee = baseFee,
                 .err = ter(tecINVALID_UPDATE_TIME)});
             // Greater than last close time + 300s
             oracle.set(UpdateArg{
                 .series = {{"XRP", "USD", 740, 1}},
-                .lastUpdateTime = static_cast<std::uint32_t>(closeTime() + 311),
+                .lastUpdateTime = static_cast<Json::UInt>(closeTime() + 311),
                 .fee = baseFee,
                 .err = ter(tecINVALID_UPDATE_TIME)});
             oracle.set(UpdateArg{.series = {{"XRP", "USD", 740, 1}}, .fee = baseFee});
@@ -230,7 +230,7 @@ private:
             // Less than the previous lastUpdateTime
             oracle.set(UpdateArg{
                 .series = {{"XRP", "USD", 740, 1}},
-                .lastUpdateTime = static_cast<std::uint32_t>(449),
+                .lastUpdateTime = static_cast<Json::UInt>(449),
                 .fee = baseFee,
                 .err = ter(tecINVALID_UPDATE_TIME)});
             // Less than the epoch time

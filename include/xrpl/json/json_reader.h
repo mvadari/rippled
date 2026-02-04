@@ -6,8 +6,6 @@
 
 #include <boost/asio/buffer.hpp>
 
-#include <stack>
-
 namespace Json {
 
 /** \brief Unserialize a <a HREF="http://www.json.org">JSON</a> document into a
@@ -71,34 +69,17 @@ public:
     static constexpr unsigned nest_limit{25};
 
 private:
-    enum TokenType {
-        tokenEndOfStream = 0,
-        tokenObjectBegin,
-        tokenObjectEnd,
-        tokenArrayBegin,
-        tokenArrayEnd,
-        tokenString,
-        tokenInteger,
-        tokenDouble,
-        tokenTrue,
-        tokenFalse,
-        tokenNull,
-        tokenArraySeparator,
-        tokenMemberSeparator,
-        tokenComment,
-        tokenError
-    };
-
+    // Token struct for error location tracking
     class Token
     {
     public:
         explicit Token() = default;
 
-        TokenType type_;
-        Location start_;
-        Location end_;
+        Location start_ = nullptr;
+        Location end_ = nullptr;
     };
 
+    // Error info for formatted error messages
     class ErrorInfo
     {
     public:
@@ -106,75 +87,18 @@ private:
 
         Token token_;
         std::string message_;
-        Location extra_;
+        Location extra_ = nullptr;
     };
 
     using Errors = std::deque<ErrorInfo>;
 
-    bool
-    expectToken(TokenType type, Token& token, char const* message);
-    bool
-    readToken(Token& token);
-    void
-    skipSpaces();
-    bool
-    match(Location pattern, int patternLength);
-    bool
-    readComment();
-    bool
-    readCStyleComment();
-    bool
-    readCppStyleComment();
-    bool
-    readString();
-    Reader::TokenType
-    readNumber();
-    bool
-    readValue(unsigned depth);
-    bool
-    readObject(Token& token, unsigned depth);
-    bool
-    readArray(Token& token, unsigned depth);
-    bool
-    decodeNumber(Token& token);
-    bool
-    decodeString(Token& token);
-    bool
-    decodeString(Token& token, std::string& decoded);
-    bool
-    decodeDouble(Token& token);
-    bool
-    decodeUnicodeCodePoint(Token& token, Location& current, Location end, unsigned int& unicode);
-    bool
-    decodeUnicodeEscapeSequence(Token& token, Location& current, Location end, unsigned int& unicode);
-    bool
-    addError(std::string const& message, Token& token, Location extra = 0);
-    bool
-    recoverFromError(TokenType skipUntilToken);
-    bool
-    addErrorAndRecover(std::string const& message, Token& token, TokenType skipUntilToken);
-    void
-    skipUntilSpace();
-    Value&
-    currentValue();
-    Char
-    getNextChar();
     void
     getLocationLineAndColumn(Location location, int& line, int& column) const;
     std::string
     getLocationLineAndColumn(Location location) const;
-    void
-    skipCommentTokens(Token& token);
 
-    using Nodes = std::stack<Value*>;
-    Nodes nodes_;
     Errors errors_;
     std::string document_;
-    Location begin_;
-    Location end_;
-    Location current_;
-    Location lastValueEnd_;
-    Value* lastValue_;
 };
 
 template <class BufferSequence>

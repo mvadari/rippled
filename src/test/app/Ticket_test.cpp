@@ -25,11 +25,11 @@ class Ticket_test : public beast::unit_test::suite
                 return;
         }
 
-        std::uint32_t const count = {tx[sfTicketCount.jsonName].asUInt()};
+        std::uint32_t const count = {tx[sfTicketCount.jsonName].asUInt32()};
         if (!BEAST_EXPECTS(count >= 1, "Unexpected ticket count: "s + std::to_string(count)))
             return;
 
-        std::uint32_t const txSeq = {tx[sfSequence.jsonName].asUInt()};
+        std::uint32_t const txSeq = {tx[sfSequence.jsonName].asUInt32()};
         std::string const account = tx[sfAccount.jsonName].asString();
 
         Json::Value const& metadata = env.meta()->getJson(JsonOptions::none);
@@ -96,9 +96,9 @@ class Ticket_test : public beast::unit_test::suite
                     else
                     {
                         // Verify the OwnerCount did the right thing.
-                        std::uint32_t const prevCount = {previousFields[sfOwnerCount.jsonName].asUInt()};
+                        std::uint32_t const prevCount = {previousFields[sfOwnerCount.jsonName].asUInt32()};
 
-                        std::uint32_t const finalCount = {finalFields[sfOwnerCount.jsonName].asUInt()};
+                        std::uint32_t const finalCount = {finalFields[sfOwnerCount.jsonName].asUInt32()};
 
                         BEAST_EXPECT(prevCount + count - consumedTickets == finalCount);
                     }
@@ -118,7 +118,7 @@ class Ticket_test : public beast::unit_test::suite
                         // should have been greater than zero.
                         std::uint32_t const startCount = {
                             previousFields.isMember(sfTicketCount.jsonName)
-                                ? previousFields[sfTicketCount.jsonName].asUInt()
+                                ? previousFields[sfTicketCount.jsonName].asUInt32()
                                 : 0u};
 
                         BEAST_EXPECT((startCount == 0u) ^ previousFields.isMember(sfTicketCount.jsonName));
@@ -225,7 +225,7 @@ class Ticket_test : public beast::unit_test::suite
         if (!BEAST_EXPECTS(tx.isMember(sfTicketSequence.jsonName), "Not metadata for a ticket consuming transaction."))
             return;
 
-        std::uint32_t const ticketSeq{tx[sfTicketSequence.jsonName].asUInt()};
+        std::uint32_t const ticketSeq{tx[sfTicketSequence.jsonName].asUInt32()};
 
         Json::Value const& metadata{env.meta()->getJson(JsonOptions::none)};
         if (!BEAST_EXPECTS(metadata.isMember(sfTransactionResult.jsonName), "Metadata is missing TransactionResult."))

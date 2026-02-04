@@ -624,34 +624,40 @@ TEST(json_value, edge_cases)
         EXPECT_LT(j1["a_small_int"], a_uint);
     }
 
-    std::uint64_t overflow = std::uint64_t(max_uint) + 1;
+    // Values just outside 32-bit range are now valid with boost::json (64-bit)
+    std::uint64_t val32_plus1 = std::uint64_t(max_uint) + 1;
     {
-        std::string json = "{\"overflow\":";
-        json += std::to_string(overflow);
+        std::string json = "{\"val\":";
+        json += std::to_string(val32_plus1);
         json += "}";
 
         Json::Value j2;
         Json::Reader r2;
 
-        EXPECT_FALSE(r2.parse(json, j2));
+        // boost::json supports 64-bit integers, so this should succeed
+        EXPECT_TRUE(r2.parse(json, j2));
+        EXPECT_EQ(j2["val"].asUInt(), val32_plus1);
     }
 
-    std::int64_t underflow = std::int64_t(min_int) - 1;
+    std::int64_t val32_minus1 = std::int64_t(min_int) - 1;
     {
-        std::string json = "{\"underflow\":";
-        json += std::to_string(underflow);
+        std::string json = "{\"val\":";
+        json += std::to_string(val32_minus1);
         json += "}";
 
         Json::Value j3;
         Json::Reader r3;
 
-        EXPECT_FALSE(r3.parse(json, j3));
+        // boost::json supports 64-bit integers, so this should succeed
+        EXPECT_TRUE(r3.parse(json, j3));
+        EXPECT_EQ(j3["val"].asInt(), val32_minus1);
     }
 
     {
-        Json::Value intString{std::to_string(overflow)};
-        EXPECT_THROW(intString.asUInt(), beast::BadLexicalCast);
-        EXPECT_THROW(intString.asAbsUInt(), Json::error);
+        // With 64-bit asUInt(), values outside 32-bit range but within 64-bit range should succeed
+        Json::Value intString{std::to_string(val32_plus1)};
+        EXPECT_EQ(intString.asUInt(), val32_plus1);     // Now succeeds with 64-bit
+        EXPECT_EQ(intString.asAbsUInt(), val32_plus1);  // asAbsUInt is still 64-bit
 
         intString = "4294967295";
         EXPECT_EQ(intString.asUInt(), 4294967295u);
@@ -662,17 +668,18 @@ TEST(json_value, edge_cases)
         EXPECT_EQ(intString.asAbsUInt(), 0);
 
         intString = "-1";
-        EXPECT_THROW(intString.asUInt(), beast::BadLexicalCast);
+        EXPECT_THROW(intString.asUInt(), beast::BadLexicalCast);  // Still throws for negative
         EXPECT_EQ(intString.asAbsUInt(), 1);
 
         intString = "-4294967295";
         EXPECT_EQ(intString.asAbsUInt(), 4294967295);
 
         intString = "-4294967296";
-        EXPECT_THROW(intString.asAbsUInt(), Json::error);
+        EXPECT_EQ(intString.asAbsUInt(), 4294967296);  // Now succeeds with 64-bit
 
+        // With 64-bit asInt(), values outside 32-bit range but within 64-bit range should succeed
         intString = "2147483648";
-        EXPECT_THROW(intString.asInt(), beast::BadLexicalCast);
+        EXPECT_EQ(intString.asInt(), 2147483648);  // Now succeeds with 64-bit
         EXPECT_EQ(intString.asAbsUInt(), 2147483648);
 
         intString = "2147483647";
@@ -684,14 +691,15 @@ TEST(json_value, edge_cases)
         EXPECT_EQ(intString.asAbsUInt(), 2147483648LL);
 
         intString = "-2147483649";
-        EXPECT_THROW(intString.asInt(), beast::BadLexicalCast);
+        EXPECT_EQ(intString.asInt(), -2147483649LL);  // Now succeeds with 64-bit
         EXPECT_EQ(intString.asAbsUInt(), 2147483649);
     }
 
     {
+        // With 64-bit asUInt(), values within 64-bit range should succeed
         Json::Value intReal{4294967297.0};
-        EXPECT_THROW(intReal.asUInt(), Json::error);
-        EXPECT_THROW(intReal.asAbsUInt(), Json::error);
+        EXPECT_EQ(intReal.asUInt(), 4294967297);  // Now succeeds with 64-bit
+        EXPECT_EQ(intReal.asAbsUInt(), 4294967297);
 
         intReal = 4294967295.0;
         EXPECT_EQ(intReal.asUInt(), 4294967295u);
@@ -702,17 +710,18 @@ TEST(json_value, edge_cases)
         EXPECT_EQ(intReal.asAbsUInt(), 0);
 
         intReal = -1.0;
-        EXPECT_THROW(intReal.asUInt(), Json::error);
+        EXPECT_THROW(intReal.asUInt(), Json::error);  // Still throws for negative
         EXPECT_EQ(intReal.asAbsUInt(), 1);
 
         intReal = -4294967295.0;
         EXPECT_EQ(intReal.asAbsUInt(), 4294967295);
 
         intReal = -4294967296.0;
-        EXPECT_THROW(intReal.asAbsUInt(), Json::error);
+        EXPECT_EQ(intReal.asAbsUInt(), 4294967296);  // Now succeeds with 64-bit
 
+        // With 64-bit asInt(), values within 64-bit range should succeed
         intReal = 2147483648.0;
-        EXPECT_THROW(intReal.asInt(), Json::error);
+        EXPECT_EQ(intReal.asInt(), 2147483648);  // Now succeeds with 64-bit
         EXPECT_EQ(intReal.asAbsUInt(), 2147483648);
 
         intReal = 2147483647.0;
@@ -724,7 +733,7 @@ TEST(json_value, edge_cases)
         EXPECT_EQ(intReal.asAbsUInt(), 2147483648LL);
 
         intReal = -2147483649.0;
-        EXPECT_THROW(intReal.asInt(), Json::error);
+        EXPECT_EQ(intReal.asInt(), -2147483649LL);  // Now succeeds with 64-bit
         EXPECT_EQ(intReal.asAbsUInt(), 2147483649);
     }
 }

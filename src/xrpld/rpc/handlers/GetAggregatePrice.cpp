@@ -159,7 +159,7 @@ doGetAggregatePrice(RPC::JsonContext& context)
         {
             if (!validUInt(params, field))
                 return rpcINVALID_PARAMS;
-            return params[field].asUInt();
+            return params[field].asUInt32();
         }
         return def;
     };

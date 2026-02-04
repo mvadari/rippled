@@ -36,7 +36,7 @@ Oracle::remove(RemoveArg const& arg)
     Json::Value jv;
     jv[jss::TransactionType] = jss::OracleDelete;
     jv[jss::Account] = to_string(arg.owner.value_or(owner_));
-    toJson(jv[jss::OracleDocumentID], arg.documentID.value_or(documentID_));
+    toJson(jv[jss::OracleDocumentID], arg.documentID.value_or(static_cast<Json::UInt>(documentID_)));
     if (Oracle::fee != 0)
         jv[jss::Fee] = std::to_string(Oracle::fee);
     else if (arg.fee != 0)
@@ -170,9 +170,9 @@ Oracle::set(UpdateArg const& arg)
     Json::Value jv;
     if (arg.owner)
         owner_ = *arg.owner;
-    if (arg.documentID && std::holds_alternative<std::uint32_t>(*arg.documentID))
+    if (arg.documentID && std::holds_alternative<Json::UInt>(*arg.documentID))
     {
-        documentID_ = std::get<std::uint32_t>(*arg.documentID);
+        documentID_ = static_cast<std::uint32_t>(std::get<Json::UInt>(*arg.documentID));
         jv[jss::OracleDocumentID] = documentID_;
     }
     else if (arg.documentID)
@@ -198,8 +198,8 @@ Oracle::set(UpdateArg const& arg)
     // lastUpdateTime if provided is offset from testStartTime
     if (arg.lastUpdateTime)
     {
-        if (std::holds_alternative<std::uint32_t>(*arg.lastUpdateTime))
-            jv[jss::LastUpdateTime] = to_string(testStartTime.count() + std::get<std::uint32_t>(*arg.lastUpdateTime));
+        if (std::holds_alternative<Json::UInt>(*arg.lastUpdateTime))
+            jv[jss::LastUpdateTime] = to_string(testStartTime.count() + std::get<Json::UInt>(*arg.lastUpdateTime));
         else
             toJson(jv[jss::LastUpdateTime], *arg.lastUpdateTime);
     }
@@ -321,7 +321,7 @@ asUInt(AnyValue const& v)
 {
     Json::Value jv;
     toJson(jv, v);
-    return jv.asUInt();
+    return jv.asUInt32();
 }
 
 bool

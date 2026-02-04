@@ -71,19 +71,27 @@ Value::Value(boost::json::value&& jv) : boost::json::value(std::move(jv))
 {
 }
 
-Value::Value(Int value) : boost::json::value(std::int64_t{value})
+Value::Value(Int value) : boost::json::value(value)
 {
 }
 
-Value::Value(UInt value) : boost::json::value(std::uint64_t{value})
+Value::Value(UInt value) : boost::json::value(value)
 {
 }
 
-Value::Value(std::int64_t value) : boost::json::value(value)
+Value::Value(int value) : boost::json::value(static_cast<Int>(value))
 {
 }
 
-Value::Value(std::uint64_t value) : boost::json::value(value)
+Value::Value(unsigned int value) : boost::json::value(static_cast<UInt>(value))
+{
+}
+
+Value::Value(short value) : boost::json::value(static_cast<Int>(value))
+{
+}
+
+Value::Value(unsigned short value) : boost::json::value(static_cast<UInt>(value))
 {
 }
 
@@ -337,7 +345,7 @@ Value::asInt() const
 
         case stringValue: {
             auto const& str = as_string();
-            return beast::lexicalCastThrow<int>(std::string(str));
+            return beast::lexicalCastThrow<std::int64_t>(std::string(str));
         }
 
         case arrayValue:
@@ -388,11 +396,10 @@ Value::asAbsUInt() const
             auto const temp = beast::lexicalCastThrow<std::int64_t>(std::string(str));
             if (temp < 0)
             {
-                JSON_ASSERT_MESSAGE(
-                    -temp <= static_cast<std::int64_t>(maxUInt), "String out of unsigned integer range");
+                // With 64-bit UInt, any negated int64 value fits
                 return static_cast<UInt>(-temp);
             }
-            JSON_ASSERT_MESSAGE(temp <= static_cast<std::int64_t>(maxUInt), "String out of unsigned integer range");
+            // Positive int64 always fits in uint64
             return static_cast<UInt>(temp);
         }
 
@@ -435,7 +442,7 @@ Value::asUInt() const
 
         case stringValue: {
             auto const& str = as_string();
-            return beast::lexicalCastThrow<unsigned int>(std::string(str));
+            return beast::lexicalCastThrow<std::uint64_t>(std::string(str));
         }
 
         case arrayValue:
@@ -447,6 +454,24 @@ Value::asUInt() const
     }
 
     return 0;
+}
+
+std::int32_t
+Value::asInt32() const
+{
+    auto val = asInt();
+    JSON_ASSERT_MESSAGE(
+        val >= std::numeric_limits<std::int32_t>::min() && val <= std::numeric_limits<std::int32_t>::max(),
+        "Value out of 32-bit signed integer range");
+    return static_cast<std::int32_t>(val);
+}
+
+std::uint32_t
+Value::asUInt32() const
+{
+    auto val = asUInt();
+    JSON_ASSERT_MESSAGE(val <= std::numeric_limits<std::uint32_t>::max(), "Value out of 32-bit unsigned integer range");
+    return static_cast<std::uint32_t>(val);
 }
 
 double

@@ -1,11 +1,13 @@
 #ifndef XRPL_JSON_JSON_FORWARDS_H_INCLUDED
 #define XRPL_JSON_JSON_FORWARDS_H_INCLUDED
 
+#include <cstdint>
+
 namespace Json {
 
 // value.h
-using Int = int;
-using UInt = unsigned int;
+using Int = std::int64_t;
+using UInt = std::uint64_t;
 class StaticString;
 class Value;
 

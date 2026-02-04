@@ -1886,9 +1886,9 @@ class LedgerEntry_test : public beast::unit_test::suite
         for (int i = 0; i < accounts.size(); ++i)
         {
             auto const jv = [&]() {
-                // document id is uint32
+                // document id is uint64
                 if (i % 2)
-                    return Oracle::ledgerEntry(env, accounts[i], oracles[i]);
+                    return Oracle::ledgerEntry(env, accounts[i], static_cast<Json::UInt>(oracles[i]));
                 // document id is string
                 return Oracle::ledgerEntry(env, accounts[i], std::to_string(oracles[i]));
             }();

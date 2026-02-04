@@ -143,8 +143,10 @@ public:
 
     Value(Int value);
     Value(UInt value);
-    Value(std::int64_t value);
-    Value(std::uint64_t value);
+    Value(int value);
+    Value(unsigned int value);
+    Value(short value);
+    Value(unsigned short value);
     Value(double value);
     Value(char const* value);
     Value(xrpl::Number const& value);
@@ -262,6 +264,12 @@ public:
     asInt() const;
     UInt
     asUInt() const;
+    /** Return as 32-bit signed integer, throws if out of range */
+    std::int32_t
+    asInt32() const;
+    /** Return as 32-bit unsigned integer, throws if out of range */
+    std::uint32_t
+    asUInt32() const;
     double
     asDouble() const;
     bool
@@ -294,6 +302,16 @@ public:
     operator[](int index);
     Value const&
     operator[](int index) const;
+    Value&
+    operator[](unsigned int index)
+    {
+        return (*this)[static_cast<UInt>(index)];
+    }
+    Value const&
+    operator[](unsigned int index) const
+    {
+        return (*this)[static_cast<UInt>(index)];
+    }
     Value&
     operator[](std::size_t index)
     {
