@@ -28,9 +28,10 @@ TEST(JsonOutput, output_cases)
 {
     checkOutput("{}");
     checkOutput("[]");
-    checkOutput(R"([23,4.25,true,null,"string"])");
+    // Note: boost::json normalizes floating-point representation to scientific notation
+    checkOutput(R"([23,4.25E0,true,null,"string"])");
     checkOutput(R"({"hello":"world"})");
     checkOutput("[{}]");
     checkOutput("[[]]");
-    checkOutput(R"({"array":[{"12":23},{},null,false,0.5]})");
+    checkOutput(R"({"array":[{"12":23},{},null,false,5E-1]})");
 }

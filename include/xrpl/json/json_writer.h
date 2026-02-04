@@ -4,6 +4,8 @@
 #include <xrpl/json/json_forwards.h>
 #include <xrpl/json/json_value.h>
 
+#include <boost/json.hpp>
+
 #include <ostream>
 #include <vector>
 
@@ -211,62 +213,9 @@ template <class Write>
 void
 write_value(Write const& write, Value const& value)
 {
-    switch (value.type())
-    {
-        case nullValue:
-            write("null", 4);
-            break;
-
-        case intValue:
-            write_string(write, valueToString(value.asInt()));
-            break;
-
-        case uintValue:
-            write_string(write, valueToString(value.asUInt()));
-            break;
-
-        case realValue:
-            write_string(write, valueToString(value.asDouble()));
-            break;
-
-        case stringValue:
-            write_string(write, valueToQuotedString(value.asCString()));
-            break;
-
-        case booleanValue:
-            write_string(write, valueToString(value.asBool()));
-            break;
-
-        case arrayValue: {
-            write("[", 1);
-            int const size = value.size();
-            for (int index = 0; index < size; ++index)
-            {
-                if (index > 0)
-                    write(",", 1);
-                write_value(write, value[index]);
-            }
-            write("]", 1);
-            break;
-        }
-
-        case objectValue: {
-            Value::Members const members = value.getMemberNames();
-            write("{", 1);
-            for (auto it = members.begin(); it != members.end(); ++it)
-            {
-                std::string const& name = *it;
-                if (it != members.begin())
-                    write(",", 1);
-
-                write_string(write, valueToQuotedString(name.c_str()));
-                write(":", 1);
-                write_value(write, value[name]);
-            }
-            write("}", 1);
-            break;
-        }
-    }
+    // Use boost::json::serialize for compact output
+    std::string s = boost::json::serialize(static_cast<boost::json::value const&>(value));
+    write(s.data(), s.size());
 }
 
 }  // namespace detail
