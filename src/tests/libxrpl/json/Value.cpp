@@ -570,6 +570,40 @@ TEST(json_value, bool)
     EXPECT_FALSE(object);
     object[""] = false;
     EXPECT_TRUE(bool(object));
+
+    // Test accessing non-existent keys in objects (used in Paths parsing)
+    Json::Value pathEl(Json::objectValue);
+
+    // Check before assignment
+    Json::Value& accountRef = pathEl["account"];
+    EXPECT_TRUE(accountRef.isNull()) << "Before assignment, should be null";
+
+    // Assign the string
+    accountRef = "rEUCCAbPUjGj3BssSTAPjUy3gafjqN9Aq5";
+
+    // Check after assignment via the same reference
+    EXPECT_EQ(accountRef.type(), Json::stringValue)
+        << "After assignment via ref, type should be string, got: " << static_cast<int>(accountRef.type());
+
+    // Now get a const reference
+    Json::Value const& account = pathEl["account"];
+    Json::Value const& currency = pathEl["currency"];
+    Json::Value const& issuer = pathEl["issuer"];
+
+    // Check type and string values
+    EXPECT_EQ(account.type(), Json::stringValue) << "account type: " << static_cast<int>(account.type());
+    EXPECT_TRUE(account.isString()) << "account should be a string";
+    EXPECT_EQ(account.asString(), "rEUCCAbPUjGj3BssSTAPjUy3gafjqN9Aq5");
+
+    // account exists and has a non-empty string, so it should be true
+    EXPECT_TRUE(bool(account)) << "account bool should be true";
+    // currency and issuer don't exist, so they should be null and false
+    EXPECT_TRUE(currency.isNull());
+    EXPECT_TRUE(issuer.isNull());
+    EXPECT_FALSE(currency);
+    EXPECT_FALSE(issuer);
+    // The check used in STParsedJSON.cpp should NOT fail when account exists
+    EXPECT_FALSE(!account && !currency && !issuer);
 }
 
 TEST(json_value, bad_json)

@@ -12,7 +12,7 @@ void
 outputJson(Json::Value const& value, Output const& out)
 {
     // Use boost::json::serialize for compact output, consistent with FastWriter
-    std::string s = boost::json::serialize(static_cast<boost::json::value const&>(value));
+    std::string s = boost::json::serialize(value.toBoostJson());
     out(boost::beast::string_view(s.data(), s.size()));
 }
 
@@ -20,7 +20,7 @@ std::string
 jsonAsString(Json::Value const& value)
 {
     // Use boost::json::serialize for compact output, consistent with FastWriter
-    return boost::json::serialize(static_cast<boost::json::value const&>(value));
+    return boost::json::serialize(value.toBoostJson());
 }
 
 }  // namespace Json

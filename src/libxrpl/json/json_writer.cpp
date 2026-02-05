@@ -65,7 +65,7 @@ std::string
 FastWriter::write(Value const& root)
 {
     // Use boost::json::serialize for compact output
-    return boost::json::serialize(static_cast<boost::json::value const&>(root));
+    return boost::json::serialize(root.toBoostJson());
 }
 
 void
@@ -73,7 +73,7 @@ FastWriter::writeValue(Value const& value)
 {
     // This method is no longer used since we use boost::json::serialize
     // Kept for API compatibility
-    document_ = boost::json::serialize(static_cast<boost::json::value const&>(value));
+    document_ = boost::json::serialize(value.toBoostJson());
 }
 
 // Class StyledWriter
@@ -175,7 +175,7 @@ StyledWriter::write(Value const& root)
 {
     std::ostringstream os;
     std::string indent;
-    prettyPrint(os, static_cast<boost::json::value const&>(root), &indent, "   ");
+    prettyPrint(os, root.toBoostJson(), &indent, "   ");
     os << "\n";
     return os.str();
 }
@@ -241,7 +241,7 @@ void
 StyledStreamWriter::write(std::ostream& out, Value const& root)
 {
     std::string indent;
-    prettyPrint(out, static_cast<boost::json::value const&>(root), &indent, indentation_);
+    prettyPrint(out, root.toBoostJson(), &indent, indentation_);
     out << "\n";
 }
 

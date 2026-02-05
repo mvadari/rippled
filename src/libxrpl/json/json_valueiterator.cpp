@@ -2,8 +2,6 @@
 
 #include <xrpl/json/json_value.h>
 
-#include <boost/json.hpp>
-
 namespace Json {
 
 // //////////////////////////////////////////////////////////////////
@@ -12,54 +10,35 @@ namespace Json {
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
-Value::const_iterator::const_iterator(boost::json::object::const_iterator it, boost::json::object::const_iterator end)
+Value::const_iterator::const_iterator(ObjectType::const_iterator it, ObjectType::const_iterator end)
     : type_(IteratorType::Object), objIt_(it), objEnd_(end)
 {
 }
 
-Value::const_iterator::const_iterator(
-    boost::json::array::const_iterator it,
-    boost::json::array::const_iterator end,
-    std::size_t index)
+Value::const_iterator::const_iterator(ArrayType::const_iterator it, ArrayType::const_iterator end, std::size_t index)
     : type_(IteratorType::Array), arrIt_(it), arrEnd_(end), arrayIndex_(index)
 {
-}
-
-void
-Value::const_iterator::updateCache() const
-{
-    if (cacheValid_)
-        return;
-
-    if (type_ == IteratorType::Object)
-    {
-        cachedValue_ = Value(objIt_->value());
-    }
-    else if (type_ == IteratorType::Array)
-    {
-        cachedValue_ = Value(*arrIt_);
-    }
-    cacheValid_ = true;
 }
 
 Value::const_iterator::reference
 Value::const_iterator::operator*() const
 {
-    updateCache();
-    return cachedValue_;
+    if (type_ == IteratorType::Object)
+        return objIt_->second;
+    return *arrIt_;
 }
 
 Value::const_iterator::pointer
 Value::const_iterator::operator->() const
 {
-    updateCache();
-    return &cachedValue_;
+    if (type_ == IteratorType::Object)
+        return &objIt_->second;
+    return &*arrIt_;
 }
 
 Value::const_iterator&
 Value::const_iterator::operator++()
 {
-    cacheValid_ = false;
     if (type_ == IteratorType::Object)
         ++objIt_;
     else if (type_ == IteratorType::Array)
@@ -81,7 +60,6 @@ Value::const_iterator::operator++(int)
 Value::const_iterator&
 Value::const_iterator::operator--()
 {
-    cacheValid_ = false;
     if (type_ == IteratorType::Object)
         --objIt_;
     else if (type_ == IteratorType::Array)
@@ -122,7 +100,7 @@ Value
 Value::const_iterator::key() const
 {
     if (type_ == IteratorType::Object)
-        return Value(std::string(objIt_->key()));
+        return Value(objIt_->first);
     return Value(static_cast<UInt>(arrayIndex_));
 }
 
@@ -138,7 +116,7 @@ std::string
 Value::const_iterator::memberName() const
 {
     if (type_ == IteratorType::Object)
-        return std::string(objIt_->key());
+        return objIt_->first;
     return "";
 }
 
@@ -148,12 +126,12 @@ Value::const_iterator::memberName() const
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
-Value::iterator::iterator(boost::json::object::iterator it, boost::json::object::iterator end)
+Value::iterator::iterator(ObjectType::iterator it, ObjectType::iterator end)
     : type_(IteratorType::Object), objIt_(it), objEnd_(end)
 {
 }
 
-Value::iterator::iterator(boost::json::array::iterator it, boost::json::array::iterator end, std::size_t index)
+Value::iterator::iterator(ArrayType::iterator it, ArrayType::iterator end, std::size_t index)
     : type_(IteratorType::Array), arrIt_(it), arrEnd_(end), arrayIndex_(index)
 {
 }
@@ -162,16 +140,16 @@ Value::iterator::reference
 Value::iterator::operator*() const
 {
     if (type_ == IteratorType::Object)
-        return static_cast<Value&>(objIt_->value());
-    return static_cast<Value&>(*arrIt_);
+        return objIt_->second;
+    return *arrIt_;
 }
 
 Value::iterator::pointer
 Value::iterator::operator->() const
 {
     if (type_ == IteratorType::Object)
-        return static_cast<Value*>(&objIt_->value());
-    return static_cast<Value*>(&*arrIt_);
+        return &objIt_->second;
+    return &*arrIt_;
 }
 
 Value::iterator&
@@ -238,7 +216,7 @@ Value
 Value::iterator::key() const
 {
     if (type_ == IteratorType::Object)
-        return Value(std::string(objIt_->key()));
+        return Value(objIt_->first);
     return Value(static_cast<UInt>(arrayIndex_));
 }
 
@@ -254,7 +232,7 @@ std::string
 Value::iterator::memberName() const
 {
     if (type_ == IteratorType::Object)
-        return std::string(objIt_->key());
+        return objIt_->first;
     return "";
 }
 
@@ -262,8 +240,6 @@ Value::iterator::operator const_iterator() const
 {
     if (type_ == IteratorType::Object)
     {
-        // Need to convert non-const iterator to const iterator
-        // boost::json::object::const_iterator can be constructed from iterator
         return const_iterator(objIt_, objEnd_);
     }
     else if (type_ == IteratorType::Array)

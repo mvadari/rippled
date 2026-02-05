@@ -24,140 +24,216 @@ Value::nullRef()
     return null;
 }
 
-// //////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////
+// Helper to convert boost::json::value to Json::Value (deep conversion)
+static Value
+fromBoostJson(boost::json::value const& jv)
+{
+    switch (jv.kind())
+    {
+        case boost::json::kind::null:
+            return Value(nullValue);
+        case boost::json::kind::bool_:
+            return Value(jv.as_bool());
+        case boost::json::kind::int64:
+            return Value(static_cast<Value::Int>(jv.as_int64()));
+        case boost::json::kind::uint64:
+            return Value(static_cast<Value::UInt>(jv.as_uint64()));
+        case boost::json::kind::double_:
+            return Value(jv.as_double());
+        case boost::json::kind::string:
+            return Value(std::string(jv.as_string()));
+        case boost::json::kind::array: {
+            Value result(arrayValue);
+            for (auto const& elem : jv.as_array())
+                result.append(fromBoostJson(elem));
+            return result;
+        }
+        case boost::json::kind::object: {
+            Value result(objectValue);
+            for (auto const& kv : jv.as_object())
+                result[std::string(kv.key())] = fromBoostJson(kv.value());
+            return result;
+        }
+    }
+    return Value();  // unreachable
+}
+
 // //////////////////////////////////////////////////////////////////
 // class Value::Value - Constructors
 // //////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////
 
-Value::Value(ValueType type) : boost::json::value()
+Value::Value(ValueType type) : data_(nullptr)
 {
     switch (type)
     {
         case nullValue:
-            // Default is null
+            data_ = nullptr;
             break;
         case intValue:
-            *static_cast<boost::json::value*>(this) = std::int64_t{0};
+            data_ = Int{0};
             break;
         case uintValue:
-            *static_cast<boost::json::value*>(this) = std::uint64_t{0};
+            data_ = UInt{0};
             break;
         case realValue:
-            *static_cast<boost::json::value*>(this) = 0.0;
+            data_ = 0.0;
             break;
         case stringValue:
-            *static_cast<boost::json::value*>(this) = "";
-            break;
-        case arrayValue:
-            *static_cast<boost::json::value*>(this) = boost::json::array{};
-            break;
-        case objectValue:
-            *static_cast<boost::json::value*>(this) = boost::json::object{};
+            data_ = std::string{};
             break;
         case booleanValue:
-            *static_cast<boost::json::value*>(this) = false;
+            data_ = false;
+            break;
+        case arrayValue:
+            data_ = ArrayType{};
+            break;
+        case objectValue:
+            data_ = ObjectType{};
             break;
     }
 }
 
-Value::Value(boost::json::value const& jv) : boost::json::value(jv)
+Value::Value(boost::json::value const& jv) : Value(fromBoostJson(jv))
 {
 }
 
-Value::Value(boost::json::value&& jv) : boost::json::value(std::move(jv))
+Value::Value(boost::json::value&& jv) : Value(fromBoostJson(jv))
 {
 }
 
-Value::Value(Int value) : boost::json::value(value)
+Value::Value(Int value) : data_(value)
 {
 }
 
-Value::Value(UInt value) : boost::json::value(value)
+Value::Value(UInt value) : data_(value)
 {
 }
 
-Value::Value(int value) : boost::json::value(static_cast<Int>(value))
+Value::Value(int value) : data_(static_cast<Int>(value))
 {
 }
 
-Value::Value(unsigned int value) : boost::json::value(static_cast<UInt>(value))
+Value::Value(unsigned int value) : data_(static_cast<UInt>(value))
 {
 }
 
-Value::Value(short value) : boost::json::value(static_cast<Int>(value))
+Value::Value(short value) : data_(static_cast<Int>(value))
 {
 }
 
-Value::Value(unsigned short value) : boost::json::value(static_cast<UInt>(value))
+Value::Value(unsigned short value) : data_(static_cast<UInt>(value))
 {
 }
 
-Value::Value(double value) : boost::json::value(value)
+Value::Value(double value) : data_(value)
 {
 }
 
-Value::Value(char const* value) : boost::json::value(value ? value : "")
+Value::Value(char const* value) : data_(std::string(value ? value : ""))
 {
 }
 
-Value::Value(xrpl::Number const& value) : boost::json::value(to_string(value))
+Value::Value(xrpl::Number const& value) : data_(to_string(value))
 {
 }
 
-Value::Value(std::string const& value) : boost::json::value(value)
+Value::Value(std::string const& value) : data_(value)
 {
 }
 
-Value::Value(std::string_view value) : boost::json::value(value)
+Value::Value(std::string_view value) : data_(std::string(value))
 {
 }
 
-Value::Value(StaticString const& value) : boost::json::value(value.c_str() ? value.c_str() : "")
+Value::Value(StaticString const& value) : data_(std::string(value.c_str() ? value.c_str() : ""))
 {
 }
 
-Value::Value(bool value) : boost::json::value(value)
+Value::Value(bool value) : data_(value)
 {
 }
 
-Value::Value(std::nullptr_t) : boost::json::value(nullptr)
+Value::Value(std::nullptr_t) : data_(nullptr)
 {
 }
 
-// //////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////
+// Move constructor
+Value::Value(Value&& other) noexcept : data_(std::move(other.data_))
+{
+    // Nullify the moved-from object (legacy behavior)
+    other.data_ = nullptr;
+}
+
+// Move assignment
+Value&
+Value::operator=(Value&& other) noexcept
+{
+    if (this != &other)
+    {
+        data_ = std::move(other.data_);
+        // Nullify the moved-from object (legacy behavior)
+        other.data_ = nullptr;
+    }
+    return *this;
+}
+
 // //////////////////////////////////////////////////////////////////
 // class Value - Type checking
-// //////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
 ValueType
 Value::type() const
 {
-    switch (kind())
-    {
-        case boost::json::kind::null:
-            return nullValue;
-        case boost::json::kind::bool_:
-            return booleanValue;
-        case boost::json::kind::int64:
-            return intValue;
-        case boost::json::kind::uint64:
-            return uintValue;
-        case boost::json::kind::double_:
-            return realValue;
-        case boost::json::kind::string:
-            return stringValue;
-        case boost::json::kind::array:
-            return arrayValue;
-        case boost::json::kind::object:
-            return objectValue;
-    }
-    return nullValue;  // unreachable
+    return static_cast<ValueType>(data_.index());
+}
+
+// Helper to get Int from storage
+Int
+getInt(Value const& v)
+{
+    return std::get<Int>(v.data_);
+}
+
+// Helper to get UInt from storage
+UInt
+getUInt(Value const& v)
+{
+    return std::get<UInt>(v.data_);
+}
+
+// Helper to get double from storage
+double
+getDouble(Value const& v)
+{
+    return std::get<double>(v.data_);
+}
+
+// Helper to get bool from storage
+bool
+getBool(Value const& v)
+{
+    return std::get<bool>(v.data_);
+}
+
+// Helper to get string from storage
+std::string const&
+getString(Value const& v)
+{
+    return std::get<std::string>(v.data_);
+}
+
+// Helper to get array from storage
+Value::ArrayType const&
+getArray(Value const& v)
+{
+    return std::get<Value::ArrayType>(v.data_);
+}
+
+// Helper to get object from storage
+Value::ObjectType const&
+getObject(Value const& v)
+{
+    return std::get<Value::ObjectType>(v.data_);
 }
 
 static int
@@ -168,7 +244,7 @@ integerCmp(Int i, UInt ui)
         return -1;
 
     // Now we can safely compare.
-    return (i < ui) ? -1 : (i == ui) ? 0 : 1;
+    return (static_cast<UInt>(i) < ui) ? -1 : (static_cast<UInt>(i) == ui) ? 0 : 1;
 }
 
 bool
@@ -192,55 +268,51 @@ operator<(Value const& x, Value const& y)
             return false;
 
         case intValue:
-            return x.as_int64() < y.as_int64();
+            return getInt(x) < getInt(y);
 
         case uintValue:
-            return x.as_uint64() < y.as_uint64();
+            return getUInt(x) < getUInt(y);
 
         case realValue:
-            return x.as_double() < y.as_double();
+            return getDouble(x) < getDouble(y);
 
         case booleanValue:
-            return x.as_bool() < y.as_bool();
+            return getBool(x) < getBool(y);
 
         case stringValue:
-            return x.as_string() < y.as_string();
+            return getString(x) < getString(y);
 
         case arrayValue: {
-            auto const& xa = x.as_array();
-            auto const& ya = y.as_array();
+            auto const& xa = getArray(x);
+            auto const& ya = getArray(y);
             if (xa.size() != ya.size())
                 return xa.size() < ya.size();
             for (std::size_t i = 0; i < xa.size(); ++i)
             {
-                Value const& xv = Value::asValue(xa[i]);
-                Value const& yv = Value::asValue(ya[i]);
-                if (xv < yv)
+                if (xa[i] < ya[i])
                     return true;
-                if (yv < xv)
+                if (ya[i] < xa[i])
                     return false;
             }
             return false;
         }
 
         case objectValue: {
-            auto const& xo = x.as_object();
-            auto const& yo = y.as_object();
+            auto const& xo = getObject(x);
+            auto const& yo = getObject(y);
             if (xo.size() != yo.size())
                 return xo.size() < yo.size();
             auto xit = xo.begin();
             auto yit = yo.begin();
             for (; xit != xo.end(); ++xit, ++yit)
             {
-                if (xit->key() < yit->key())
+                if (xit->first < yit->first)
                     return true;
-                if (yit->key() < xit->key())
+                if (yit->first < xit->first)
                     return false;
-                Value const& xv = Value::asValue(xit->value());
-                Value const& yv = Value::asValue(yit->value());
-                if (xv < yv)
+                if (xit->second < yit->second)
                     return true;
-                if (yv < xv)
+                if (yit->second < xit->second)
                     return false;
             }
             return false;
@@ -268,15 +340,15 @@ operator==(Value const& x, Value const& y)
         return false;
     }
 
-    // Use boost::json's built-in comparison
-    return static_cast<boost::json::value const&>(x) == static_cast<boost::json::value const&>(y);
+    // Compare based on type
+    return x.data_ == y.data_;
 }
 
 char const*
 Value::asCString() const
 {
     XRPL_ASSERT(type() == stringValue, "Json::Value::asCString : valid type");
-    auto const& s = as_string();
+    auto const& s = getString(*this);
     // Return nullptr for empty strings (legacy behavior)
     if (s.empty())
         return nullptr;
@@ -292,19 +364,19 @@ Value::asString() const
             return "";
 
         case stringValue:
-            return std::string(as_string());
+            return getString(*this);
 
         case booleanValue:
-            return as_bool() ? "true" : "false";
+            return getBool(*this) ? "true" : "false";
 
         case intValue:
-            return std::to_string(as_int64());
+            return std::to_string(getInt(*this));
 
         case uintValue:
-            return std::to_string(as_uint64());
+            return std::to_string(getUInt(*this));
 
         case realValue:
-            return std::to_string(as_double());
+            return std::to_string(getDouble(*this));
 
         case arrayValue:
         case objectValue:
@@ -326,26 +398,26 @@ Value::asInt() const
             return 0;
 
         case intValue:
-            return static_cast<Int>(as_int64());
+            return getInt(*this);
 
         case uintValue: {
-            auto val = as_uint64();
-            JSON_ASSERT_MESSAGE(val < static_cast<std::uint64_t>(maxInt), "integer out of signed integer range");
+            auto val = getUInt(*this);
+            JSON_ASSERT_MESSAGE(val <= static_cast<UInt>(maxInt), "integer out of signed integer range");
             return static_cast<Int>(val);
         }
 
         case realValue: {
-            auto val = as_double();
+            auto val = getDouble(*this);
             JSON_ASSERT_MESSAGE(val >= minInt && val <= maxInt, "Real out of signed integer range");
             return static_cast<Int>(val);
         }
 
         case booleanValue:
-            return as_bool() ? 1 : 0;
+            return getBool(*this) ? 1 : 0;
 
         case stringValue: {
-            auto const& str = as_string();
-            return beast::lexicalCastThrow<std::int64_t>(std::string(str));
+            auto const& str = getString(*this);
+            return beast::lexicalCastThrow<std::int64_t>(str);
         }
 
         case arrayValue:
@@ -368,17 +440,17 @@ Value::asAbsUInt() const
             return 0;
 
         case intValue: {
-            auto val = as_int64();
+            auto val = getInt(*this);
             if (val < 0)
                 return static_cast<UInt>(-val);
             return static_cast<UInt>(val);
         }
 
         case uintValue:
-            return static_cast<UInt>(as_uint64());
+            return getUInt(*this);
 
         case realValue: {
-            auto val = as_double();
+            auto val = getDouble(*this);
             if (val < 0)
             {
                 JSON_ASSERT_MESSAGE(-val <= maxUInt, "Real out of unsigned integer range");
@@ -389,11 +461,11 @@ Value::asAbsUInt() const
         }
 
         case booleanValue:
-            return as_bool() ? 1 : 0;
+            return getBool(*this) ? 1 : 0;
 
         case stringValue: {
-            auto const& str = as_string();
-            auto const temp = beast::lexicalCastThrow<std::int64_t>(std::string(str));
+            auto const& str = getString(*this);
+            auto const temp = beast::lexicalCastThrow<std::int64_t>(str);
             if (temp < 0)
             {
                 // With 64-bit UInt, any negated int64 value fits
@@ -423,26 +495,26 @@ Value::asUInt() const
             return 0;
 
         case intValue: {
-            auto val = as_int64();
+            auto val = getInt(*this);
             JSON_ASSERT_MESSAGE(val >= 0, "Negative integer can not be converted to unsigned integer");
             return static_cast<UInt>(val);
         }
 
         case uintValue:
-            return static_cast<UInt>(as_uint64());
+            return getUInt(*this);
 
         case realValue: {
-            auto val = as_double();
+            auto val = getDouble(*this);
             JSON_ASSERT_MESSAGE(val >= 0 && val <= maxUInt, "Real out of unsigned integer range");
             return static_cast<UInt>(val);
         }
 
         case booleanValue:
-            return as_bool() ? 1 : 0;
+            return getBool(*this) ? 1 : 0;
 
         case stringValue: {
-            auto const& str = as_string();
-            return beast::lexicalCastThrow<std::uint64_t>(std::string(str));
+            auto const& str = getString(*this);
+            return beast::lexicalCastThrow<std::uint64_t>(str);
         }
 
         case arrayValue:
@@ -483,16 +555,16 @@ Value::asDouble() const
             return 0.0;
 
         case intValue:
-            return static_cast<double>(as_int64());
+            return static_cast<double>(getInt(*this));
 
         case uintValue:
-            return static_cast<double>(as_uint64());
+            return static_cast<double>(getUInt(*this));
 
         case realValue:
-            return as_double();
+            return getDouble(*this);
 
         case booleanValue:
-            return as_bool() ? 1.0 : 0.0;
+            return getBool(*this) ? 1.0 : 0.0;
 
         case stringValue:
         case arrayValue:
@@ -515,25 +587,25 @@ Value::asBool() const
             return false;
 
         case intValue:
-            return as_int64() != 0;
+            return getInt(*this) != 0;
 
         case uintValue:
-            return as_uint64() != 0;
+            return getUInt(*this) != 0;
 
         case realValue:
-            return as_double() != 0.0;
+            return getDouble(*this) != 0.0;
 
         case booleanValue:
-            return as_bool();
+            return getBool(*this);
 
         case stringValue:
-            return !as_string().empty();
+            return !getString(*this).empty();
 
         case arrayValue:
-            return !as_array().empty();
+            return !getArray(*this).empty();
 
         case objectValue:
-            return !as_object().empty();
+            return !getObject(*this).empty();
 
         default:
             break;
@@ -551,20 +623,19 @@ Value::isConvertibleTo(ValueType other) const
             return true;
 
         case intValue: {
-            auto val = as_int64();
+            auto val = getInt(*this);
             return (other == nullValue && val == 0) || other == intValue || (other == uintValue && val >= 0) ||
                 other == realValue || other == stringValue || other == booleanValue;
         }
 
         case uintValue: {
-            auto val = as_uint64();
-            return (other == nullValue && val == 0) ||
-                (other == intValue && val <= static_cast<std::uint64_t>(maxInt)) || other == uintValue ||
-                other == realValue || other == stringValue || other == booleanValue;
+            auto val = getUInt(*this);
+            return (other == nullValue && val == 0) || (other == intValue && val <= static_cast<UInt>(maxInt)) ||
+                other == uintValue || other == realValue || other == stringValue || other == booleanValue;
         }
 
         case realValue: {
-            auto val = as_double();
+            auto val = getDouble(*this);
             return (other == nullValue && val == 0.0) || (other == intValue && val >= minInt && val <= maxInt) ||
                 (other == uintValue && val >= 0 && val <= maxUInt &&
                  std::fabs(round(val) - val) < std::numeric_limits<double>::epsilon()) ||
@@ -572,23 +643,37 @@ Value::isConvertibleTo(ValueType other) const
         }
 
         case booleanValue:
-            return (other == nullValue && !as_bool()) || other == intValue || other == uintValue ||
+            return (other == nullValue && !getBool(*this)) || other == intValue || other == uintValue ||
                 other == realValue || other == stringValue || other == booleanValue;
 
         case stringValue:
-            return other == stringValue || (other == nullValue && as_string().empty());
+            return other == stringValue || (other == nullValue && getString(*this).empty());
 
         case arrayValue:
-            return other == arrayValue || (other == nullValue && as_array().empty());
+            return other == arrayValue || (other == nullValue && getArray(*this).empty());
 
         case objectValue:
-            return other == objectValue || (other == nullValue && as_object().empty());
+            return other == objectValue || (other == nullValue && getObject(*this).empty());
 
         default:
             break;
     }
 
     return false;
+}
+
+// Helper to get mutable array from storage
+Value::ArrayType&
+getMutableArray(Value& v)
+{
+    return std::get<Value::ArrayType>(v.data_);
+}
+
+// Helper to get mutable object from storage
+Value::ObjectType&
+getMutableObject(Value& v)
+{
+    return std::get<Value::ObjectType>(v.data_);
 }
 
 /// Number of values in array or object
@@ -606,10 +691,10 @@ Value::size() const
             return 0;
 
         case arrayValue:
-            return static_cast<UInt>(as_array().size());
+            return static_cast<UInt>(getArray(*this).size());
 
         case objectValue:
-            return static_cast<UInt>(as_object().size());
+            return static_cast<UInt>(getObject(*this).size());
 
         default:
             break;
@@ -624,7 +709,7 @@ Value::operator bool() const
         return false;
 
     if (isString())
-        return !as_string().empty();
+        return !getString(*this).empty();
 
     return !(isArray() || isObject()) || size();
 }
@@ -638,11 +723,11 @@ Value::clear()
     switch (t)
     {
         case arrayValue:
-            as_array().clear();
+            getMutableArray(*this).clear();
             break;
 
         case objectValue:
-            as_object().clear();
+            getMutableObject(*this).clear();
             break;
 
         default:
@@ -657,15 +742,15 @@ Value::operator[](UInt index)
     XRPL_ASSERT(t == nullValue || t == arrayValue, "Json::Value::operator[](UInt) : valid type");
 
     if (t == nullValue)
-        *static_cast<boost::json::value*>(this) = boost::json::array{};
+        data_ = ArrayType{};
 
-    auto& arr = as_array();
+    auto& arr = getMutableArray(*this);
 
     // Expand array if needed
     while (arr.size() <= index)
-        arr.push_back(nullptr);
+        arr.push_back(Value());
 
-    return asValue(arr[index]);
+    return arr[index];
 }
 
 Value const&
@@ -677,11 +762,11 @@ Value::operator[](UInt index) const
     if (t == nullValue)
         return null;
 
-    auto const& arr = as_array();
+    auto const& arr = getArray(*this);
     if (index >= arr.size())
         return null;
 
-    return asValue(arr[index]);
+    return arr[index];
 }
 
 Value&
@@ -709,15 +794,16 @@ Value::resolveReference(char const* key)
     XRPL_ASSERT(t == nullValue || t == objectValue, "Json::Value::resolveReference : valid type");
 
     if (t == nullValue)
-        *static_cast<boost::json::value*>(this) = boost::json::object{};
+        data_ = ObjectType{};
 
-    auto& obj = as_object();
+    auto& obj = getMutableObject(*this);
 
-    // Insert if not present
-    if (!obj.contains(key))
-        obj[key] = nullptr;
+    // Insert if not present (use transparent lookup)
+    auto it = obj.find(key);
+    if (it == obj.end())
+        obj[key] = Value();
 
-    return asValue(obj[key]);
+    return obj[key];
 }
 
 Value
@@ -727,16 +813,16 @@ Value::get(UInt index, Value const& defaultValue) const
     if (t != arrayValue)
         return defaultValue;
 
-    auto const& arr = as_array();
+    auto const& arr = getArray(*this);
     if (index >= arr.size())
         return defaultValue;
 
     // If the element is null, return the default value (legacy behavior)
     auto const& elem = arr[index];
-    if (elem.is_null())
+    if (elem.isNull())
         return defaultValue;
 
-    return Value(elem);
+    return elem;
 }
 
 bool
@@ -754,12 +840,12 @@ Value::operator[](char const* key) const
     if (t == nullValue)
         return null;
 
-    auto const& obj = as_object();
+    auto const& obj = getObject(*this);
     auto it = obj.find(key);
     if (it == obj.end())
         return null;
 
-    return asValue(it->value());
+    return it->second;
 }
 
 Value&
@@ -803,10 +889,11 @@ Value::append(Value const& value)
 {
     auto t = type();
     if (t == nullValue)
-        *static_cast<boost::json::value*>(this) = boost::json::array{};
+        data_ = ArrayType{};
 
-    as_array().push_back(static_cast<boost::json::value const&>(value));
-    return asValue(as_array().back());
+    auto& arr = getMutableArray(*this);
+    arr.push_back(value);
+    return arr.back();
 }
 
 Value&
@@ -814,12 +901,13 @@ Value::append(Value&& value)
 {
     auto t = type();
     if (t == nullValue)
-        *static_cast<boost::json::value*>(this) = boost::json::array{};
+        data_ = ArrayType{};
 
-    as_array().push_back(static_cast<boost::json::value&&>(value));
-    // Nullify the moved-from value (legacy behavior)
-    static_cast<boost::json::value&>(value) = nullptr;
-    return asValue(as_array().back());
+    auto& arr = getMutableArray(*this);
+    arr.push_back(std::move(value));
+    // Nullify the moved-from value (legacy behavior) - already handled by move
+    // constructor
+    return arr.back();
 }
 
 Value
@@ -829,12 +917,12 @@ Value::get(char const* key, Value const& defaultValue) const
     if (t != objectValue)
         return defaultValue;
 
-    auto const& obj = as_object();
+    auto const& obj = getObject(*this);
     auto it = obj.find(key);
     if (it == obj.end())
         return defaultValue;
 
-    return Value(it->value());
+    return it->second;
 }
 
 Value
@@ -852,12 +940,12 @@ Value::removeMember(char const* key)
     if (t == nullValue)
         return null;
 
-    auto& obj = as_object();
+    auto& obj = getMutableObject(*this);
     auto it = obj.find(key);
     if (it == obj.end())
         return null;
 
-    Value old(it->value());
+    Value old(std::move(it->second));
     obj.erase(it);
     return old;
 }
@@ -874,7 +962,7 @@ Value::isMember(char const* key) const
     if (type() != objectValue)
         return false;
 
-    return as_object().contains(key);
+    return getObject(*this).contains(key);
 }
 
 bool
@@ -898,12 +986,12 @@ Value::getMemberNames() const
     if (t == nullValue)
         return Value::Members();
 
-    auto const& obj = as_object();
+    auto const& obj = getObject(*this);
     Members members;
     members.reserve(obj.size());
 
     for (auto const& kv : obj)
-        members.push_back(std::string(kv.key()));
+        members.push_back(kv.first);
 
     return members;
 }
@@ -915,16 +1003,54 @@ Value::toStyledString() const
     return writer.write(*this);
 }
 
+// Convert Json::Value to boost::json::value for serialization
+boost::json::value
+Value::toBoostJson() const
+{
+    switch (type())
+    {
+        case nullValue:
+            return nullptr;
+        case intValue:
+            return getInt(*this);
+        case uintValue:
+            return getUInt(*this);
+        case realValue:
+            return getDouble(*this);
+        case booleanValue:
+            return getBool(*this);
+        case stringValue:
+            return boost::json::string(getString(*this));
+        case arrayValue: {
+            boost::json::array arr;
+            for (auto const& elem : getArray(*this))
+                arr.push_back(elem.toBoostJson());
+            return arr;
+        }
+        case objectValue: {
+            boost::json::object obj;
+            for (auto const& kv : getObject(*this))
+                obj[kv.first] = kv.second.toBoostJson();
+            return obj;
+        }
+    }
+    return nullptr;  // unreachable
+}
+
 Value::const_iterator
 Value::begin() const
 {
     switch (type())
     {
-        case arrayValue:
-            return const_iterator(as_array().begin(), as_array().end(), 0);
+        case arrayValue: {
+            auto const& arr = getArray(*this);
+            return const_iterator(arr.begin(), arr.end(), 0);
+        }
 
-        case objectValue:
-            return const_iterator(as_object().begin(), as_object().end());
+        case objectValue: {
+            auto const& obj = getObject(*this);
+            return const_iterator(obj.begin(), obj.end());
+        }
 
         default:
             break;
@@ -938,11 +1064,15 @@ Value::end() const
 {
     switch (type())
     {
-        case arrayValue:
-            return const_iterator(as_array().end(), as_array().end(), static_cast<UInt>(as_array().size()));
+        case arrayValue: {
+            auto const& arr = getArray(*this);
+            return const_iterator(arr.end(), arr.end(), static_cast<UInt>(arr.size()));
+        }
 
-        case objectValue:
-            return const_iterator(as_object().end(), as_object().end());
+        case objectValue: {
+            auto const& obj = getObject(*this);
+            return const_iterator(obj.end(), obj.end());
+        }
 
         default:
             break;
@@ -956,11 +1086,15 @@ Value::begin()
 {
     switch (type())
     {
-        case arrayValue:
-            return iterator(as_array().begin(), as_array().end(), 0);
+        case arrayValue: {
+            auto& arr = getMutableArray(*this);
+            return iterator(arr.begin(), arr.end(), 0);
+        }
 
-        case objectValue:
-            return iterator(as_object().begin(), as_object().end());
+        case objectValue: {
+            auto& obj = getMutableObject(*this);
+            return iterator(obj.begin(), obj.end());
+        }
 
         default:
             break;
@@ -974,11 +1108,15 @@ Value::end()
 {
     switch (type())
     {
-        case arrayValue:
-            return iterator(as_array().end(), as_array().end(), static_cast<UInt>(as_array().size()));
+        case arrayValue: {
+            auto& arr = getMutableArray(*this);
+            return iterator(arr.end(), arr.end(), static_cast<UInt>(arr.size()));
+        }
 
-        case objectValue:
-            return iterator(as_object().end(), as_object().end());
+        case objectValue: {
+            auto& obj = getMutableObject(*this);
+            return iterator(obj.end(), obj.end());
+        }
 
         default:
             break;

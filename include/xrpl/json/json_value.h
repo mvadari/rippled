@@ -8,7 +8,9 @@
 
 #include <cstring>
 #include <limits>
+#include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 /** \brief JSON (JavaScript Object Notation).
@@ -16,7 +18,6 @@
 namespace Json {
 
 /** \brief Type of the value held by a Value object.
- *  Kept for API compatibility - maps to boost::json::kind
  */
 enum ValueType {
     nullValue = 0,  ///< 'null' value
@@ -93,8 +94,8 @@ operator!=(StaticString x, std::string const& y)
 
 /** \brief Represents a <a HREF="http://www.json.org">JSON</a> value.
  *
- * This class inherits from boost::json::value and provides the legacy API
- * for compatibility while using boost::json internally.
+ * This class uses composition with internal storage and provides the legacy API
+ * for compatibility while using boost::json for parsing and serialization.
  *
  * It can represent:
  * - signed integer (64-bit)
@@ -108,18 +109,16 @@ operator!=(StaticString x, std::string const& y)
  *
  * The type of the held value is represented by a #ValueType and
  * can be obtained using type().
- *
- * @note This class inherits from boost::json::value and adds no data members,
- *       so it has the same memory layout. This allows safe casting between
- *       boost::json::value& and Json::Value&.
  */
-class Value : public boost::json::value
+class Value
 {
 public:
     using Members = std::vector<std::string>;
     using UInt = Json::UInt;
     using Int = Json::Int;
     using ArrayIndex = UInt;
+    using ArrayType = std::vector<Value>;
+    using ObjectType = std::map<std::string, Value, std::less<>>;
 
     static Value const null;
     static constexpr Int minInt = std::numeric_limits<Int>::min();
@@ -137,7 +136,7 @@ public:
     /** \brief Create a default Value of the given type. */
     Value(ValueType type = nullValue);
 
-    /** \brief Construct from boost::json::value (implicit conversion) */
+    /** \brief Construct from boost::json::value (deep conversion) */
     Value(boost::json::value const& jv);
     Value(boost::json::value&& jv);
 
@@ -162,27 +161,14 @@ public:
     operator=(Value const& other) = default;
 
     // Move (nullify source for legacy compatibility)
-    Value(Value&& other) noexcept : boost::json::value(std::move(other))
-    {
-        // Nullify the moved-from object (legacy behavior)
-        static_cast<boost::json::value&>(other) = nullptr;
-    }
+    Value(Value&& other) noexcept;
     Value&
-    operator=(Value&& other) noexcept
-    {
-        if (this != &other)
-        {
-            boost::json::value::operator=(std::move(other));
-            // Nullify the moved-from object (legacy behavior)
-            static_cast<boost::json::value&>(other) = nullptr;
-        }
-        return *this;
-    }
+    operator=(Value&& other) noexcept;
 
     ~Value() = default;
 
     //----------------------------------------------------------------------
-    // Type checking (legacy API)
+    // Type checking
     //----------------------------------------------------------------------
 
     ValueType
@@ -191,62 +177,66 @@ public:
     bool
     isNull() const
     {
-        return is_null();
+        return type() == nullValue;
     }
     bool
     isBool() const
     {
-        return is_bool();
+        return type() == booleanValue;
     }
     bool
     isInt() const
     {
-        return is_int64();
+        return type() == intValue;
     }
     bool
     isUInt() const
     {
-        return is_uint64();
+        return type() == uintValue;
     }
     bool
     isIntegral() const
     {
-        return is_int64() || is_uint64() || is_bool();
+        auto t = type();
+        return t == intValue || t == uintValue || t == booleanValue;
     }
     bool
     isDouble() const
     {
-        return is_double();
+        return type() == realValue;
     }
     bool
     isNumeric() const
     {
-        return is_int64() || is_uint64() || is_double() || is_bool();
+        auto t = type();
+        return t == intValue || t == uintValue || t == realValue || t == booleanValue;
     }
     bool
     isString() const
     {
-        return is_string();
+        return type() == stringValue;
     }
     bool
     isArray() const
     {
-        return is_array();
+        return type() == arrayValue;
     }
     bool
     isArrayOrNull() const
     {
-        return is_array() || is_null();
+        auto t = type();
+        return t == arrayValue || t == nullValue;
     }
     bool
     isObject() const
     {
-        return is_object();
+        return type() == objectValue;
     }
     bool
     isObjectOrNull() const
     {
-        return is_object() || is_null();
+        auto t = type();
+        return t == objectValue || t == nullValue;
     }
 
     bool
@@ -401,26 +391,56 @@ public:
     friend bool
     operator<(Value const& a, Value const& b);
 
+    //----------------------------------------------------------------------
+    // Conversion to boost::json::value (for serialization)
+    //----------------------------------------------------------------------
+
+    /** Convert to boost::json::value for serialization */
+    boost::json::value
+    toBoostJson() const;
+
 private:
-    // Helper to convert boost::json::value& to Value&
-    static Value&
-    asValue(boost::json::value& v)
-    {
-        return static_cast<Value&>(v);
-    }
-    static Value const&
-    asValue(boost::json::value const& v)
-    {
-        return static_cast<Value const&>(v);
-    }
+    // Internal storage using variant
+    using Storage = std::variant<
+        std::nullptr_t,  // nullValue
+        Int,             // intValue
+        UInt,            // uintValue
+        double,          // realValue
+        std::string,     // stringValue
+        bool,            // booleanValue
+        ArrayType,       // arrayValue
+        ObjectType       // objectValue
+        >;
+
+    Storage data_{nullptr};
+
+    // Helper to resolve or create a reference to an object member
+    Value&
+    resolveReference(char const* key);
 
     // Static null value for returning references
     static Value const&
     nullRef();
 
-    // Resolve reference (for object key access)
-    Value&
-    resolveReference(char const* key);
+    // Friend declarations for helper functions that access data_
+    friend Int
+    getInt(Value const& v);
+    friend UInt
+    getUInt(Value const& v);
+    friend double
+    getDouble(Value const& v);
+    friend bool
+    getBool(Value const& v);
+    friend std::string const&
+    getString(Value const& v);
+    friend ArrayType const&
+    getArray(Value const& v);
+    friend ObjectType const&
+    getObject(Value const& v);
+    friend ArrayType&
+    getMutableArray(Value& v);
+    friend ObjectType&
+    getMutableObject(Value& v);
 };
 
 inline Value
@@ -473,12 +493,9 @@ public:
 
     const_iterator() = default;
 
-    // Construct from boost::json iterators
-    explicit const_iterator(boost::json::object::const_iterator it, boost::json::object::const_iterator end);
-    explicit const_iterator(
-        boost::json::array::const_iterator it,
-        boost::json::array::const_iterator end,
-        std::size_t index);
+    // Construct from our container iterators
+    explicit const_iterator(ObjectType::const_iterator it, ObjectType::const_iterator end);
+    explicit const_iterator(ArrayType::const_iterator it, ArrayType::const_iterator end, std::size_t index);
 
     reference
     operator*() const;
@@ -515,18 +532,11 @@ private:
     enum class IteratorType { None, Object, Array };
 
     IteratorType type_{IteratorType::None};
-    boost::json::object::const_iterator objIt_;
-    boost::json::object::const_iterator objEnd_;
-    boost::json::array::const_iterator arrIt_;
-    boost::json::array::const_iterator arrEnd_;
+    ObjectType::const_iterator objIt_;
+    ObjectType::const_iterator objEnd_;
+    ArrayType::const_iterator arrIt_;
+    ArrayType::const_iterator arrEnd_;
     std::size_t arrayIndex_{0};
-
-    // Cached value for dereferencing
-    mutable Value cachedValue_;
-    mutable bool cacheValid_{false};
-
-    void
-    updateCache() const;
 };
 
 /** \brief Iterator for object and array value.
@@ -542,9 +552,9 @@ public:
 
     iterator() = default;
 
-    // Construct from boost::json iterators
-    explicit iterator(boost::json::object::iterator it, boost::json::object::iterator end);
-    explicit iterator(boost::json::array::iterator it, boost::json::array::iterator end, std::size_t index);
+    // Construct from our container iterators
+    explicit iterator(ObjectType::iterator it, ObjectType::iterator end);
+    explicit iterator(ArrayType::iterator it, ArrayType::iterator end, std::size_t index);
 
     reference
     operator*() const;
@@ -584,10 +594,10 @@ private:
     enum class IteratorType { None, Object, Array };
 
     IteratorType type_{IteratorType::None};
-    boost::json::object::iterator objIt_;
-    boost::json::object::iterator objEnd_;
-    boost::json::array::iterator arrIt_;
-    boost::json::array::iterator arrEnd_;
+    ObjectType::iterator objIt_;
+    ObjectType::iterator objEnd_;
+    ArrayType::iterator arrIt_;
+    ArrayType::iterator arrEnd_;
     std::size_t arrayIndex_{0};
 };
 

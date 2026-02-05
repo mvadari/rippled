@@ -214,7 +214,7 @@ void
 write_value(Write const& write, Value const& value)
 {
     // Use boost::json::serialize for compact output
-    std::string s = boost::json::serialize(static_cast<boost::json::value const&>(value));
+    std::string s = boost::json::serialize(value.toBoostJson());
     write(s.data(), s.size());
 }
 
