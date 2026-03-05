@@ -1,6 +1,7 @@
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/LedgerFormats.h>
 #include <xrpl/protocol/TxFlags.h>
+#include <xrpl/protocol/TxFormats.h>
 #include <xrpl/tx/transactors/Delegate/DelegateUtils.h>
 #include <xrpl/tx/transactors/MPT/MPTokenIssuanceSet.h>
 
@@ -128,10 +129,37 @@ MPTokenIssuanceSet::checkPermission(ReadView const& view, STTx const& tx)
 
     auto const txFlags = tx.getFlags();
 
-    // this is added in case more flags will be added for MPTokenIssuanceSet
-    // in the future. Currently unreachable.
-    if (txFlags & tfMPTokenIssuanceSetMask)
-        return terNO_DELEGATE_PERMISSION;  // LCOV_EXCL_LINE
+    // Flags permitted for granular delegated operations.
+    // Any new flags added to MPTokenIssuanceSet will be automatically
+    // rejected until explicitly added here.
+    constexpr std::uint32_t permittedDelegateFlags = tfMPTLock | tfMPTUnlock;
+
+    // Must have at least one permitted flag set
+    if (!(txFlags & permittedDelegateFlags))
+        return terNO_DELEGATE_PERMISSION;
+
+    // Check for any non-permitted flags (excluding universal flags)
+    if (txFlags & ~permittedDelegateFlags & tfUniversalMask)
+        return terNO_DELEGATE_PERMISSION;
+
+    // Define the fields permitted for granular delegated operations.
+    // Any new fields added to MPTokenIssuanceSet will be automatically
+    // rejected until explicitly added here.
+    static SOTemplate const permittedTemplate{
+        {
+            {sfMPTokenIssuanceID, soeREQUIRED},
+            {sfHolder, soeOPTIONAL},
+        },
+        TxFormats::getCommonFields()};
+
+    // Check for any non-permitted fields
+    for (auto const& field : tx)
+    {
+        if (field.getSType() == STI_NOTPRESENT)
+            continue;
+        if (permittedTemplate.getIndex(field.getFName()) == -1)
+            return terNO_DELEGATE_PERMISSION;
+    }
 
     std::unordered_set<GranularPermissionType> granularPermissions;
     loadGranularPermission(sle, ttMPTOKEN_ISSUANCE_SET, granularPermissions);
