@@ -398,7 +398,7 @@ trustCreate(
 
 TER
 trustDelete(
-    ApplyView& readView_,
+    ApplyView& view,
     std::shared_ptr<SLE> const& sleRippleState,
     AccountID const& uLowAccountID,
     AccountID const& uHighAccountID,
@@ -410,22 +410,20 @@ trustDelete(
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: low";
 
-    if (!readView_.dirRemove(
-            keylet::ownerDir(uLowAccountID), uLowNode, sleRippleState->key(), false))
+    if (!view.dirRemove(keylet::ownerDir(uLowAccountID), uLowNode, sleRippleState->key(), false))
     {
         return tefBAD_LEDGER;  // LCOV_EXCL_LINE
     }
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: high";
 
-    if (!readView_.dirRemove(
-            keylet::ownerDir(uHighAccountID), uHighNode, sleRippleState->key(), false))
+    if (!view.dirRemove(keylet::ownerDir(uHighAccountID), uHighNode, sleRippleState->key(), false))
     {
         return tefBAD_LEDGER;  // LCOV_EXCL_LINE
     }
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: state";
-    readView_.erase(sleRippleState);
+    view.erase(sleRippleState);
 
     return tesSUCCESS;
 }
