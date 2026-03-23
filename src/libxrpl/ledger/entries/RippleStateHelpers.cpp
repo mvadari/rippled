@@ -399,7 +399,7 @@ WritableRippleState::trustCreate(
 
 TER
 WritableRippleState::trustDelete(
-    ApplyView& readView_,
+    ApplyView& applyView,
     std::shared_ptr<SLE> const& sleRippleState,
     AccountID const& uLowAccountID,
     AccountID const& uHighAccountID,
@@ -411,7 +411,7 @@ WritableRippleState::trustDelete(
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: low";
 
-    if (!readView_.dirRemove(
+    if (!applyView.dirRemove(
             keylet::ownerDir(uLowAccountID), uLowNode, sleRippleState->key(), false))
     {
         return tefBAD_LEDGER;  // LCOV_EXCL_LINE
@@ -419,14 +419,14 @@ WritableRippleState::trustDelete(
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: high";
 
-    if (!readView_.dirRemove(
+    if (!applyView.dirRemove(
             keylet::ownerDir(uHighAccountID), uHighNode, sleRippleState->key(), false))
     {
         return tefBAD_LEDGER;  // LCOV_EXCL_LINE
     }
 
     JLOG(j.trace()) << "trustDelete: Deleting ripple line: state";
-    readView_.erase(sleRippleState);
+    applyView.erase(sleRippleState);
 
     return tesSUCCESS;
 }
@@ -906,6 +906,12 @@ deleteAMMTrustLine(
     wrappedHolder.adjustOwnerCount(-1, j);
 
     return tesSUCCESS;
+}
+
+std::unique_ptr<TokenHolderBase>
+IOUToken::getHolder(AccountID const& holder) const
+{
+    return std::make_unique<RippleState>(*this, holder);
 }
 
 }  // namespace xrpl

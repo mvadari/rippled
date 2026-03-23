@@ -38,7 +38,7 @@ public:
     }
 
     [[nodiscard]] AccountID const&
-    getIssuer() const
+    getIssuer() const override
     {
         return issuer_;
     }
@@ -117,6 +117,12 @@ public:
     canClawback() const override;
 
     [[nodiscard]] bool
+    canEscrow() const override
+    {
+        return issuerAccount_->isFlag(lsfAllowTrustLineLocking);
+    }
+
+    [[nodiscard]] bool
     requiresAuth() const override;
 
     [[nodiscard]] TER
@@ -132,6 +138,17 @@ public:
     {
         return readView_.exists(keylet::line(issuer_, holder, currency_));
     }
+
+    [[nodiscard]] TER
+    checkHolder(AccountID const& holder) const override
+    {
+        if (!hasHolder(holder))
+            return tecNO_LINE;
+        return tesSUCCESS;
+    }
+
+    [[nodiscard]] std::unique_ptr<TokenHolderBase>
+    getHolder(AccountID const& holder) const override;
 
 protected:
     Issue const issue_;
