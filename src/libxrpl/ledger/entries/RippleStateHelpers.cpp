@@ -165,6 +165,19 @@ IOUToken::isAnyFrozen(std::initializer_list<AccountID> const& accounts, int dept
 }
 
 STAmount
+IOUToken::accountFunds(
+    AccountID const& id,
+    STAmount const& saDefault,
+    FreezeHandling freezeHandling,
+    beast::Journal j) const
+{
+    if (!saDefault.native() && saDefault.getIssuer() == id)
+        return saDefault;
+
+    return accountHolds(id, freezeHandling, j);
+}
+
+STAmount
 IOUToken::accountHolds(
     AccountID const& account,
     FreezeHandling zeroIfFrozen,
@@ -184,7 +197,8 @@ IOUToken::accountHolds(
 {
     if (isXRP(currency_))
     {
-        return {issuerAccount_.xrpLiquid(0, j)};
+        AccountRoot accountRoot(account, readView_);
+        return {accountRoot.xrpLiquid(0, j)};
     }
 
     bool const returnSpendable = (includeFullBalance == shFULL_BALANCE);
@@ -194,35 +208,24 @@ IOUToken::accountHolds(
         return STAmount{issue_, STAmount::cMaxValue, STAmount::cMaxOffset};
 
     // IOU: Return balance on trust line modulo freeze
-    // Check if line exists and is usable
-    auto const sle = readView_.read(keylet::line(account, issuer_, currency_));
-    if (!sle)
-    {
-        STAmount result;
-        result.clear(Issue{currency_, issuer_});
-        return result;
-    }
+    // Check if line exists and is usable (mirrors old getLineIfUsable)
+    SLE::const_pointer sle = readView_.read(keylet::line(account, issuer_, currency_));
 
-    // Check freeze status
-    if (zeroIfFrozen == fhZERO_IF_FROZEN)
+    if (sle && zeroIfFrozen == fhZERO_IF_FROZEN)
     {
         if (isFrozen(account) || isDeepFrozen(account))
         {
-            STAmount result;
-            result.clear(Issue{currency_, issuer_});
-            return result;
+            sle = nullptr;
         }
 
         // when fixFrozenLPTokenTransfer is enabled, if currency is lptoken,
         // we need to check if the associated assets have been frozen
-        if (readView_.rules().enabled(fixFrozenLPTokenTransfer))
+        if (sle && readView_.rules().enabled(fixFrozenLPTokenTransfer))
         {
             auto const sleIssuer = readView_.read(keylet::account(issuer_));
             if (!sleIssuer)
             {
-                STAmount result;
-                result.clear(Issue{currency_, issuer_});
-                return result;
+                sle = nullptr;  // LCOV_EXCL_LINE
             }
             else if (sleIssuer->isFieldPresent(sfAMMID))
             {
@@ -235,33 +238,39 @@ IOUToken::accountHolds(
                         (*sleAmm)[sfAsset].get<Issue>(),
                         (*sleAmm)[sfAsset2].get<Issue>()))
                 {
-                    STAmount result;
-                    result.clear(Issue{currency_, issuer_});
-                    return result;
+                    sle = nullptr;
                 }
             }
         }
     }
 
-    // Extract balance from SLE
-    STAmount amount = sle->getFieldAmount(sfBalance);
-    bool const accountHigh = account > issuer_;
-    auto const& oppositeField = accountHigh ? sfLowLimit : sfHighLimit;
-    if (accountHigh)
+    // Extract balance (mirrors old getTrustLineBalance)
+    STAmount amount;
+    if (sle)
     {
-        // Put balance in account terms.
-        amount.negate();
+        amount = sle->getFieldAmount(sfBalance);
+        bool const accountHigh = account > issuer_;
+        auto const& oppositeField = accountHigh ? sfLowLimit : sfHighLimit;
+        if (accountHigh)
+        {
+            // Put balance in account terms.
+            amount.negate();
+        }
+        if (returnSpendable)
+        {
+            amount += sle->getFieldAmount(oppositeField);
+        }
+        amount.setIssuer(issuer_);
     }
-    if (returnSpendable)
+    else
     {
-        amount += sle->getFieldAmount(oppositeField);
+        amount.clear(Issue{currency_, issuer_});
     }
-    amount.setIssuer(issuer_);
 
     JLOG(j.trace()) << "IOUToken::accountHolds:" << " account=" << to_string(account)
                     << " amount=" << amount.getFullText();
 
-    return amount;
+    return readView_.balanceHook(account, issuer_, amount);
 }
 
 TER

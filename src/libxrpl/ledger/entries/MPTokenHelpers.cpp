@@ -74,14 +74,13 @@ MPTokenIssuance::isAnyFrozen(std::initializer_list<AccountID> const& accounts, i
 TER
 MPTokenIssuance::checkFrozen(AccountID const& account) const
 {
-    return isFrozen(account) ? TER{tecFROZEN} : TER{tesSUCCESS};
+    return isFrozen(account) ? TER{tecLOCKED} : TER{tesSUCCESS};
 }
 
 bool
 MPTokenIssuance::isDeepFrozen(AccountID const& account, int depth) const
 {
-    // MPTs don't have deep freeze, so this always returns false
-    return false;
+    return isFrozen(account, depth);
 }
 
 TER
