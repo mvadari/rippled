@@ -676,5 +676,21 @@ LEDGER_ENTRY(ltTRANSACTION_PROPOSAL, 0x0091, TransactionProposal, transaction_pr
     {sfOwnerNode,            SoeRequired},
 }))
 
+/** A ledger object that locks XRP until someone submits the phrase whose
+    SHA-512Half is stored in Digest.
+
+    \sa keylet::mystery
+ */
+LEDGER_ENTRY(ltMYSTERY, 0x0092, Mystery, mystery, ({
+    {sfAccount,              SoeRequired},
+    {sfSequence,             SoeRequired},
+    {sfAmount,               SoeRequired},
+    {sfDigest,               SoeRequired},
+    {sfData,                 SoeOptional},
+    {sfOwnerNode,            SoeRequired},
+    {sfPreviousTxnID,        SoeRequired},
+    {sfPreviousTxnLgrSeq,    SoeRequired},
+}))
+
 #undef EXPAND
 #undef LEDGER_ENTRY_DUPLICATE

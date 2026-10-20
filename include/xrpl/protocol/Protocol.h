@@ -261,6 +261,16 @@ constexpr std::size_t kMaxDidUriLength = 256;
 constexpr std::size_t kMaxDidDataLength = 256;
 
 /**
+ * The maximum length of the clue in a Mystery
+ */
+constexpr std::size_t kMaxMysteryDataLength = 256;
+
+/**
+ * The maximum length of a guess for a Mystery
+ */
+constexpr std::size_t kMaxMysteryGuessLength = 256;
+
+/**
  * The maximum length of a domain
  */
 constexpr std::size_t kMaxDomainLength = 256;

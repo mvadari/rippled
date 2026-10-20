@@ -252,6 +252,12 @@ Keylet
 escrow(AccountID const& src, SeqProxy const& seq) noexcept;
 
 /**
+ * A Mystery entry
+ */
+Keylet
+mystery(AccountID const& owner, SeqProxy const& seq) noexcept;
+
+/**
  * A PaymentChannel
  */
 Keylet

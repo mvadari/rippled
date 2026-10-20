@@ -22,6 +22,7 @@
 #include <xrpl/ledger/entries/LoanEntry.h>             // IWYU pragma: keep
 #include <xrpl/ledger/entries/MPTokenEntry.h>          // IWYU pragma: keep
 #include <xrpl/ledger/entries/MPTokenIssuanceEntry.h>  // IWYU pragma: keep
+#include <xrpl/ledger/entries/MysteryEntry.h>          // IWYU pragma: keep
 #include <xrpl/ledger/entries/NFTokenOfferEntry.h>     // IWYU pragma: keep
 #include <xrpl/ledger/entries/NFTokenPageEntry.h>      // IWYU pragma: keep
 #include <xrpl/ledger/entries/NegativeUNLEntry.h>      // IWYU pragma: keep

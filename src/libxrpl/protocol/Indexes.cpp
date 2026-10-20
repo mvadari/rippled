@@ -120,6 +120,8 @@ enum class LedgerNameSpace : std::uint16_t {
     Loan = 'L',
     Sponsorship = '>',
     TransactionProposal = 'y',
+    // TODO: Add a namespace for Mystery objects. Do not reuse a value from this
+    // enum, including the deprecated values below.
 
     // No longer used or supported. Left here to reserve the space to avoid accidental reuse.
     Contract [[deprecated]] = 'c',
@@ -432,6 +434,15 @@ Keylet
 escrow(AccountID const& src, SeqProxy const& seq) noexcept
 {
     return {ltESCROW, indexHash(LedgerNameSpace::Escrow, src, seq.value())};
+}
+
+Keylet
+mystery(AccountID const& owner, SeqProxy const& seq) noexcept
+{
+    // TODO: Compute the key of a Mystery from its namespace, the owner, and
+    // the sequence. See keylet::escrow above.
+    UNREACHABLE("xrpl::keylet::mystery : TODO not implemented");
+    return {ltMYSTERY, UInt256{}};
 }
 
 Keylet

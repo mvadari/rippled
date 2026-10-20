@@ -1189,6 +1189,43 @@ TRANSACTION(ttTRANSACTION_PROPOSAL_CANCEL, 94, TransactionProposalCancel,
     {sfProposalID, SoeRequired},
 }))
 
+/** This transaction type creates a Mystery, which locks XRP until someone
+    submits the phrase that matches its Digest. */
+#if TRANSACTION_INCLUDE
+#   include <xrpl/tx/transactors/mystery/MysteryCreate.h>
+#endif
+TRANSACTION(ttMYSTERY_CREATE, 96, MysteryCreate,
+    ({.amendment = featureMystery}),
+    ({
+    {sfAmount, SoeRequired},
+    {sfDigest, SoeRequired},
+    {sfData, SoeOptional},
+}))
+
+/** This transaction type submits a guess for a Mystery. A correct guess pays
+    out the locked XRP and deletes the Mystery. */
+#if TRANSACTION_INCLUDE
+#   include <xrpl/tx/transactors/mystery/MysteryGuess.h>
+#endif
+TRANSACTION(ttMYSTERY_GUESS, 97, MysteryGuess,
+    ({.amendment = featureMystery}),
+    ({
+    {sfOwner, SoeRequired},
+    {sfOfferSequence, SoeRequired},
+    {sfGuess, SoeRequired},
+}))
+
+/** This transaction type deletes a Mystery and returns the locked XRP to its
+    owner. */
+#if TRANSACTION_INCLUDE
+#   include <xrpl/tx/transactors/mystery/MysteryCancel.h>
+#endif
+TRANSACTION(ttMYSTERY_CANCEL, 98, MysteryCancel,
+    ({.amendment = featureMystery}),
+    ({
+    {sfOfferSequence, SoeRequired},
+}))
+
 /** This system-generated transaction type is used to update the status of the various amendments.
 
     For details, see: https://xrpl.org/amendments.html
